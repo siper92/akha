@@ -1,0 +1,14 @@
+# Editor/IDE
+.idea/
+.vscode/
+
+.env
+docker-compose.yaml
+
+# Exlude utils etension and folder
+__local
+*.local
+
+ai.*.md
+
+*.ai.md
