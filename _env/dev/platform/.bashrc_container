@@ -1,0 +1,11 @@
+alias gql_gen='go run github.com/99designs/gqlgen generate'
+
+sync_certs() {
+    cp /root/server.crt /app/platform/api/_env/server.crt
+    cp /root/server.key /app/platform/api/_env/server.key
+    cp /root/ca.crt /app/platform/api/_env/ca.crt
+
+    cp /root/cli-client.crt /app/platform/cmd/beiz/_env/cli-client.crt
+    cp /root/cli-client.key /app/platform/cmd/beiz/_env/cli-client.key
+    cp /root/ca.crt /app/platform/cmd/beiz/_env/ca.crt
+}

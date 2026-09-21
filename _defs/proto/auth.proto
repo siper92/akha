@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package proto_sdk;
+option go_package = "./proto-sdk;proto_sdk";
+
+message ValidateTokenResponse {
+  bool valid = 1;
+}
+
+message TokenMessage {
+  string token = 1;
+}
+
+service AuthService {
+  rpc ValidateToken(TokenMessage) returns (ValidateTokenResponse);
+}

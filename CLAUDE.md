@@ -34,20 +34,16 @@ generate: sqlc, protobuf, graphql
 
 ### Code Generation - types are defined and code is generated
 1. Define types in protobuf, sqlc, graphql files
- - structure: `@/<path>/_defs/` 
+ - structure: `@/_defs/` 
    - `db/` is for sqlc, `proto/` is for protobuf and `graphql/` is for GraphQL
-
-## File Locations
-
-**Backend definitions:**
-- Protobuf: `@/<path>/_defs/proto/*.proto`
-- SQLC: `@/<path>/_defs/db/schema.sql` and `q.*.sql`
-- GraphQL: `@/<path>/_defs/graphql/`
-
+ 
 **`Generated` code:**
-- Protobuf output: `@/<path>/sdk/proto-sdk/`
-- SQLC output: `@/<path>/sdk/db-sdk/`
-- GraphQL server: `@/<path>/api/graphql/*`
+- Protobuf output: `@/sdk/proto-sdk/`
+- SQLC output: `@/sdk/db-sdk/`
+- GraphQL server: `@/api/graphql/*`
+
+## Examples
+ - __local/starlark-go - a starlark interpreter written in Go, used for inspiration and examples
 
 # do
 - use simple formats form MD files
@@ -65,6 +61,7 @@ generate: sqlc, protobuf, graphql
    - use Read, Write, Search, Glob, Grep tools
 - read examples unless specified in the task
 - read contents of ./_env/_arch folder or ./_env/examples folder
+- read __arch folder or examples folder
 
 !!! don't are valid unless specified in the task
 !!! very important don't read ./_env/* forbidden folders
