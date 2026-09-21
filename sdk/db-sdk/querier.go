@@ -13,7 +13,6 @@ type Querier interface {
 	DeleteExpiredAccessTokens(ctx context.Context) error
 	GetAccessToken(ctx context.Context, token string) (AccessToken, error)
 	StoreAccessToken(ctx context.Context, arg StoreAccessTokenParams) error
-	getUser(ctx context.Context, token string) (AccessToken, error)
 }
 
 var _ Querier = (*Queries)(nil)

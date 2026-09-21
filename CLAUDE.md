@@ -36,6 +36,7 @@ generate: sqlc, protobuf, graphql
 1. Define types in protobuf, sqlc, graphql files
  - structure: `@/_defs/` 
    - `db/` is for sqlc, `proto/` is for protobuf and `graphql/` is for GraphQL
+ - generate all types with `just gen` command
  
 **`Generated` code:**
 - Protobuf output: `@/sdk/proto-sdk/`

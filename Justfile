@@ -2,12 +2,20 @@
 up:
     docker start akha_platform.dev 2>/dev/null || docker run -d \
       --name akha_platform.dev \
-      -v "{{justfile_directory()}}:/akha" \
+      -v "{{justfile_directory()}}:/platform" \
       -w /platform \
       akha_platform.dev
 
 [group('dev')]
-gen: gen-sqlc gen-proto
+clear:
+    rm -rf ./sdk/*
+
+[group('dev')]
+gen: clear gen-sqlc gen-proto
+
+[group('dev')]
+dev: up
+    docker exec -it akha_platform.dev bash
 
 ### sqlc code generation
 [group('generate')]
