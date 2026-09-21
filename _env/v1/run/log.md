@@ -50,3 +50,18 @@ Rule: no commands are run by agents, only `just gen` by the main agent at the en
 - suspected bugs: none. Observations only: CRLF shifts NEWLINE Col by one, backslash before CRLF stays in the ILLEGAL Lit, unknown escapes are permissive
 - feedback: the handoff with exact token stream and Lit conventions made the tests writable without guessing; keep the same precision on error text and positions in later steps
 
+### interruption
+
+- both agents were stopped by the user during impl step 3 and test step 2
+- step 3 files exist but were not handed off: lang/eval/value.go, registry.go, args.go, lang/check/checker.go
+- no parser tests existed after the stop
+
+### test - step 2 (parser), written by the main agent
+
+- files: lang/parser/helpers_test.go, parse_test.go, errors_test.go, golden_test.go
+- approach: `result{Script, Errs}` as the expected value, so error cases also go through `tu.Run` (`parser.Errors` is a slice, so `Case.Err` with `errors.Is` cannot match it)
+- coverage: calls, literals, escapes, rune columns, kwargs, spreads, trailing commas, newlines inside parens, blank lines, tabs, CRLF, comments in both lexer modes, every rule error, every syntax error message, unclosed paren, text after a call, recovery across lines, untyped nil error, Error and Errors formatting, golden spec.ak as a whole and per call
+- suspected bugs: none. Every position in the step 2 handoff was re-derived from lex.go and parse.go and matches
+- feedback: the `tu.Case.Err` field does not fit slice error types. A `result` struct holding both the tree and the errors keeps error cases in table style. The golden test is split per call so a failure names the call.
+- not run, per task rules
+
