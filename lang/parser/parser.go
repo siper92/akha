@@ -1,6 +1,9 @@
 package parser
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/siper92/akha/lang/ast"
 	"github.com/siper92/akha/lang/token"
 )
@@ -21,11 +24,14 @@ var (
 	_ error = (Errors)(nil)
 )
 
-func (e *Error) Error() string { return e.Msg }
+func (e *Error) Error() string {
+	return fmt.Sprintf("%d:%d: %s", e.Pos.Line, e.Pos.Col, e.Msg)
+}
 
 func (es Errors) Error() string {
-	if len(es) == 0 {
-		return ""
+	msgs := make([]string, len(es))
+	for i := range es {
+		msgs[i] = es[i].Error()
 	}
-	return es[0].Msg
+	return strings.Join(msgs, "\n")
 }

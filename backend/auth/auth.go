@@ -27,6 +27,7 @@ type Worker struct {
 
 type Attempt struct {
 	WorkerID *int64
+	Addr     string
 	OK       bool
 	Reason   string
 	At       time.Time
