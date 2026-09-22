@@ -197,6 +197,7 @@ func TestLexStrings(t *testing.T) {
 			Expected: []token.Token{tok(token.ILLEGAL, `"a\"`, 1, 1), eof(1, 5)},
 		},
 	}
+
 	tu.Run(tu.New(t), cases, lexAll(), nil)
 }
 

@@ -24,23 +24,29 @@ const accessToken = "akha_test_token"
 
 func startServer(t *testing.T) proto_sdk.AuthServiceClient {
 	t.Helper()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
+
 	db, err := auth.OpenDB(ctx, ":memory:")
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { db.Close() })
+
 	st := auth.NewStore(db_sdk.New(db))
 	if err := st.Seed(ctx, []string{accessToken}); err != nil {
 		t.Fatal(err)
 	}
+
 	kp, err := auth.GenerateKeys()
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	authn := auth.NewAuthenticator(auth.NewKeyring(kp, time.Minute), st, log)
+
 	lis := bufconn.Listen(1 << 20)
 	srv := New(lis, authn, log)
 	go func() { _ = srv.Serve(ctx) }()
@@ -53,6 +59,7 @@ func startServer(t *testing.T) proto_sdk.AuthServiceClient {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { conn.Close() })
+
 	return proto_sdk.NewAuthServiceClient(conn)
 }
 
@@ -73,6 +80,7 @@ func TestLogin(t *testing.T) {
 			Expected: codes.Unauthenticated,
 		},
 	}
+
 	fn := func(tok string) (codes.Code, error) {
 		resp, err := cli.Login(ctx, &proto_sdk.LoginRequest{AccessToken: tok})
 		if err != nil {

@@ -25,6 +25,7 @@ func newBackendCmd() *cobra.Command {
 		Short: "backend commands",
 	}
 	configFlag(cmd, "config.be.yaml")
+
 	cmd.AddCommand(&cobra.Command{
 		Use:   "serve",
 		Short: "start the backend gRPC server",
@@ -38,23 +39,28 @@ func runBackendServe(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+
 	ctx, stop := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	log := slog.Default()
 
+	log := slog.Default()
 	db, err := auth.OpenDB(ctx, cfg.DBPath)
 	if err != nil {
 		return err
 	}
 	defer db.Close()
+
+	//@TODO: seed must be a SQL on just level
 	store := auth.NewStore(db_sdk.New(db))
 	if err := store.Seed(ctx, cfg.AccessTokens); err != nil {
 		return err
 	}
+
 	kp, err := auth.LoadOrCreateKeys(cfg.JWT.PrivateKeyPath, cfg.JWT.PublicKeyPath)
 	if err != nil {
 		return err
 	}
+
 	keys := auth.NewKeyring(kp, cfg.JWT.TTL)
 	authn := auth.NewAuthenticator(keys, store, log)
 
@@ -70,6 +76,7 @@ func runBackendServe(cmd *cobra.Command, args []string) error {
 			return err
 		}
 	}
+
 	log.Info("backend config", "db", cfg.DBPath, "workers", cfg.Workers, "ttl", cfg.JWT.TTL, "tokens", len(cfg.AccessTokens))
 	return srv.Serve(ctx)
 }

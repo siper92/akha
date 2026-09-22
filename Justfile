@@ -82,7 +82,6 @@ integration script=hello: build
     set -u
     {{bin}} backend serve --config {{be_config}} &
     pid=$!
-    sleep 1
     {{bin}} worker run --config {{wk_config}} {{script}}
     rc=$?
     kill $pid

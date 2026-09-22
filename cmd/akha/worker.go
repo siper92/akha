@@ -27,6 +27,7 @@ func newWorkerCmd() *cobra.Command {
 		Short: "worker commands",
 	}
 	configFlag(cmd, "config.wk.yaml")
+
 	cmd.AddCommand(
 		&cobra.Command{
 			Use:   "run FILE",
@@ -51,6 +52,7 @@ func newWorkerCmd() *cobra.Command {
 			RunE:  runWorkerWhoami,
 		},
 	)
+
 	return cmd
 }
 
@@ -67,16 +69,20 @@ func newWorkerParts(cmd *cobra.Command, log *slog.Logger) (*workerParts, error) 
 	if err != nil {
 		return nil, err
 	}
+
 	c, err := cache.NewFile(cfg.CacheDir)
 	if err != nil {
 		return nil, err
 	}
+
 	conn, err := client.Dial(cfg.Backend)
 	if err != nil {
 		return nil, err
 	}
+
 	be := client.New(conn, cfg.AccessToken)
 	ts := client.NewTokenSource(be, c, client.DefaultTokenKey)
+
 	return &workerParts{
 		cfg:  cfg,
 		conn: conn,

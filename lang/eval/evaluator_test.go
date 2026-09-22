@@ -23,11 +23,13 @@ func (r *recorder) module() Module {
 			for _, a := range args {
 				parts = append(parts, fmt.Sprintf("%s:%s", TypeOf(a), a))
 			}
+
 			line := name + "(" + strings.Join(parts, ",") + ")"
 			if v, ok := kwargs["k"]; ok {
 				line += " k=" + v.String()
 			}
 			r.calls = append(r.calls, line)
+
 			if name == "Exit" {
 				code, _ := KwargInt(kwargs, "code", 0)
 				return None(), &ExitError{Code: int(code), Msg: "exit"}
@@ -35,9 +37,11 @@ func (r *recorder) module() Module {
 			if name == "Fail" {
 				return nil, errors.New("boom")
 			}
+
 			return None(), nil
 		})
 	}
+
 	return NewModule("T", rec("F"), rec("Exit"), rec("Fail"))
 }
 
@@ -46,11 +50,13 @@ func run(src string) (*recorder, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	r := &recorder{}
 	reg := NewRegistry()
 	if err := reg.Register(r.module()); err != nil {
 		return nil, err
 	}
+
 	return r, New(reg).Eval(context.Background(), s)
 }
 
@@ -78,11 +84,13 @@ func TestEval(t *testing.T) {
 			Expected: "F(string:a\nb)",
 		},
 	}
+
 	fn := func(src string) (string, error) {
 		r, err := run(src)
 		if err != nil {
 			return "", err
 		}
+
 		return strings.Join(r.calls, "|"), nil
 	}
 	tu.Run(tu.New(t), cases, fn, nil)
@@ -112,6 +120,7 @@ func TestEvalErrors(t *testing.T) {
 			Expected: 2,
 		},
 	}
+
 	fn := func(src string) (int, error) {
 		r, err := run(src)
 		var exit *ExitError

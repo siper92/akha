@@ -33,6 +33,7 @@ func (c *checker) Check(ctx context.Context, s *ast.Script, reg eval.Registry) [
 		return nil
 	}
 	w := &walk{reg: reg, allowed: map[string]bool{akModule: true}}
+
 	for i, call := range s.Calls {
 		if ctx.Err() != nil {
 			break
@@ -42,6 +43,7 @@ func (c *checker) Check(ctx context.Context, s *ast.Script, reg eval.Registry) [
 		}
 		w.call(i, call)
 	}
+
 	return w.diags
 }
 
@@ -55,23 +57,28 @@ func (w *walk) call(i int, call *ast.Call) {
 	if i == 0 && !isAllow {
 		w.errorf(call.P, "first call must be Ak.Allow")
 	}
+
 	if i > 0 && isAllow {
 		w.errorf(call.P, "Ak.Allow must be the first call")
 	}
+
 	mod, ok := w.reg.Lookup(t.Module)
 	if !ok {
 		w.errorf(call.P, "unknown module %s", t.Module)
 		return
 	}
+
 	if !w.allowed[t.Module] {
 		w.errorf(call.P, "module %s not allowed, add Ak.Allow(%s...)", t.Module, t.Module)
 	}
+
 	fn, ok := mod.Func(t.Name)
 	if !ok {
 		w.errorf(call.P, "unknown function %s.%s", t.Module, t.Name)
 		return
 	}
 	spec := fn.Spec()
+
 	w.positional(call, isAllow && i == 0, isAllow)
 	w.arity(call, spec)
 	w.kwargs(call, spec)
@@ -82,6 +89,7 @@ func (w *walk) positional(call *ast.Call, extend, isAllow bool) {
 		if arg == nil {
 			continue
 		}
+
 		sp, isSpread := arg.(*ast.Spread)
 		switch {
 		case isSpread && isAllow:
@@ -89,6 +97,7 @@ func (w *walk) positional(call *ast.Call, extend, isAllow bool) {
 				w.errorf(sp.P, "unknown module %s", sp.Module)
 				continue
 			}
+
 			if extend {
 				w.allowed[sp.Module] = true
 			}
@@ -107,6 +116,7 @@ func (w *walk) arity(call *ast.Call, spec eval.Spec) {
 		w.errorf(call.P, "%s expects at least %d arguments, got %d", name, spec.MinArgs, n)
 		return
 	}
+
 	if !spec.Variadic && n > spec.MaxArgs {
 		w.errorf(call.P, "%s expects at most %d arguments, got %d", name, spec.MaxArgs, n)
 	}
@@ -115,6 +125,7 @@ func (w *walk) arity(call *ast.Call, spec eval.Spec) {
 func (w *walk) kwargs(call *ast.Call, spec eval.Spec) {
 	name := call.Target.Module + "." + call.Target.Name
 	seen := map[string]bool{}
+
 	for _, kw := range call.Kwargs {
 		if seen[kw.Name] {
 			w.errorf(kw.P, "duplicate argument %s", kw.Name)

@@ -24,6 +24,7 @@ func New(lis net.Listener, authn auth.Authenticator, log *slog.Logger) Server {
 	if log == nil {
 		log = slog.Default()
 	}
+
 	authI := NewAuthInterceptor(authn,
 		proto_sdk.AuthService_Login_FullMethodName,
 		proto_sdk.AuthService_ValidateToken_FullMethodName,

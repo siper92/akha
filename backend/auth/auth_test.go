@@ -25,22 +25,27 @@ type fixture struct {
 
 func newFixture(t *testing.T, ttl time.Duration) *fixture {
 	t.Helper()
+
 	ctx := context.Background()
 	db, err := OpenDB(ctx, ":memory:")
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	t.Cleanup(func() { db.Close() })
 	st := NewStore(db_sdk.New(db))
+
 	if err := st.Seed(ctx, []string{goodToken}); err != nil {
 		t.Fatal(err)
 	}
+
 	kp, err := GenerateKeys()
 	if err != nil {
 		t.Fatal(err)
 	}
 	keys := NewKeyring(kp, ttl)
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
+
 	return &fixture{db: db, store: st, keys: keys, authn: NewAuthenticator(keys, st, log)}
 }
 
@@ -75,11 +80,13 @@ func TestRegister(t *testing.T) {
 			Err:   ErrUnauthorized,
 		},
 	}
+
 	fn := func(accessToken string) (Tier, error) {
 		token, exp, err := f.authn.Register(ctx, accessToken)
 		if err != nil {
 			return "", err
 		}
+
 		if exp.Before(time.Now()) {
 			t.Fatalf("expiry in the past: %v", exp)
 		}
@@ -108,10 +115,12 @@ func TestRegister(t *testing.T) {
 func TestVerify(t *testing.T) {
 	f := newFixture(t, time.Minute)
 	ctx := context.Background()
+
 	token, _, err := f.authn.Register(ctx, goodToken)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	revoked, _, err := f.authn.Register(ctx, goodToken)
 	if err != nil {
 		t.Fatal(err)
@@ -119,18 +128,22 @@ func TestVerify(t *testing.T) {
 	if err := f.store.Revoke(ctx, revoked); err != nil {
 		t.Fatal(err)
 	}
-	other, err := GenerateKeys()
+
+	keys, err := GenerateKeys()
 	if err != nil {
 		t.Fatal(err)
 	}
-	foreign, _, err := NewKeyring(other, time.Minute).Issue(ctx, "worker-1", TierWorker)
+
+	foreign, _, err := NewKeyring(keys, time.Minute).Issue(ctx, "worker-1", TierWorker)
 	if err != nil {
 		t.Fatal(err)
 	}
-	expired, _, err := NewKeyring(other, -time.Minute).Issue(ctx, "worker-1", TierWorker)
+
+	expired, _, err := NewKeyring(keys, -time.Minute).Issue(ctx, "worker-1", TierWorker)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	parts := strings.Split(token, ".")
 	tampered := parts[0] + "." + parts[1] + "x." + parts[2]
 
@@ -168,7 +181,7 @@ func TestVerify(t *testing.T) {
 	}
 	tu.Run(tu.New(t), cases, fn, nil)
 
-	if _, err := NewKeyring(other, time.Minute).Verify(ctx, expired); err != ErrExpiredToken {
+	if _, err := NewKeyring(keys, time.Minute).Verify(ctx, expired); err != ErrExpiredToken {
 		t.Fatalf("expired: want %v, got %v", ErrExpiredToken, err)
 	}
 }
@@ -177,19 +190,24 @@ func TestKeysRoundTrip(t *testing.T) {
 	dir := t.TempDir()
 	priv := filepath.Join(dir, "sub", "jwt.key")
 	pub := filepath.Join(dir, "sub", "jwt.pub")
+
 	first, err := LoadOrCreateKeys(priv, pub)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	second, err := LoadOrCreateKeys(priv, pub)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	if !first.Private.Equal(second.Private) || !first.Public.Equal(second.Public) {
 		t.Fatal("keys must be loaded from disk on the second call")
 	}
+
 	ctx := context.Background()
 	tok, _, err := NewKeyring(first, time.Minute).Issue(ctx, "s", TierBackend)
+
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -208,8 +226,9 @@ func TestHashToken(t *testing.T) {
 			Expected: true,
 		},
 	}
-	fn := func(s string) (bool, error) {
-		return HashToken(s) == HashToken(s) && HashToken(s) != HashToken(s+"x") && len(HashToken(s)) == 64, nil
-	}
-	tu.Run(tu.New(t), cases, fn, nil)
+	tu.Run(tu.New(t), cases, func(s string) (bool, error) {
+		return HashToken(s) == HashToken(s) &&
+			HashToken(s) != HashToken(s+"x") &&
+			len(HashToken(s)) == 64, nil
+	}, nil)
 }

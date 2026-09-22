@@ -64,6 +64,7 @@ func TestRunSlices(t *testing.T) {
 			Expected: []int{0, 1},
 		},
 	}
+
 	Run(New(t), cases, func(n int) ([]int, error) {
 		if n == 0 {
 			return nil, nil

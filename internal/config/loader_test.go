@@ -12,13 +12,16 @@ import (
 func writeYAML(t *testing.T, name, content string) string {
 	t.Helper()
 	p := filepath.Join(t.TempDir(), name)
+
 	if err := os.WriteFile(p, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
+
 	return p
 }
 
 func TestLoadWorker(t *testing.T) {
+	//@TODO: don't use files procide config as a string or io.Reader
 	full := writeYAML(t, "config.wk.yaml", `
 backend: "127.0.0.1:1234"
 worker_access_token: "tok"
@@ -28,7 +31,7 @@ root: "/tmp/r"
 	minimal := writeYAML(t, "min.yaml", `worker_access_token: "tok"`)
 
 	// --- explicit values and defaults
-	cases := []tu.Case[string, Worker]{
+	tu.Run(tu.New(t), []tu.Case[string, Worker]{
 		{
 			Name:     "all_fields",
 			Input:    full,
@@ -44,8 +47,7 @@ root: "/tmp/r"
 			Input: filepath.Join(t.TempDir(), "nope.yaml"),
 			Err:   ErrRead,
 		},
-	}
-	tu.Run(tu.New(t), cases, LoadWorker, nil)
+	}, LoadWorker, nil)
 }
 
 func TestLoadBackend(t *testing.T) {

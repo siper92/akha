@@ -31,16 +31,20 @@ func LoadOrCreateKeys(privPath, pubPath string) (KeyPair, error) {
 	if err == nil {
 		return kp, nil
 	}
+
 	if !errors.Is(err, os.ErrNotExist) {
 		return KeyPair{}, err
 	}
+
 	kp, err = GenerateKeys()
 	if err != nil {
 		return KeyPair{}, err
 	}
+
 	if err := SaveKeys(kp, privPath, pubPath); err != nil {
 		return KeyPair{}, err
 	}
+
 	return kp, nil
 }
 
@@ -53,6 +57,7 @@ func LoadKeys(privPath, pubPath string) (KeyPair, error) {
 	if err != nil {
 		return KeyPair{}, err
 	}
+
 	priv, err := parsePEM(privPEM, "PRIVATE KEY", func(b []byte) (any, error) { return x509.ParsePKCS8PrivateKey(b) })
 	if err != nil {
 		return KeyPair{}, fmt.Errorf("%w: %s: %v", ErrBadKey, privPath, err)
@@ -61,14 +66,17 @@ func LoadKeys(privPath, pubPath string) (KeyPair, error) {
 	if err != nil {
 		return KeyPair{}, fmt.Errorf("%w: %s: %v", ErrBadKey, pubPath, err)
 	}
+
 	sk, ok := priv.(ed25519.PrivateKey)
 	if !ok {
 		return KeyPair{}, fmt.Errorf("%w: %s: not ed25519", ErrBadKey, privPath)
 	}
+
 	pk, ok := pub.(ed25519.PublicKey)
 	if !ok {
 		return KeyPair{}, fmt.Errorf("%w: %s: not ed25519", ErrBadKey, pubPath)
 	}
+
 	return KeyPair{Private: sk, Public: pk}, nil
 }
 

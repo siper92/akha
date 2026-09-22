@@ -27,6 +27,7 @@ func (s *authService) Login(ctx context.Context, req *proto_sdk.LoginRequest) (*
 	if errors.Is(err, auth.ErrUnauthorized) {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
+
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

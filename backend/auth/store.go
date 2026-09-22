@@ -28,6 +28,7 @@ type Store interface {
 	AccessTokenStore
 	LoginLog
 	IssuedTokenStore
+	//@TODO: seed not part of the store
 	Seed(ctx context.Context, accessTokens []string) error
 }
 
@@ -50,20 +51,24 @@ func OpenDB(ctx context.Context, path string) (*sql.DB, error) {
 			return nil, err
 		}
 	}
+
 	db, err := sql.Open(sqliteDriver, path)
 	if err != nil {
 		return nil, err
 	}
+
 	db.SetMaxOpenConns(1)
 	if _, err := db.ExecContext(ctx, Schema); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("apply schema: %w", err)
 	}
+
 	return db, nil
 }
 
 func HashToken(token string) string {
 	sum := sha256.Sum256([]byte(token))
+
 	return hex.EncodeToString(sum[:])
 }
 
@@ -86,9 +91,11 @@ func (s *store) Lookup(ctx context.Context, hash string) (Worker, bool, error) {
 	if errors.Is(err, sql.ErrNoRows) {
 		return Worker{}, false, nil
 	}
+
 	if err != nil {
 		return Worker{}, false, err
 	}
+
 	return Worker{ID: w.ID, Name: w.Name, Tier: Tier(w.Tier)}, true, nil
 }
 
@@ -97,10 +104,12 @@ func (s *store) Record(ctx context.Context, a Attempt) error {
 	if at.IsZero() {
 		at = time.Now()
 	}
+
 	var wid sql.NullInt64
 	if a.WorkerID != nil {
 		wid = sql.NullInt64{Int64: *a.WorkerID, Valid: true}
 	}
+
 	return s.q.RecordLogin(ctx, db_sdk.RecordLoginParams{
 		WorkerID:  wid,
 		Addr:      a.Addr,
@@ -123,9 +132,11 @@ func (s *store) Active(ctx context.Context, token string) (bool, error) {
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	}
+
 	if err != nil {
 		return false, err
 	}
+
 	return t.IsActive && time.Now().Before(t.ExpiresAt), nil
 }
 

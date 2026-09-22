@@ -41,19 +41,23 @@ func NewLoader[T any]() Loader[T] {
 	return &loader[T]{}
 }
 
-func (l *loader[T]) Load(path string) (T, error) {
+func (l *loader[T]) Load(configPath string) (T, error) {
 	var out T
 	v := viper.New()
-	v.SetConfigFile(path)
+	v.SetConfigFile(configPath)
+
 	if err := v.ReadInConfig(); err != nil {
-		return out, fmt.Errorf("%w: %s: %v", ErrRead, path, err)
+		return out, fmt.Errorf("%w: %s: %v", ErrRead, configPath, err)
 	}
+
 	if err := v.Unmarshal(&out); err != nil {
-		return out, fmt.Errorf("%w: %s: %v", ErrDecode, path, err)
+		return out, fmt.Errorf("%w: %s: %v", ErrDecode, configPath, err)
 	}
+
 	if d, ok := any(&out).(defaulter); ok {
 		d.setDefaults()
 	}
+
 	return out, nil
 }
 

@@ -1,12 +1,12 @@
 // hello.ak - basic integration script
 Ak.Allow(FS...)
 Ak.Setup(
-    log="hello.log",
-    debug="hello.debug.log",
+    log="worker.log",
+    debug="worker.debug.log",
 )
 
-Ak.Log("hello from akha")
-Ak.Debug("debug args", 1, "two", true)
+Ak.Log("akha log test - interpret")
+Ak.Debug("debug with args", 1, "two", true)
 
 FS.WriteFile("hello/hello.txt", "hello")
 FS.UpdateFile("hello/hello.txt", "hello, world")
