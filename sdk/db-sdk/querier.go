@@ -9,10 +9,13 @@ import (
 )
 
 type Querier interface {
-	DeleteAccessToken(ctx context.Context, token string) error
-	DeleteExpiredAccessTokens(ctx context.Context) error
-	GetAccessToken(ctx context.Context, token string) (AccessToken, error)
-	StoreAccessToken(ctx context.Context, arg StoreAccessTokenParams) error
+	DeleteExpiredIssuedTokens(ctx context.Context) error
+	GetIssuedToken(ctx context.Context, token string) (IssuedToken, error)
+	GetWorkerByTokenHash(ctx context.Context, tokenHash string) (Worker, error)
+	RecordLogin(ctx context.Context, arg RecordLoginParams) error
+	RevokeIssuedToken(ctx context.Context, token string) error
+	StoreIssuedToken(ctx context.Context, arg StoreIssuedTokenParams) error
+	UpsertWorker(ctx context.Context, arg UpsertWorkerParams) error
 }
 
 var _ Querier = (*Queries)(nil)

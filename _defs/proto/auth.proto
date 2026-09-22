@@ -3,6 +3,14 @@ syntax = "proto3";
 package proto_sdk;
 option go_package = "./proto-sdk;proto_sdk";
 
+message LoginRequest {
+  string access_token = 1;
+}
+
+message LoginResponse {
+  string token = 1;
+}
+
 message ValidateTokenResponse {
   bool valid = 1;
 }
@@ -12,5 +20,6 @@ message TokenMessage {
 }
 
 service AuthService {
+  rpc Login(LoginRequest) returns (LoginResponse);
   rpc ValidateToken(TokenMessage) returns (ValidateTokenResponse);
 }

@@ -9,10 +9,29 @@ import (
 	"time"
 )
 
-type AccessToken struct {
+type IssuedToken struct {
+	ID        int64         `json:"id"`
+	WorkerID  sql.NullInt64 `json:"worker_id"`
+	Token     string        `json:"token"`
+	IsActive  bool          `json:"is_active"`
+	ExpiresAt time.Time     `json:"expires_at"`
+	CreatedAt sql.NullTime  `json:"created_at"`
+}
+
+type LoginLog struct {
+	ID        int64         `json:"id"`
+	WorkerID  sql.NullInt64 `json:"worker_id"`
+	Addr      string        `json:"addr"`
+	Ok        bool          `json:"ok"`
+	Reason    string        `json:"reason"`
+	CreatedAt time.Time     `json:"created_at"`
+}
+
+type Worker struct {
 	ID        int64        `json:"id"`
-	Token     string       `json:"token"`
+	Name      string       `json:"name"`
+	TokenHash string       `json:"token_hash"`
+	Tier      string       `json:"tier"`
 	IsActive  bool         `json:"is_active"`
-	ExpiresAt time.Time    `json:"expires_at"`
 	CreatedAt sql.NullTime `json:"created_at"`
 }

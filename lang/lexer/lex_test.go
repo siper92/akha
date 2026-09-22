@@ -56,8 +56,8 @@ func TestLexIdents(t *testing.T) {
 			Expected: []token.Token{tok(token.IDENT, "x", 1, 2), eof(1, 3)},
 		},
 		{
-			Name:     "digit_cannot_start_ident",
-			Input:    "a1 1a",
+			Name:  "digit_cannot_start_ident",
+			Input: "a1 1a",
 			Expected: []token.Token{
 				tok(token.IDENT, "a1", 1, 1),
 				tok(token.INT, "1", 1, 4),
@@ -158,7 +158,7 @@ func TestLexStrings(t *testing.T) {
 		{
 			Name:     "all_escapes_together",
 			Input:    `"a\"b\\c\n\t"`,
-			Expected: []token.Token{tok(token.STRING, "a\"b\\c\n\t", 1, 1), eof(1, 15)},
+			Expected: []token.Token{tok(token.STRING, "a\"b\\c\n\t", 1, 1), eof(1, 14)},
 		},
 		// --- unterminated strings
 		{
@@ -167,8 +167,8 @@ func TestLexStrings(t *testing.T) {
 			Expected: []token.Token{tok(token.ILLEGAL, `"abc`, 1, 1), eof(1, 5)},
 		},
 		{
-			Name:     "unterminated_at_newline_then_continues",
-			Input:    "\"abc\nX",
+			Name:  "unterminated_at_newline_then_continues",
+			Input: "\"abc\nX",
 			Expected: []token.Token{
 				tok(token.ILLEGAL, `"abc`, 1, 1),
 				nl(1, 5),
@@ -239,8 +239,8 @@ func TestLexPunctuation(t *testing.T) {
 			Expected: []token.Token{tok(token.ASSIGN, "=", 1, 1), eof(1, 2)},
 		},
 		{
-			Name:     "kwarg_shape",
-			Input:    "x=1",
+			Name:  "kwarg_shape",
+			Input: "x=1",
 			Expected: []token.Token{
 				tok(token.IDENT, "x", 1, 1),
 				tok(token.ASSIGN, "=", 1, 2),
@@ -249,8 +249,8 @@ func TestLexPunctuation(t *testing.T) {
 			},
 		},
 		{
-			Name:     "comma_with_spaces",
-			Input:    "a , b",
+			Name:  "comma_with_spaces",
+			Input: "a , b",
 			Expected: []token.Token{
 				tok(token.IDENT, "a", 1, 1),
 				tok(token.COMMA, ",", 1, 3),
@@ -259,8 +259,8 @@ func TestLexPunctuation(t *testing.T) {
 			},
 		},
 		{
-			Name:     "allow_with_spread",
-			Input:    "Ak.Allow(FS...)",
+			Name:  "allow_with_spread",
+			Input: "Ak.Allow(FS...)",
 			Expected: []token.Token{
 				tok(token.IDENT, "Ak", 1, 1),
 				tok(token.DOT, ".", 1, 3),
@@ -273,8 +273,8 @@ func TestLexPunctuation(t *testing.T) {
 			},
 		},
 		{
-			Name:     "allow_with_two_dots",
-			Input:    "Ak.Allow(FS..)",
+			Name:  "allow_with_two_dots",
+			Input: "Ak.Allow(FS..)",
 			Expected: []token.Token{
 				tok(token.IDENT, "Ak", 1, 1),
 				tok(token.DOT, ".", 1, 3),
@@ -305,8 +305,8 @@ func TestLexCommentsDropped(t *testing.T) {
 			Expected: []token.Token{eof(1, 3)},
 		},
 		{
-			Name:     "comment_after_code_newline_kept",
-			Input:    "x // c\ny",
+			Name:  "comment_after_code_newline_kept",
+			Input: "x // c\ny",
 			Expected: []token.Token{
 				tok(token.IDENT, "x", 1, 1),
 				nl(1, 7),
@@ -315,8 +315,8 @@ func TestLexCommentsDropped(t *testing.T) {
 			},
 		},
 		{
-			Name:     "comment_line_between_code",
-			Input:    "a\n// c\nb",
+			Name:  "comment_line_between_code",
+			Input: "a\n// c\nb",
 			Expected: []token.Token{
 				tok(token.IDENT, "a", 1, 1),
 				nl(1, 2),
@@ -354,8 +354,8 @@ func TestLexCommentsKept(t *testing.T) {
 			Expected: []token.Token{tok(token.COMMENT, "", 1, 1), eof(1, 3)},
 		},
 		{
-			Name:     "comment_after_code",
-			Input:    "x // c\ny",
+			Name:  "comment_after_code",
+			Input: "x // c\ny",
 			Expected: []token.Token{
 				tok(token.IDENT, "x", 1, 1),
 				tok(token.COMMENT, " c", 1, 3),
@@ -365,8 +365,8 @@ func TestLexCommentsKept(t *testing.T) {
 			},
 		},
 		{
-			Name:     "crlf_trailing_cr_trimmed",
-			Input:    "// c\r\nx",
+			Name:  "crlf_trailing_cr_trimmed",
+			Input: "// c\r\nx",
 			Expected: []token.Token{
 				tok(token.COMMENT, " c", 1, 1),
 				nl(1, 6),
@@ -455,8 +455,8 @@ func TestLexIllegal(t *testing.T) {
 			Expected: []token.Token{tok(token.ILLEGAL, ";", 1, 1), eof(1, 2)},
 		},
 		{
-			Name:     "single_quotes",
-			Input:    "'a'",
+			Name:  "single_quotes",
+			Input: "'a'",
 			Expected: []token.Token{
 				tok(token.ILLEGAL, "'", 1, 1),
 				tok(token.IDENT, "a", 1, 2),
@@ -470,8 +470,8 @@ func TestLexIllegal(t *testing.T) {
 			Expected: []token.Token{tok(token.ILLEGAL, "{", 1, 1), tok(token.ILLEGAL, "}", 1, 2), eof(1, 3)},
 		},
 		{
-			Name:     "illegal_between_idents",
-			Input:    "a-b",
+			Name:  "illegal_between_idents",
+			Input: "a-b",
 			Expected: []token.Token{
 				tok(token.IDENT, "a", 1, 1),
 				tok(token.ILLEGAL, "-", 1, 2),
@@ -481,8 +481,8 @@ func TestLexIllegal(t *testing.T) {
 		},
 		// --- unicode and invalid utf8
 		{
-			Name:     "unicode_letter_col_counts_runes",
-			Input:    "a é b",
+			Name:  "unicode_letter_col_counts_runes",
+			Input: "a é b",
 			Expected: []token.Token{
 				tok(token.IDENT, "a", 1, 1),
 				tok(token.ILLEGAL, "é", 1, 3),
