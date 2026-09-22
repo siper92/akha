@@ -1,0 +1,4 @@
+backend: "localhost:50051"
+worker_access_token: "akha_420_99078"
+cache_dir: ".cache/akha"
+root: ".cache/akha/root"

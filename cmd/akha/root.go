@@ -28,19 +28,6 @@ func newRoot() *cobra.Command {
 	return root
 }
 
-func newWorkerCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "worker",
-		Short: "worker commands",
-	}
-	configFlag(cmd, "config.wk.yaml")
-	cmd.AddCommand(&cobra.Command{
-		Use:   "serve",
-		Short: "start the worker gRPC server",
-	})
-	return cmd
-}
-
 func setupLogger(verbose bool) {
 	level := slog.LevelInfo
 	if verbose {

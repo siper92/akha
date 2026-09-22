@@ -5,6 +5,10 @@
 .env
 docker-compose.yaml
 
+# build and runtime output
+bin/
+.cache/
+
 # Exlude utils etension and folder
 __local
 *.local

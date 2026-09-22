@@ -82,6 +82,8 @@ func (r *runner) Run(ctx context.Context, src string, opts Options) (Result, err
 	}
 	r.log.Info("run start", "run", opts.RunID, "root", opts.Root)
 	err = eval.New(reg).Eval(ctx, s)
+	res.LogPath = out.LogPath()
+	res.DebugPath = out.DebugPath()
 	var exit *eval.ExitError
 	switch {
 	case errors.As(err, &exit):

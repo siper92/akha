@@ -2,8 +2,9 @@ set shell := ["bash", "-cu"]
 
 bin := "./bin/akha"
 be_config := "config.be.yaml"
-wk_config := "config.yaml"
-0
+wk_config := "config.wk.yaml"
+hello := "_env/examples/akha/hello.ak"
+
 default:
     @just --list
 
@@ -70,6 +71,23 @@ check-ak file: build
 [group('run')]
 login: build
     {{bin}} worker login --config {{wk_config}}
+
+[group('run')]
+run-hello: build
+    {{bin}} worker run --config {{wk_config}} {{hello}}
+
+[group('run')]
+integration script=hello: build
+    #!/usr/bin/env bash
+    set -u
+    {{bin}} backend serve --config {{be_config}} &
+    pid=$!
+    sleep 1
+    {{bin}} worker run --config {{wk_config}} {{script}}
+    rc=$?
+    kill $pid
+    wait $pid 2>/dev/null || true
+    exit $rc
 
 ### generate
 

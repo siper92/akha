@@ -61,13 +61,13 @@ Rules:
 
 ## setup
 
-Worker config `config.yaml`:
+Worker config `config.wk.yaml`:
 
 ```yaml
 backend: "localhost:50051"
 worker_access_token: "akha_420_99078"
 cache_dir: ".cache/akha"
-root: "."
+root: ".cache/akha/root"
 ```
 
 Backend config `config.be.yaml`:
@@ -109,14 +109,20 @@ just run-backend
 just login
 ```
 
+Run the integration flow, backend plus worker on `_env/examples/akha/hello.ak`:
+
+```
+just integration
+```
+
 The binary can be used directly:
 
 ```
 ./bin/akha backend serve --config config.be.yaml
-./bin/akha worker run --config config.yaml script.ak
-./bin/akha worker check --config config.yaml script.ak
-./bin/akha worker login --config config.yaml
-./bin/akha worker whoami --config config.yaml
+./bin/akha worker run --config config.wk.yaml script.ak
+./bin/akha worker check --config config.wk.yaml script.ak
+./bin/akha worker login --config config.wk.yaml
+./bin/akha worker whoami --config config.wk.yaml
 ```
 
 Regenerate the sdk from `_defs/`:
