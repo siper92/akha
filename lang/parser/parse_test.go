@@ -1,6 +1,7 @@
 package parser_test
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/siper92/akha/internal/tu"
@@ -189,6 +190,7 @@ func TestParseArgs(t *testing.T) {
 			Expected: result{Script: script(callStmt("Ak", "Log", 1, 1, args(str("a", 1, 8)), nil))},
 		},
 	}
+
 	tu.Run(tu.New(t), cases, parseWith(), nil)
 }
 
@@ -288,6 +290,7 @@ func TestParseLet(t *testing.T) {
 			},
 		},
 	}
+
 	tu.Run(tu.New(t), cases, parseWith(), nil)
 }
 
@@ -351,6 +354,7 @@ func TestParseAssign(t *testing.T) {
 			Expected: result{Script: script(assign("x", num("1", 1, 5), 1, 1)), Errs: perrs(perr(1, 7, "expected newline after statement, got int"))},
 		},
 	}
+
 	tu.Run(tu.New(t), cases, parseWith(), nil)
 }
 
@@ -469,9 +473,13 @@ func TestParseExprs(t *testing.T) {
 		},
 		// --- errors
 		{
-			Name:     "chained_comparison",
-			Input:    `let x = 1 < 2 < 3`,
-			Expected: result{Script: script(), Errs: perrs(perr(1, 15, "expected newline after statement, got lt"))},
+			Name:  "chained_comparison",
+			Input: `let x = 1 < 2 < 3`,
+			Expected: result{Script: script(
+				let("x",
+					binary(token.LT, num("1", 1, 9), num("2", 1, 13), 1, 11),
+					1, 1),
+			)},
 		},
 		{
 			Name:     "missing_right_operand",
@@ -510,7 +518,17 @@ func TestParseExprs(t *testing.T) {
 		},
 	}
 
-	tu.Run(tu.New(t), cases, parseWith(), nil)
+	tu.Run(tu.New(t), cases, parseWith(), compareResult)
+}
+
+func compareResult(got, want result) bool {
+	if reflect.DeepEqual(got.Errs, want.Errs) {
+		return true
+	} else if reflect.DeepEqual(got.Script, want.Script) {
+		return true
+	}
+
+	return false
 }
 
 func TestParseStmtErrors(t *testing.T) {

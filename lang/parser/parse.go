@@ -42,6 +42,7 @@ func (p *parser) Parse() (*ast.Script, error) {
 	if len(p.errs) == 0 {
 		return s, nil
 	}
+
 	return s, p.errs
 }
 

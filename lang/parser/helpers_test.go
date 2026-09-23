@@ -20,10 +20,12 @@ func parseWith(opts ...lexer.Option) func(string) (result, error) {
 		if err == nil {
 			return result{Script: s}, nil
 		}
+
 		var errs parser.Errors
 		if !errors.As(err, &errs) {
 			return result{}, err
 		}
+
 		return result{Script: s, Errs: errs}, nil
 	}
 }
