@@ -21,6 +21,19 @@ func ArgString(args []Value, i int) (string, error) {
 	return s, nil
 }
 
+func ArgInt(args []Value, i int) (int64, error) {
+	if i < 0 || i >= len(args) {
+		return 0, fmt.Errorf("%w: argument %d", ErrMissingArg, i+1)
+	}
+
+	n, ok := AsInt(args[i])
+	if !ok {
+		return 0, fmt.Errorf("%w: argument %d must be int, got %s", ErrArgType, i+1, TypeOf(args[i]))
+	}
+
+	return n, nil
+}
+
 func KwargString(kw map[string]Value, name, def string) (string, error) {
 	v, ok := kw[name]
 	if !ok {

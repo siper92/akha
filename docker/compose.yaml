@@ -1,0 +1,32 @@
+services:
+  backend:
+    image: akha/backend:dev
+    build:
+      context: ..
+      dockerfile: docker/backend.Dockerfile
+    ports:
+      - "50051:50051"
+    volumes:
+      - backend-data:/data
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "50051"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+
+  worker:
+    image: akha/worker:dev
+    build:
+      context: ..
+      dockerfile: docker/worker.Dockerfile
+    depends_on:
+      backend:
+        condition: service_healthy
+    volumes:
+      - worker-data:/data
+      - ./scripts:/scripts:ro
+    command: ["run", "--config", "/etc/akha/config.wk.yaml", "/scripts/${AK_SCRIPT:-hello.ak}"]
+
+volumes:
+  backend-data:
+  worker-data:

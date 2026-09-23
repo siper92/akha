@@ -67,8 +67,8 @@ func TestParseErrorString(t *testing.T) {
 		},
 		{
 			Name:     "rule_and_syntax_errors_joined",
-			Input:    "Ak.Log(yes)\nAk",
-			Expected: "1:8: unexpected identifier\n2:3: expected '.', got eof",
+			Input:    "Ak.Log(FS...)\nAk",
+			Expected: "1:8: spread only allowed in Ak.Allow\n2:3: expected '.' or '=', got eof",
 		},
 	}
 	tu.Run(tu.New(t), cases, func(src string) (string, error) {

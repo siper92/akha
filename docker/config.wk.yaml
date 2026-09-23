@@ -1,0 +1,4 @@
+backend: "backend:50051"
+worker_access_token: "akha_420_99078"
+cache_dir: "/data/cache"
+root: "/data/root"

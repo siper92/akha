@@ -31,15 +31,26 @@ generate: sqlc, protobuf, graphql (deferred)
 - `worker/` - worker service, embedded mode
 - `_defs/` - proto, sqlc and graphql definitions
 - `sdk/` - generated code only
+- `docker/` - backend and worker images, compose file, container configs, sample scripts
+- `.claude/skills/` - project skills, see `ak-lang-feature`
 - `__arch/v1/` - spec, plan, questions and run log for the current version
 
 ## language
 
-- see `__arch/v1/lang.spec` for the `.ak` spec
-- calls only, no variables, conditions or loops in v1
-- `Ak.Allow(FS...)` must be the first call and declares the used modules
+- see `__arch/v1/lang.spec` for the `.ak` spec, it is the source of truth
+- statements: call, `let`, assignment, `if`/`else if`/`else`, `for x in list`, `while`, `break`, `continue`
+- expressions: literals, variable references, calls, `+ - * / %`, comparisons, `and or not`, grouping
+- blocks use braces, `{` on the header line and `}` on its own line
+- `Ak.Allow(FS...)` must be the first statement and declares the used modules
 - `Ak` is always allowed
-- static check on every execution, then evaluate
+- static check on every execution (allow rules, arity, kwargs, scopes, loop keywords), then evaluate
+
+## skills
+
+- `ak-lang-feature` (`.claude/skills/ak-lang-feature/SKILL.md`) - how to add a language feature
+  - spec first, then data definitions (token, ast, eval), then table tests, then one layer at a time
+  - carries the shared api sheet for ast nodes, `eval.Env`, `eval.Binary` and `eval.Unary`
+  - use it for any change to `lang/`
 
 ## config
 
@@ -57,6 +68,10 @@ generate: sqlc, protobuf, graphql (deferred)
 - `just run-ak file.ak` - run a script on the worker
 - `just check-ak file.ak` - static check a script
 - `just gen` - clear dsk and regenerate it in the `sdk/` from `_defs/`
+- `just img-build` - build the backend and worker images from `docker/`
+- `just img-up` - start the backend container
+- `just img-run-ak file.ak` - run a script from `docker/scripts/` in a worker container
+- `just img-down` - stop the containers and drop their volumes
 
 ## Conventions
 

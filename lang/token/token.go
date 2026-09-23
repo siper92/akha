@@ -16,6 +16,32 @@ const (
 	COMMA
 	ASSIGN
 	ELLIPSIS
+	LBRACE
+	RBRACE
+	PLUS
+	MINUS
+	STAR
+	SLASH
+	PERCENT
+	EQ
+	NEQ
+	LT
+	LTE
+	GT
+	GTE
+	LET
+	IF
+	ELSE
+	FOR
+	IN
+	WHILE
+	BREAK
+	CONTINUE
+	AND
+	OR
+	NOT
+	TRUE
+	FALSE
 )
 
 type Pos struct {

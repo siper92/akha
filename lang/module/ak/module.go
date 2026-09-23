@@ -14,6 +14,7 @@ const (
 	FuncLog   = "Log"
 	FuncDebug = "Debug"
 	FuncExit  = "Exit"
+	FuncStr   = "Str"
 )
 
 func New(out Output, allowed Allowed) eval.Module {
@@ -23,7 +24,20 @@ func New(out Output, allowed Allowed) eval.Module {
 		eval.NewBuiltin(eval.Spec{Name: FuncLog, MinArgs: 1, MaxArgs: 1}, logFn(out)),
 		eval.NewBuiltin(eval.Spec{Name: FuncDebug, MinArgs: 1, Variadic: true}, debugFn(out)),
 		eval.NewBuiltin(eval.Spec{Name: FuncExit, MaxArgs: 1, Kwargs: []string{"code"}}, exitFn(out)),
+		eval.NewBuiltin(eval.Spec{Name: FuncStr, MinArgs: 1, MaxArgs: 1}, strFn()),
 	)
+}
+
+func strFn() eval.CallFunc {
+	return func(ctx context.Context, args []eval.Value, kwargs map[string]eval.Value) (eval.Value, error) {
+		if len(args) == 0 {
+			return nil, fmt.Errorf("%w: argument 1", eval.ErrMissingArg)
+		}
+		if args[0] == nil {
+			return eval.Str("none"), nil
+		}
+		return eval.Str(args[0].String()), nil
+	}
 }
 
 func allowFn(allowed Allowed) eval.CallFunc {

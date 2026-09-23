@@ -27,10 +27,12 @@ func Run[I, E any](t *T, cases []Case[I, E], fn func(I) (E, error), eq func(want
 				}
 				return
 			}
+
 			if err != nil {
 				st.Errorf("%s: unexpected error: %v", c.Name, err)
 				return
 			}
+
 			if !eq(c.Expected, got) {
 				st.Errorf("%s: want %#v, got %#v", c.Name, c.Expected, got)
 			}

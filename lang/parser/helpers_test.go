@@ -40,12 +40,27 @@ func num(v string, l, c int) ast.Expr {
 	return &ast.Literal{Kind: token.INT, Value: v, P: pos(l, c)}
 }
 
+func boolean(v bool, l, c int) ast.Expr {
+	if v {
+		return &ast.Literal{Kind: token.TRUE, Value: "true", P: pos(l, c)}
+	}
+	return &ast.Literal{Kind: token.FALSE, Value: "false", P: pos(l, c)}
+}
+
 func ident(v string, l, c int) ast.Expr {
-	return &ast.Literal{Kind: token.IDENT, Value: v, P: pos(l, c)}
+	return &ast.Ident{Name: v, P: pos(l, c)}
 }
 
 func spread(m string, l, c int) ast.Expr {
 	return &ast.Spread{Module: m, P: pos(l, c)}
+}
+
+func binary(op token.Kind, x, y ast.Expr, l, c int) ast.Expr {
+	return &ast.Binary{Op: op, X: x, Y: y, P: pos(l, c)}
+}
+
+func unary(op token.Kind, x ast.Expr, l, c int) ast.Expr {
+	return &ast.Unary{Op: op, X: x, P: pos(l, c)}
 }
 
 func kw(name string, v ast.Expr, l, c int) ast.Kwarg {
@@ -69,8 +84,24 @@ func call(mod, name string, l, c int, a []ast.Expr, k []ast.Kwarg) *ast.Call {
 	}
 }
 
-func script(calls ...*ast.Call) *ast.Script {
-	return &ast.Script{Calls: calls}
+func callStmt(mod, name string, l, c int, a []ast.Expr, k []ast.Kwarg) ast.Stmt {
+	return &ast.CallStmt{Call: call(mod, name, l, c, a, k)}
+}
+
+func let(name string, v ast.Expr, l, c int) ast.Stmt {
+	return &ast.Let{Name: name, Value: v, P: pos(l, c)}
+}
+
+func assign(name string, v ast.Expr, l, c int) ast.Stmt {
+	return &ast.Assign{Name: name, Value: v, P: pos(l, c)}
+}
+
+func block(l, c int, stmts ...ast.Stmt) *ast.Block {
+	return &ast.Block{Stmts: stmts, P: pos(l, c)}
+}
+
+func script(stmts ...ast.Stmt) *ast.Script {
+	return &ast.Script{Stmts: stmts}
 }
 
 func perr(l, c int, msg string) parser.Error {

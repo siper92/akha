@@ -35,8 +35,7 @@ func (l *lexer) Next() token.Token {
 		start := l.here()
 		switch {
 		case r == '\n':
-			l.advance()
-			return token.Token{Kind: token.NEWLINE, Lit: "\n", Pos: start}
+			return l.emit(token.NEWLINE, 1, start)
 		case r == '/' && l.peek(1) == '/':
 			text := l.comment()
 			if l.opts.comments {
@@ -44,35 +43,56 @@ func (l *lexer) Next() token.Token {
 			}
 			continue
 		case isIdentStart(r):
-			return token.Token{Kind: token.IDENT, Lit: l.ident(), Pos: start}
+			lit := l.ident()
+			return token.Token{Kind: token.Lookup(lit), Lit: lit, Pos: start}
 		case isDigit(r):
 			return token.Token{Kind: token.INT, Lit: l.digits(), Pos: start}
 		case r == '"':
 			return l.str(start)
 		case r == '.':
 			if l.peek(1) == '.' && l.peek(2) == '.' {
-				l.advance()
-				l.advance()
-				l.advance()
-				return token.Token{Kind: token.ELLIPSIS, Lit: "...", Pos: start}
+				return l.emit(token.ELLIPSIS, 3, start)
 			}
-			l.advance()
-			return token.Token{Kind: token.DOT, Lit: ".", Pos: start}
+			return l.emit(token.DOT, 1, start)
 		case r == '(':
-			l.advance()
-			return token.Token{Kind: token.LPAREN, Lit: "(", Pos: start}
+			return l.emit(token.LPAREN, 1, start)
 		case r == ')':
-			l.advance()
-			return token.Token{Kind: token.RPAREN, Lit: ")", Pos: start}
+			return l.emit(token.RPAREN, 1, start)
+		case r == '{':
+			return l.emit(token.LBRACE, 1, start)
+		case r == '}':
+			return l.emit(token.RBRACE, 1, start)
 		case r == ',':
-			l.advance()
-			return token.Token{Kind: token.COMMA, Lit: ",", Pos: start}
+			return l.emit(token.COMMA, 1, start)
+		case r == '+':
+			return l.emit(token.PLUS, 1, start)
+		case r == '-':
+			return l.emit(token.MINUS, 1, start)
+		case r == '*':
+			return l.emit(token.STAR, 1, start)
+		case r == '/':
+			return l.emit(token.SLASH, 1, start)
+		case r == '%':
+			return l.emit(token.PERCENT, 1, start)
 		case r == '=':
-			l.advance()
-			return token.Token{Kind: token.ASSIGN, Lit: "=", Pos: start}
+			if l.peek(1) == '=' {
+				return l.emit(token.EQ, 2, start)
+			}
+			return l.emit(token.ASSIGN, 1, start)
+		case r == '!' && l.peek(1) == '=':
+			return l.emit(token.NEQ, 2, start)
+		case r == '<':
+			if l.peek(1) == '=' {
+				return l.emit(token.LTE, 2, start)
+			}
+			return l.emit(token.LT, 1, start)
+		case r == '>':
+			if l.peek(1) == '=' {
+				return l.emit(token.GTE, 2, start)
+			}
+			return l.emit(token.GT, 1, start)
 		}
-		l.advance()
-		return token.Token{Kind: token.ILLEGAL, Lit: string(r), Pos: start}
+		return l.emit(token.ILLEGAL, 1, start)
 	}
 }
 
@@ -106,6 +126,14 @@ func (l *lexer) advance() {
 		l.col++
 	}
 	l.pos++
+}
+
+func (l *lexer) emit(kind token.Kind, n int, start token.Pos) token.Token {
+	lit := string(l.src[l.pos : l.pos+n])
+	for range n {
+		l.advance()
+	}
+	return token.Token{Kind: kind, Lit: lit, Pos: start}
 }
 
 func (l *lexer) skipSpace() {

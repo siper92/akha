@@ -88,9 +88,9 @@ func TestLexInts(t *testing.T) {
 			Expected: []token.Token{tok(token.INT, "007", 1, 1), eof(1, 4)},
 		},
 		{
-			Name:     "minus_is_illegal_then_int",
+			Name:     "minus_then_int",
 			Input:    "-1",
-			Expected: []token.Token{tok(token.ILLEGAL, "-", 1, 1), tok(token.INT, "1", 1, 2), eof(1, 3)},
+			Expected: []token.Token{tok(token.MINUS, "-", 1, 1), tok(token.INT, "1", 1, 2), eof(1, 3)},
 		},
 	}
 	tu.Run(tu.New(t), cases, lexAll(), nil)
@@ -288,6 +288,258 @@ func TestLexPunctuation(t *testing.T) {
 				eof(1, 15),
 			},
 		},
+		// --- braces
+		{
+			Name:     "braces",
+			Input:    "{}",
+			Expected: []token.Token{tok(token.LBRACE, "{", 1, 1), tok(token.RBRACE, "}", 1, 2), eof(1, 3)},
+		},
+		{
+			Name:  "block_shape",
+			Input: "x {\n}",
+			Expected: []token.Token{
+				tok(token.IDENT, "x", 1, 1),
+				tok(token.LBRACE, "{", 1, 3),
+				nl(1, 4),
+				tok(token.RBRACE, "}", 2, 1),
+				eof(2, 2),
+			},
+		},
+	}
+	tu.Run(tu.New(t), cases, lexAll(), nil)
+}
+
+func TestLexOperators(t *testing.T) {
+	cases := []lexCase{
+		// --- arithmetic
+		{
+			Name:     "plus",
+			Input:    "+",
+			Expected: []token.Token{tok(token.PLUS, "+", 1, 1), eof(1, 2)},
+		},
+		{
+			Name:     "minus",
+			Input:    "-",
+			Expected: []token.Token{tok(token.MINUS, "-", 1, 1), eof(1, 2)},
+		},
+		{
+			Name:     "star",
+			Input:    "*",
+			Expected: []token.Token{tok(token.STAR, "*", 1, 1), eof(1, 2)},
+		},
+		{
+			Name:     "slash",
+			Input:    "/",
+			Expected: []token.Token{tok(token.SLASH, "/", 1, 1), eof(1, 2)},
+		},
+		{
+			Name:     "percent",
+			Input:    "%",
+			Expected: []token.Token{tok(token.PERCENT, "%", 1, 1), eof(1, 2)},
+		},
+		{
+			Name:  "arithmetic_no_spaces",
+			Input: "a+b-c*d/e%f",
+			Expected: []token.Token{
+				tok(token.IDENT, "a", 1, 1),
+				tok(token.PLUS, "+", 1, 2),
+				tok(token.IDENT, "b", 1, 3),
+				tok(token.MINUS, "-", 1, 4),
+				tok(token.IDENT, "c", 1, 5),
+				tok(token.STAR, "*", 1, 6),
+				tok(token.IDENT, "d", 1, 7),
+				tok(token.SLASH, "/", 1, 8),
+				tok(token.IDENT, "e", 1, 9),
+				tok(token.PERCENT, "%", 1, 10),
+				tok(token.IDENT, "f", 1, 11),
+				eof(1, 12),
+			},
+		},
+		{
+			Name:     "separated_slashes",
+			Input:    "/ /",
+			Expected: []token.Token{tok(token.SLASH, "/", 1, 1), tok(token.SLASH, "/", 1, 3), eof(1, 4)},
+		},
+		{
+			Name:     "slash_then_comment",
+			Input:    "a / b // c",
+			Expected: []token.Token{tok(token.IDENT, "a", 1, 1), tok(token.SLASH, "/", 1, 3), tok(token.IDENT, "b", 1, 5), eof(1, 11)},
+		},
+		// --- comparison
+		{
+			Name:     "eq",
+			Input:    "==",
+			Expected: []token.Token{tok(token.EQ, "==", 1, 1), eof(1, 3)},
+		},
+		{
+			Name:     "neq",
+			Input:    "!=",
+			Expected: []token.Token{tok(token.NEQ, "!=", 1, 1), eof(1, 3)},
+		},
+		{
+			Name:     "lt",
+			Input:    "<",
+			Expected: []token.Token{tok(token.LT, "<", 1, 1), eof(1, 2)},
+		},
+		{
+			Name:     "lte",
+			Input:    "<=",
+			Expected: []token.Token{tok(token.LTE, "<=", 1, 1), eof(1, 3)},
+		},
+		{
+			Name:     "gt",
+			Input:    ">",
+			Expected: []token.Token{tok(token.GT, ">", 1, 1), eof(1, 2)},
+		},
+		{
+			Name:     "gte",
+			Input:    ">=",
+			Expected: []token.Token{tok(token.GTE, ">=", 1, 1), eof(1, 3)},
+		},
+		{
+			Name:     "three_equals_is_eq_then_assign",
+			Input:    "===",
+			Expected: []token.Token{tok(token.EQ, "==", 1, 1), tok(token.ASSIGN, "=", 1, 3), eof(1, 4)},
+		},
+		{
+			Name:     "assign_then_eq_with_space",
+			Input:    "= ==",
+			Expected: []token.Token{tok(token.ASSIGN, "=", 1, 1), tok(token.EQ, "==", 1, 3), eof(1, 5)},
+		},
+		{
+			Name:     "lt_then_assign_with_space",
+			Input:    "< =",
+			Expected: []token.Token{tok(token.LT, "<", 1, 1), tok(token.ASSIGN, "=", 1, 3), eof(1, 4)},
+		},
+		{
+			Name:     "gt_gt",
+			Input:    ">>",
+			Expected: []token.Token{tok(token.GT, ">", 1, 1), tok(token.GT, ">", 1, 2), eof(1, 3)},
+		},
+		{
+			Name:     "bang_alone_is_illegal",
+			Input:    "!",
+			Expected: []token.Token{tok(token.ILLEGAL, "!", 1, 1), eof(1, 2)},
+		},
+		{
+			Name:     "bang_then_ident",
+			Input:    "!x",
+			Expected: []token.Token{tok(token.ILLEGAL, "!", 1, 1), tok(token.IDENT, "x", 1, 2), eof(1, 3)},
+		},
+		{
+			Name:  "comparison_shape",
+			Input: "a<=b",
+			Expected: []token.Token{
+				tok(token.IDENT, "a", 1, 1),
+				tok(token.LTE, "<=", 1, 2),
+				tok(token.IDENT, "b", 1, 4),
+				eof(1, 5),
+			},
+		},
+	}
+	tu.Run(tu.New(t), cases, lexAll(), nil)
+}
+
+func TestLexKeywords(t *testing.T) {
+	cases := []lexCase{
+		// --- keywords get their own kind
+		{
+			Name:     "let",
+			Input:    "let",
+			Expected: []token.Token{tok(token.LET, "let", 1, 1), eof(1, 4)},
+		},
+		{
+			Name:     "if",
+			Input:    "if",
+			Expected: []token.Token{tok(token.IF, "if", 1, 1), eof(1, 3)},
+		},
+		{
+			Name:     "else",
+			Input:    "else",
+			Expected: []token.Token{tok(token.ELSE, "else", 1, 1), eof(1, 5)},
+		},
+		{
+			Name:     "for",
+			Input:    "for",
+			Expected: []token.Token{tok(token.FOR, "for", 1, 1), eof(1, 4)},
+		},
+		{
+			Name:     "in",
+			Input:    "in",
+			Expected: []token.Token{tok(token.IN, "in", 1, 1), eof(1, 3)},
+		},
+		{
+			Name:     "while",
+			Input:    "while",
+			Expected: []token.Token{tok(token.WHILE, "while", 1, 1), eof(1, 6)},
+		},
+		{
+			Name:     "break",
+			Input:    "break",
+			Expected: []token.Token{tok(token.BREAK, "break", 1, 1), eof(1, 6)},
+		},
+		{
+			Name:     "continue",
+			Input:    "continue",
+			Expected: []token.Token{tok(token.CONTINUE, "continue", 1, 1), eof(1, 9)},
+		},
+		{
+			Name:     "and",
+			Input:    "and",
+			Expected: []token.Token{tok(token.AND, "and", 1, 1), eof(1, 4)},
+		},
+		{
+			Name:     "or",
+			Input:    "or",
+			Expected: []token.Token{tok(token.OR, "or", 1, 1), eof(1, 3)},
+		},
+		{
+			Name:     "not",
+			Input:    "not",
+			Expected: []token.Token{tok(token.NOT, "not", 1, 1), eof(1, 4)},
+		},
+		{
+			Name:     "true",
+			Input:    "true",
+			Expected: []token.Token{tok(token.TRUE, "true", 1, 1), eof(1, 5)},
+		},
+		{
+			Name:     "false",
+			Input:    "false",
+			Expected: []token.Token{tok(token.FALSE, "false", 1, 1), eof(1, 6)},
+		},
+		// --- near misses stay idents
+		{
+			Name:     "capitalized_is_ident",
+			Input:    "If",
+			Expected: []token.Token{tok(token.IDENT, "If", 1, 1), eof(1, 3)},
+		},
+		{
+			Name:     "prefix_is_ident",
+			Input:    "letter",
+			Expected: []token.Token{tok(token.IDENT, "letter", 1, 1), eof(1, 7)},
+		},
+		{
+			Name:     "underscore_suffix_is_ident",
+			Input:    "for_",
+			Expected: []token.Token{tok(token.IDENT, "for_", 1, 1), eof(1, 5)},
+		},
+		{
+			Name:     "keyword_in_string_is_string",
+			Input:    `"let"`,
+			Expected: []token.Token{tok(token.STRING, "let", 1, 1), eof(1, 6)},
+		},
+		{
+			Name:  "let_statement_shape",
+			Input: "let x = true",
+			Expected: []token.Token{
+				tok(token.LET, "let", 1, 1),
+				tok(token.IDENT, "x", 1, 5),
+				tok(token.ASSIGN, "=", 1, 7),
+				tok(token.TRUE, "true", 1, 9),
+				eof(1, 13),
+			},
+		},
 	}
 	tu.Run(tu.New(t), cases, lexAll(), nil)
 }
@@ -326,16 +578,16 @@ func TestLexCommentsDropped(t *testing.T) {
 				eof(3, 2),
 			},
 		},
-		// --- lone slash
+		// --- lone slash is not a comment
 		{
-			Name:     "lone_slash_is_illegal",
+			Name:     "lone_slash_is_slash",
 			Input:    "/",
-			Expected: []token.Token{tok(token.ILLEGAL, "/", 1, 1), eof(1, 2)},
+			Expected: []token.Token{tok(token.SLASH, "/", 1, 1), eof(1, 2)},
 		},
 		{
-			Name:     "separated_slashes_are_two_illegal",
-			Input:    "/ /",
-			Expected: []token.Token{tok(token.ILLEGAL, "/", 1, 1), tok(token.ILLEGAL, "/", 1, 3), eof(1, 4)},
+			Name:     "three_slashes_are_comment",
+			Input:    "///x",
+			Expected: []token.Token{eof(1, 5)},
 		},
 	}
 	tu.Run(tu.New(t), cases, lexAll(), nil)
@@ -441,19 +693,24 @@ func TestLexIllegal(t *testing.T) {
 	cases := []lexCase{
 		// --- illegal runes
 		{
-			Name:     "minus",
-			Input:    "-",
-			Expected: []token.Token{tok(token.ILLEGAL, "-", 1, 1), eof(1, 2)},
-		},
-		{
-			Name:     "plus",
-			Input:    "+",
-			Expected: []token.Token{tok(token.ILLEGAL, "+", 1, 1), eof(1, 2)},
-		},
-		{
 			Name:     "semicolon",
 			Input:    ";",
 			Expected: []token.Token{tok(token.ILLEGAL, ";", 1, 1), eof(1, 2)},
+		},
+		{
+			Name:     "hash",
+			Input:    "#",
+			Expected: []token.Token{tok(token.ILLEGAL, "#", 1, 1), eof(1, 2)},
+		},
+		{
+			Name:     "ampersand",
+			Input:    "&",
+			Expected: []token.Token{tok(token.ILLEGAL, "&", 1, 1), eof(1, 2)},
+		},
+		{
+			Name:     "brackets",
+			Input:    "[]",
+			Expected: []token.Token{tok(token.ILLEGAL, "[", 1, 1), tok(token.ILLEGAL, "]", 1, 2), eof(1, 3)},
 		},
 		{
 			Name:  "single_quotes",
@@ -466,16 +723,11 @@ func TestLexIllegal(t *testing.T) {
 			},
 		},
 		{
-			Name:     "braces",
-			Input:    "{}",
-			Expected: []token.Token{tok(token.ILLEGAL, "{", 1, 1), tok(token.ILLEGAL, "}", 1, 2), eof(1, 3)},
-		},
-		{
 			Name:  "illegal_between_idents",
-			Input: "a-b",
+			Input: "a;b",
 			Expected: []token.Token{
 				tok(token.IDENT, "a", 1, 1),
-				tok(token.ILLEGAL, "-", 1, 2),
+				tok(token.ILLEGAL, ";", 1, 2),
 				tok(token.IDENT, "b", 1, 3),
 				eof(1, 4),
 			},

@@ -46,6 +46,13 @@ type Registry interface {
 	Names() []string
 }
 
+type Env interface {
+	Lookup(name string) (Value, bool)
+	Define(name string, v Value) error
+	Assign(name string, v Value) error
+	Child() Env
+}
+
 type Evaluator interface {
 	Eval(ctx context.Context, s *ast.Script) error
 }

@@ -88,6 +88,22 @@ integration script=hello: build
     wait $pid 2>/dev/null || true
     exit $rc
 
+### docker images
+[group('docker')]
+img-build:
+    docker compose -f docker/compose.yaml build
+
+[group('docker')]
+img-up:
+    docker compose -f docker/compose.yaml up -d backend
+
+[group('docker')]
+img-run-ak script="hello.ak":
+    AK_SCRIPT={{script}} docker compose -f docker/compose.yaml run --rm worker
+
+[group('docker')]
+img-down:
+    docker compose -f docker/compose.yaml down -v
 ### generate
 
 [group('dev')]
