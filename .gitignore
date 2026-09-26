@@ -8,9 +8,12 @@ docker-compose.yaml
 # build and runtime output
 _env/bin/
 _env/.cache/
+_env/.dev_cache/
 
 # Exlude utils etension and folder
 __local
 *.local
+*.goyml
 
 *.ai.md
+task.*.md

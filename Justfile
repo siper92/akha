@@ -125,6 +125,15 @@ gen-proto: up
       --go-grpc_out=./sdk \
       ./_defs/proto/*.proto"
 
+### utils
+[group('utils')]
+source-map out="./_env/.dev_cache/":
+    rm -rf {{out}}*.goyml
+    go run ./cmd/utils/main.go source-map --path ./cmd/akha --output {{out}} --with-private
+    go run ./cmd/utils/main.go source-map --path ./internal --output {{out}} --with-private
+    go run ./cmd/utils/main.go source-map --path ./lang --output {{out}} --with-private
+    go run ./cmd/utils/main.go source-map --path ./platform --output {{out}} --with-private
+
 ### cleanup
 
 [group('clean')]

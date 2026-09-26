@@ -9,13 +9,15 @@ import (
 func TestParsingLoops(t *testing.T) {
 	cases := []tu.Case[string, result]{
 		{
-			Name:  "while_loop",
-			Input: "while true {\n  Ak.Log(x)\n }",
+			Name: "while_loop",
+			Input: `while true {
+    Ak.Log(x)
+}`,
 			Expected: result{Script: script(
 				while(
-					ident("x", 1, 7),
-					block(1, 2, callStmt("Ak", "Log", 2, 3, args(ident("x", 2, 10)), nil)),
-					1, 2,
+					boolean(true, 1, 7),
+					block(2, 5, callStmt("Ak", "Log", 2, 3, args(ident("x", 2, 10)), nil)),
+					1, 1,
 				))},
 		},
 		{
