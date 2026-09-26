@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/siper92/akha/internal/tu"
-	db_sdk "github.com/siper92/akha/sdk/db-sdk"
+	"github.com/siper92/akha/platform/sdk/db-sdk"
 )
 
 const goodToken = "akha_test_token"

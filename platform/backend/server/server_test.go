@@ -8,44 +8,44 @@ import (
 	"testing"
 	"time"
 
+	auth2 "github.com/siper92/akha/platform/backend/auth"
+	"github.com/siper92/akha/platform/sdk/db-sdk"
+	proto_sdk2 "github.com/siper92/akha/platform/sdk/proto-sdk"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
 
-	"github.com/siper92/akha/backend/auth"
 	"github.com/siper92/akha/internal/tu"
-	db_sdk "github.com/siper92/akha/sdk/db-sdk"
-	proto_sdk "github.com/siper92/akha/sdk/proto-sdk"
 )
 
 const accessToken = "akha_test_token"
 
-func startServer(t *testing.T) proto_sdk.AuthServiceClient {
+func startServer(t *testing.T) proto_sdk2.AuthServiceClient {
 	t.Helper()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
-	db, err := auth.OpenDB(ctx, ":memory:")
+	db, err := auth2.OpenDB(ctx, ":memory:")
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { db.Close() })
 
-	st := auth.NewStore(db_sdk.New(db))
+	st := auth2.NewStore(db_sdk.New(db))
 	if err := st.Seed(ctx, []string{accessToken}); err != nil {
 		t.Fatal(err)
 	}
 
-	kp, err := auth.GenerateKeys()
+	kp, err := auth2.GenerateKeys()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
-	authn := auth.NewAuthenticator(auth.NewKeyring(kp, time.Minute), st, log)
+	authn := auth2.NewAuthenticator(auth2.NewKeyring(kp, time.Minute), st, log)
 
 	lis := bufconn.Listen(1 << 20)
 	srv := New(lis, authn, log)
@@ -60,7 +60,7 @@ func startServer(t *testing.T) proto_sdk.AuthServiceClient {
 	}
 	t.Cleanup(func() { conn.Close() })
 
-	return proto_sdk.NewAuthServiceClient(conn)
+	return proto_sdk2.NewAuthServiceClient(conn)
 }
 
 func TestLogin(t *testing.T) {
@@ -82,7 +82,7 @@ func TestLogin(t *testing.T) {
 	}
 
 	fn := func(tok string) (codes.Code, error) {
-		resp, err := cli.Login(ctx, &proto_sdk.LoginRequest{AccessToken: tok})
+		resp, err := cli.Login(ctx, &proto_sdk2.LoginRequest{AccessToken: tok})
 		if err != nil {
 			return status.Code(err), nil
 		}
@@ -97,7 +97,7 @@ func TestLogin(t *testing.T) {
 func TestValidateToken(t *testing.T) {
 	cli := startServer(t)
 	ctx := context.Background()
-	resp, err := cli.Login(ctx, &proto_sdk.LoginRequest{AccessToken: accessToken})
+	resp, err := cli.Login(ctx, &proto_sdk2.LoginRequest{AccessToken: accessToken})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -121,7 +121,7 @@ func TestValidateToken(t *testing.T) {
 		},
 	}
 	fn := func(tok string) (bool, error) {
-		r, err := cli.ValidateToken(ctx, &proto_sdk.TokenMessage{Token: tok})
+		r, err := cli.ValidateToken(ctx, &proto_sdk2.TokenMessage{Token: tok})
 		if err != nil {
 			return false, err
 		}

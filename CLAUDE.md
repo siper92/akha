@@ -14,7 +14,7 @@ generate: sqlc, protobuf, graphql (deferred)
 
 - `cmd/akha/` - cobra root, `backend` and `worker` sub commands
 - `internal/config/` - viper loading, typed structs for `config.yaml` and `config.be.yaml`
-- `internal/cache/` - `Cache` interface, file impl under `.cache/*`
+- `internal/cache/` - `Cache` interface, file impl under `_env/.cache/*`
 - `internal/tu/` - test utils, `tu.Case`, `tu.Run`
 - `lang/token/` - token kinds and positions
 - `lang/lexer/` - rune based lexer
@@ -25,12 +25,12 @@ generate: sqlc, protobuf, graphql (deferred)
 - `lang/module/ak/` - `Ak` namespace
 - `lang/module/fs/` - `FS` namespace, sandboxed root
 - `lang/runner/` - lex, parse, check, eval from a source string
-- `backend/auth/` - token issuer, verifier, access token store, login log
-- `backend/server/` - gRPC server, interceptors
-- `worker/client/` - gRPC client, login, token cache
-- `worker/` - worker service, embedded mode
+- `platform/backend` - token issuer, verifier, access token store, login log
+- `platform/backend` - gRPC server, interceptors
+- `platform/worker` - gRPC client, login, token cache
+- `platform/worker` - worker service, embedded mode
 - `_defs/` - proto, sqlc and graphql definitions
-- `sdk/` - generated code only
+- `platform/sdk` - generated code only
 - `docker/` - backend and worker images, compose file, container configs, sample scripts
 - `.claude/skills/` - project skills, see `ak-lang-feature`
 - `__arch/v1/` - spec, plan, questions and run log for the current version
@@ -67,7 +67,7 @@ generate: sqlc, protobuf, graphql (deferred)
 - `just run-backend` - start the backend
 - `just run-ak file.ak` - run a script on the worker
 - `just check-ak file.ak` - static check a script
-- `just gen` - clear dsk and regenerate it in the `sdk/` from `_defs/`
+- `just gen` - clear dsk and regenerate it in the `platform/sdk` from `_defs/`
 - `just img-build` - build the backend and worker images from `docker/`
 - `just img-up` - start the backend container
 - `just img-run-ak file.ak` - run a script from `docker/scripts/` in a worker container
@@ -108,8 +108,8 @@ generate: sqlc, protobuf, graphql (deferred)
  - generate all types with `just gen` command
 
 **`Generated` code:**
-- Protobuf output: `sdk/proto-sdk/`
-- SQLC output: `sdk/db-sdk/`
+- Protobuf output: `platform/sdk`
+- SQLC output: `platform/sdk`
 - GraphQL server: `api/graphql/*` (deferred)
 
 ## Examples

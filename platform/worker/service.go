@@ -7,7 +7,7 @@ import (
 	"log/slog"
 
 	"github.com/siper92/akha/lang/runner"
-	"github.com/siper92/akha/worker/client"
+	"github.com/siper92/akha/platform/worker/client"
 )
 
 var (

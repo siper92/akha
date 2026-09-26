@@ -85,7 +85,7 @@ NOT for this version
 - how long are logs and run history kept?
   - as long as the files, v1 - deletes are handler by justfile and scripts
 - where do large outputs go (db, filesystem, object storage)?
-  - .cache/*
+  - _env/.cache/*
 
 ## 7. APIs
 

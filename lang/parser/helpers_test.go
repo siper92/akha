@@ -53,6 +53,14 @@ func ident(v string, l, c int) ast.Expr {
 	return &ast.Ident{Name: v, P: pos(l, c)}
 }
 
+func while(cond ast.Expr, body *ast.Block, l, c int) ast.Stmt {
+	return &ast.While{Cond: cond, Body: body, P: pos(l, c)}
+}
+
+func if_exp(cond ast.Expr, then *ast.Block, elseStmt ast.Stmt, l, c int) ast.Stmt {
+	return &ast.If{Cond: cond, Then: then, Else: elseStmt, P: pos(l, c)}
+}
+
 func spread(m string, l, c int) ast.Expr {
 	return &ast.Spread{Module: m, P: pos(l, c)}
 }

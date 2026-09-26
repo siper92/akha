@@ -11,11 +11,11 @@ import (
 const (
 	DefaultBackendAddr = "localhost:50051"
 	DefaultListenAddr  = ":50051"
-	DefaultCacheDir    = ".cache/akha"
+	DefaultCacheDir    = "_env/.cache/akha"
 	DefaultRoot        = "."
-	DefaultDBPath      = ".cache/akha/backend.db"
-	DefaultPrivateKey  = ".cache/akha/jwt.key"
-	DefaultPublicKey   = ".cache/akha/jwt.pub"
+	DefaultDBPath      = "_env/.cache/akha/backend.db"
+	DefaultPrivateKey  = "_env/.cache/akha/jwt.key"
+	DefaultPublicKey   = "_env/.cache/akha/jwt.pub"
 	DefaultTTL         = 15 * time.Minute
 )
 

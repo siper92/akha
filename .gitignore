@@ -6,14 +6,11 @@
 docker-compose.yaml
 
 # build and runtime output
-bin/
-.cache/
+_env/bin/
+_env/.cache/
 
 # Exlude utils etension and folder
 __local
 *.local
 
-ai.*.md
-
 *.ai.md
-__arch/lang_desing/task.md

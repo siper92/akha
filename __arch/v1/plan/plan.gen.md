@@ -26,7 +26,7 @@ Nothing else.
 - every login attempt is logged
 - gRPC middleware validates JWT on every worker call
 - tokens are files in a cache dir behind a `Cache` interface, used by worker and backend
-- sqlite for both, large outputs under `.cache/*`
+- sqlite for both, large outputs under `_env/.cache/*`
 - CLI: `akha backend ...`, `akha worker ...`
 - viper for config, `log/slog` for logs, no OpenTelemetry yet
 - unit tests for lexer, parser, evaluator; integration later
@@ -47,7 +47,7 @@ only take into account the posable future, but do not implement yet:
 ```
 cmd/akha/                 cobra root, backend and worker sub commands
 internal/config/          viper loading for config.yaml, config.be.yaml
-internal/cache/           Cache interface + file impl (.cache/*)
+internal/cache/           Cache interface + file impl (_env/.cache/*)
 internal/tu/              test utils, tu.Case, tu.Run
 lang/token/               token kinds, positions
 lang/lexer/               rune based lexer
@@ -93,7 +93,7 @@ sdk/                      generated only
 
 ### shared
 
-- `cache.Cache` - `Get(key) ([]byte, bool, error)`, `Put(key, []byte) error`, `Del(key) error`
+- `cache_env/.cache` - `Get(key) ([]byte, bool, error)`, `Put(key, []byte) error`, `Del(key) error`
 - `config.Loader` - `Load(path) (Config, error)`
 
 ### worker
@@ -111,7 +111,7 @@ Every impl: `var _ Iface = (*Impl)(nil)`, one `New...` factory next to the type.
 - `internal/config` typed structs for `config.yaml` (worker) and `config.be.yaml` (backend)
 - `internal/tu` with `Case[I, E]` and `Run`
 - Justfile: `test`, `lint`, `run-backend`, `run-worker`, `run-ak file`
-- `.cache/` in `.gitignore`
+- `_env/.cache/` in `.gitignore`
 - done: `go build ./...` and `just test` pass with an empty test
 
 ### P1 - tokens and lexer
@@ -152,7 +152,7 @@ key feature is the module definition interface and extension,
 - `Exit` returns a typed error carrying code, runner maps it to process exit
 - `FS`: `ReadFile`, `WriteFile`, `UpdateFile` (fails if missing), `ListFiles` (non recursive)
 - `FS` takes a root dir and rejects `..` escapes and symlinks out of root
-- `Ak.Debug` writes to `.cache/akha/<run-id>/`
+- `Ak.Debug` writes to `_env/.cache/akha/<run-id>/`
 - done: lang.spec sample runs and writes the log files
 
 ### P5 - runner and cli
@@ -165,7 +165,7 @@ key feature is the module definition interface and extension,
 ### P6 - backend auth
 
 - `auth.proto`: `Register(RegisterRequest{access_token}) -> RegisterResponse{jwt, expires_at}`, keep `ValidateToken`
-- `just gen` regenerates `sdk/proto-sdk`
+- `just gen` regenerates `../../../platform/sdk`
 - db: `workers` (id, name, token_hash, tier, created_at), `login_attempts` (id, worker_id nullable, ok, reason, at)
 - `AccessTokenStore` compares sha256 of the config access token
 - `TokenIssuer` with `golang-jwt/jwt/v5`, EdDSA, key pair path and ttl from `config.be.yaml`
@@ -202,7 +202,7 @@ key feature is the module definition interface and extension,
 
 ## open items
 
-- ⚠️ `Ak.Debug` "file/cache directory" - default `.cache/akha/<run-id>/debug.log`
+- ⚠️ `Ak.Debug` "file/cache directory" - default `_env/.cache/akha/<run-id>/debug.log`
 - ⚠️ `FS...` spread outside `Ak.Allow` - default parse error
 - ⚠️ worker tier vs backend tier permissions beyond token claims - unknown, only a `tier` claim in v1
 - ⚠️ `config.be.yaml` file name - taken from major answers, confirm

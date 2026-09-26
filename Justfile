@@ -1,9 +1,9 @@
 set shell := ["bash", "-cu"]
 
-bin := "./bin/akha"
+bin := "./_env/bin/akha"
 be_config := "config.be.yaml"
 wk_config := "config.wk.yaml"
-hello := "_env/examples/akha/hello.ak"
+hello := "./_env/examples/akha/hello.ak"
 
 default:
     @just --list
@@ -30,7 +30,7 @@ dev: up
 
 [group('dev')]
 build:
-    mkdir -p bin
+    mkdir -p ./_env/bin
     go build -o {{bin}} ./cmd/akha
 
 [group('dev')]
@@ -133,4 +133,4 @@ clean:
 
 [group('clean')]
 clean-cache:
-    rm -rf ./.cache
+    rm -rf ./_env/.cache

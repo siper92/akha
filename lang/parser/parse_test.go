@@ -16,17 +16,17 @@ func TestParseCalls(t *testing.T) {
 		{
 			Name:     "empty_source",
 			Input:    "",
-			Expected: result{Script: script()},
+			Expected: result{Script: script(), Errs: perrs(perr(1, 1, "empty script"))},
 		},
 		{
 			Name:     "only_newlines",
 			Input:    "\n\n\n",
-			Expected: result{Script: script()},
+			Expected: result{Script: script(), Errs: perrs(perr(1, 1, "empty script"))},
 		},
 		{
 			Name:     "only_spaces",
 			Input:    "   \t ",
-			Expected: result{Script: script()},
+			Expected: result{Script: script(), Errs: perrs(perr(1, 1, "empty script"))},
 		},
 		// --- single call
 		{
@@ -676,7 +676,7 @@ func TestParseComments(t *testing.T) {
 		{
 			Name:     "only_comment",
 			Input:    "// only a comment",
-			Expected: result{Script: script()},
+			Expected: result{Script: script(), Errs: perrs(perr(1, 1, "empty script"))},
 		},
 		{
 			Name:     "trailing_comment",
@@ -707,9 +707,11 @@ func TestParseComments(t *testing.T) {
 			Expected: result{Script: script(let("x", num("1", 1, 9), 1, 1))},
 		},
 	}
+
 	t.Run("comments_dropped", func(t *testing.T) {
 		tu.Run(tu.New(t), cases, parseWith(), nil)
 	})
+
 	t.Run("comments_kept", func(t *testing.T) {
 		tu.Run(tu.New(t), cases, parseWith(lexer.WithComments()), nil)
 	})
@@ -1055,11 +1057,6 @@ func TestParseRecovery(t *testing.T) {
 func TestParseNilError(t *testing.T) {
 	cases := []tu.Case[string, bool]{
 		// --- clean parse returns an untyped nil error
-		{
-			Name:     "empty_source",
-			Input:    "",
-			Expected: true,
-		},
 		{
 			Name:     "clean_script",
 			Input:    "Ak.Allow(FS...)\nFS.ReadFile(\"x\")",

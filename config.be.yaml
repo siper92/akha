@@ -1,10 +1,10 @@
 addr: ":50051"
-db: ".cache/akha/backend.db"
-cache_dir: ".cache/akha"
+db: "_env/.cache/akha/backend.db"
+cache_dir: "_env/.cache/akha"
 workers: 0
 access_tokens:
   - "akha_420_99078"
 jwt:
-  private_key: ".cache/akha/jwt.key"
-  public_key: ".cache/akha/jwt.pub"
+  private_key: "_env/.cache/akha/jwt.key"
+  public_key: "_env/.cache/akha/jwt.pub"
   ttl: "15m"

@@ -11,17 +11,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/siper92/akha/platform/backend/auth"
+	"github.com/siper92/akha/platform/backend/server"
+	"github.com/siper92/akha/platform/sdk/db-sdk"
+	"github.com/siper92/akha/platform/worker/client"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
 
-	"github.com/siper92/akha/backend/auth"
-	"github.com/siper92/akha/backend/server"
 	"github.com/siper92/akha/internal/cache"
 	"github.com/siper92/akha/internal/tu"
 	"github.com/siper92/akha/lang/runner"
-	db_sdk "github.com/siper92/akha/sdk/db-sdk"
-	"github.com/siper92/akha/worker/client"
 )
 
 const (

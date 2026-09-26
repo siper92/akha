@@ -66,22 +66,22 @@ Worker config `config.wk.yaml`:
 ```yaml
 backend: "localhost:50051"
 worker_access_token: "akha_420_99078"
-cache_dir: ".cache/akha"
-root: ".cache/akha/root"
+cache_dir: "_env/.cache/akha"
+root: "_env/.cache/akha/root"
 ```
 
 Backend config `config.be.yaml`:
 
 ```yaml
 addr: ":50051"
-db: ".cache/akha/backend.db"
-cache_dir: ".cache/akha"
+db: "_env/.cache/akha/backend.db"
+cache_dir: "_env/.cache/akha"
 workers: 0
 access_tokens:
   - "akha_420_99078"
 jwt:
-  private_key: ".cache/akha/jwt.key"
-  public_key: ".cache/akha/jwt.pub"
+  private_key: "_env/.cache/akha/jwt.key"
+  public_key: "_env/.cache/akha/jwt.pub"
   ttl: "15m"
 ```
 
@@ -135,11 +135,11 @@ just gen
 
 - `cmd/akha/` - cli
 - `lang/` - token, lexer, ast, parser, check, eval, modules, runner
-- `backend/` - auth and gRPC server
-- `worker/` - worker service and backend client
+- `platform/backend` - auth and gRPC server
+- `platform/worker` - worker service and backend client
 - `internal/` - config, cache, test utils
 - `_defs/` - proto and sqlc definitions
-- `sdk/` - generated code
+- `platform/sdk` - generated code
 - `__arch/v1/` - language spec and plan
 
-Logs and large outputs go under `.cache/`.
+Logs and large outputs go under `_env/.cache/`.

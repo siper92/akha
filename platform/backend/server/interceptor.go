@@ -6,13 +6,12 @@ import (
 	"strings"
 	"time"
 
+	auth2 "github.com/siper92/akha/platform/backend/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
-
-	"github.com/siper92/akha/backend/auth"
 )
 
 const (
@@ -22,19 +21,19 @@ const (
 
 type claimsKey struct{}
 
-func ClaimsFrom(ctx context.Context) (auth.Claims, bool) {
-	c, ok := ctx.Value(claimsKey{}).(auth.Claims)
+func ClaimsFrom(ctx context.Context) (auth2.Claims, bool) {
+	c, ok := ctx.Value(claimsKey{}).(auth2.Claims)
 	return c, ok
 }
 
 type authInterceptor struct {
-	verifier auth.TokenVerifier
+	verifier auth2.TokenVerifier
 	open     map[string]bool
 }
 
 var _ Interceptor = (*authInterceptor)(nil)
 
-func NewAuthInterceptor(v auth.TokenVerifier, openMethods ...string) Interceptor {
+func NewAuthInterceptor(v auth2.TokenVerifier, openMethods ...string) Interceptor {
 	open := make(map[string]bool, len(openMethods))
 	for _, m := range openMethods {
 		open[m] = true
@@ -93,7 +92,7 @@ func bearer(ctx context.Context) string {
 
 func withPeerAddr(ctx context.Context) context.Context {
 	if p, ok := peer.FromContext(ctx); ok && p.Addr != nil {
-		return auth.WithAddr(ctx, p.Addr.String())
+		return auth2.WithAddr(ctx, p.Addr.String())
 	}
 	return ctx
 }

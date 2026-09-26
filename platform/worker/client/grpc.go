@@ -5,16 +5,15 @@ import (
 	"errors"
 	"fmt"
 
+	proto_sdk2 "github.com/siper92/akha/platform/sdk/proto-sdk"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-	proto_sdk "github.com/siper92/akha/sdk/proto-sdk"
 )
 
 var ErrLogin = errors.New("login failed")
 
 type backend struct {
-	cli         proto_sdk.AuthServiceClient
+	cli         proto_sdk2.AuthServiceClient
 	accessToken string
 }
 
@@ -25,11 +24,11 @@ func Dial(addr string) (*grpc.ClientConn, error) {
 }
 
 func New(conn grpc.ClientConnInterface, accessToken string) Backend {
-	return &backend{cli: proto_sdk.NewAuthServiceClient(conn), accessToken: accessToken}
+	return &backend{cli: proto_sdk2.NewAuthServiceClient(conn), accessToken: accessToken}
 }
 
 func (b *backend) Login(ctx context.Context) (string, error) {
-	resp, err := b.cli.Login(ctx, &proto_sdk.LoginRequest{AccessToken: b.accessToken})
+	resp, err := b.cli.Login(ctx, &proto_sdk2.LoginRequest{AccessToken: b.accessToken})
 	if err != nil {
 		return "", fmt.Errorf("%w: %v", ErrLogin, err)
 	}
@@ -40,7 +39,7 @@ func (b *backend) Login(ctx context.Context) (string, error) {
 }
 
 func (b *backend) Validate(ctx context.Context, token string) (bool, error) {
-	resp, err := b.cli.ValidateToken(ctx, &proto_sdk.TokenMessage{Token: token})
+	resp, err := b.cli.ValidateToken(ctx, &proto_sdk2.TokenMessage{Token: token})
 	if err != nil {
 		return false, err
 	}

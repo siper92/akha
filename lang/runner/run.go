@@ -23,7 +23,7 @@ const (
 	ExitRuntime = 1
 	ExitCheck   = 2
 
-	DefaultCacheDir = ".cache/akha"
+	DefaultCacheDir = "_env/.cache/akha"
 	DefaultRoot     = "."
 )
 

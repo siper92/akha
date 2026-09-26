@@ -70,12 +70,15 @@ func TestGoldenSpec(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read %s: %v", specPath, err)
 	}
+
 	cases := []tu.Case[[]lexer.Option, result]{
 		// --- spec.ak parses without errors in both lexer modes
 		{
-			Name:     "comments_dropped",
-			Input:    nil,
-			Expected: result{Script: specScript()},
+			Name:  "comments_dropped",
+			Input: nil,
+			Expected: result{
+				Script: specScript(),
+			},
 		},
 		{
 			Name:     "comments_kept",
@@ -83,6 +86,7 @@ func TestGoldenSpec(t *testing.T) {
 			Expected: result{Script: specScript()},
 		},
 	}
+
 	tu.Run(tu.New(t), cases, func(opts []lexer.Option) (result, error) {
 		return parseWith(opts...)(string(src))
 	}, nil)
@@ -93,6 +97,7 @@ func TestGoldenVars(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read %s: %v", varsPath, err)
 	}
+
 	cases := []tu.Case[[]lexer.Option, result]{
 		// --- vars.ak parses without errors in both lexer modes
 		{
@@ -117,19 +122,23 @@ func TestGoldenPerStmt(t *testing.T) {
 		specPath: specScript,
 		varsPath: varsScript,
 	}
+
 	for path, want := range files {
 		src, err := os.ReadFile(path)
 		if err != nil {
 			t.Fatalf("read %s: %v", path, err)
 		}
+
 		got, err := parseWith()(string(src))
 		if err != nil {
 			t.Fatalf("parse %s: %v", path, err)
 		}
+
 		wantStmts := want().Stmts
 		if len(got.Script.Stmts) != len(wantStmts) {
 			t.Fatalf("%s: want %d statements, got %d", path, len(wantStmts), len(got.Script.Stmts))
 		}
+
 		cases := make([]tu.Case[int, ast.Stmt], 0, len(wantStmts))
 		for i, st := range wantStmts {
 			cases = append(cases, tu.Case[int, ast.Stmt]{
@@ -138,6 +147,7 @@ func TestGoldenPerStmt(t *testing.T) {
 				Expected: st,
 			})
 		}
+
 		tu.Run(tu.New(t), cases, func(i int) (ast.Stmt, error) {
 			return got.Script.Stmts[i], nil
 		}, nil)

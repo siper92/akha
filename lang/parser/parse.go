@@ -8,6 +8,11 @@ import (
 	"github.com/siper92/akha/lang/token"
 )
 
+var emptyScript = Error{
+	Pos: token.Pos{Line: 1, Col: 1},
+	Msg: "empty script",
+}
+
 type parser struct {
 	lx    lexer.Lexer
 	tok   token.Token
@@ -29,17 +34,24 @@ func (p *parser) Parse() (*ast.Script, error) {
 			p.next()
 			continue
 		}
+
 		st, ok := p.stmt()
 		if !ok {
 			p.sync()
 			continue
 		}
+
 		s.Stmts = append(s.Stmts, st)
 		if !p.endStmt() {
 			p.sync()
 		}
 	}
-	if len(p.errs) == 0 {
+
+	if len(s.Stmts) == 0 && len(p.errs) == 0 {
+		return s, Errors{
+			emptyScript,
+		}
+	} else if len(p.errs) == 0 {
 		return s, nil
 	}
 

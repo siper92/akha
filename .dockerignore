@@ -1,9 +1,8 @@
 .git
-.cache
+_env/.cache
 .claude
 bin
 _env
 __arch
 __local
-*.md
-task.ai.md
+*.ai.md

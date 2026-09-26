@@ -20,6 +20,7 @@ func NewTokenSource(be Backend, c cache.Cache, key string) TokenSource {
 	if key == "" {
 		key = DefaultTokenKey
 	}
+
 	return &tokenSource{be: be, c: c, key: key}
 }
 

@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"time"
 
-	db_sdk "github.com/siper92/akha/sdk/db-sdk"
+	db_sdk2 "github.com/siper92/akha/platform/sdk/db-sdk"
 	_ "modernc.org/sqlite"
 )
 
@@ -33,7 +33,7 @@ type Store interface {
 }
 
 type store struct {
-	q db_sdk.Querier
+	q db_sdk2.Querier
 }
 
 //go:embed schema.sql
@@ -41,7 +41,7 @@ var Schema string
 
 var _ Store = (*store)(nil)
 
-func NewStore(q db_sdk.Querier) Store {
+func NewStore(q db_sdk2.Querier) Store {
 	return &store{q: q}
 }
 
@@ -74,7 +74,7 @@ func HashToken(token string) string {
 
 func (s *store) Seed(ctx context.Context, accessTokens []string) error {
 	for i, tok := range accessTokens {
-		err := s.q.UpsertWorker(ctx, db_sdk.UpsertWorkerParams{
+		err := s.q.UpsertWorker(ctx, db_sdk2.UpsertWorkerParams{
 			Name:      fmt.Sprintf("worker-%d", i+1),
 			TokenHash: HashToken(tok),
 			Tier:      string(TierWorker),
@@ -110,7 +110,7 @@ func (s *store) Record(ctx context.Context, a Attempt) error {
 		wid = sql.NullInt64{Int64: *a.WorkerID, Valid: true}
 	}
 
-	return s.q.RecordLogin(ctx, db_sdk.RecordLoginParams{
+	return s.q.RecordLogin(ctx, db_sdk2.RecordLoginParams{
 		WorkerID:  wid,
 		Addr:      a.Addr,
 		Ok:        a.OK,
@@ -120,7 +120,7 @@ func (s *store) Record(ctx context.Context, a Attempt) error {
 }
 
 func (s *store) Store(ctx context.Context, workerID int64, token string, expires time.Time) error {
-	return s.q.StoreIssuedToken(ctx, db_sdk.StoreIssuedTokenParams{
+	return s.q.StoreIssuedToken(ctx, db_sdk2.StoreIssuedTokenParams{
 		WorkerID:  sql.NullInt64{Int64: workerID, Valid: true},
 		Token:     token,
 		ExpiresAt: expires,

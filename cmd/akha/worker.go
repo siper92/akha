@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 
+	worker2 "github.com/siper92/akha/platform/worker"
+	client2 "github.com/siper92/akha/platform/worker/client"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 
@@ -15,8 +17,6 @@ import (
 	"github.com/siper92/akha/internal/config"
 	"github.com/siper92/akha/lang/check"
 	"github.com/siper92/akha/lang/runner"
-	"github.com/siper92/akha/worker"
-	"github.com/siper92/akha/worker/client"
 )
 
 const backendTimeout = 10 * time.Second
@@ -59,9 +59,9 @@ func newWorkerCmd() *cobra.Command {
 type workerParts struct {
 	cfg  config.Worker
 	conn *grpc.ClientConn
-	be   client.Backend
-	ts   client.TokenSource
-	w    worker.Worker
+	be   client2.Backend
+	ts   client2.TokenSource
+	w    worker2.Worker
 }
 
 func newWorkerParts(cmd *cobra.Command, log *slog.Logger) (*workerParts, error) {
@@ -75,20 +75,20 @@ func newWorkerParts(cmd *cobra.Command, log *slog.Logger) (*workerParts, error) 
 		return nil, err
 	}
 
-	conn, err := client.Dial(cfg.Backend)
+	conn, err := client2.Dial(cfg.Backend)
 	if err != nil {
 		return nil, err
 	}
 
-	be := client.New(conn, cfg.AccessToken)
-	ts := client.NewTokenSource(be, c, client.DefaultTokenKey)
+	be := client2.New(conn, cfg.AccessToken)
+	ts := client2.NewTokenSource(be, c, client2.DefaultTokenKey)
 
 	return &workerParts{
 		cfg:  cfg,
 		conn: conn,
 		be:   be,
 		ts:   ts,
-		w:    worker.New(ts, be, runner.New(log), log),
+		w:    worker2.New(ts, be, runner.New(log), log),
 	}, nil
 }
 
@@ -187,7 +187,7 @@ func runWorkerWhoami(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if !ok {
-		return &exitError{code: 1, err: worker.ErrAuth}
+		return &exitError{code: 1, err: worker2.ErrAuth}
 	}
 	fmt.Fprintln(cmd.OutOrStdout(), "token valid:", p.cfg.Backend)
 	return nil

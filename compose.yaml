@@ -8,11 +8,6 @@ services:
       - "50051:50051"
     volumes:
       - backend-data:/data
-    healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "50051"]
-      interval: 2s
-      timeout: 2s
-      retries: 15
 
   worker:
     image: akha/worker:dev
@@ -21,7 +16,7 @@ services:
       dockerfile: docker/worker.Dockerfile
     depends_on:
       backend:
-        condition: service_healthy
+        condition: service_started
     volumes:
       - worker-data:/data
       - ./scripts:/scripts:ro

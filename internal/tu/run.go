@@ -17,6 +17,7 @@ func Run[I, E any](t *T, cases []Case[I, E], fn func(I) (E, error), eq func(want
 	if eq == nil {
 		eq = func(want, got E) bool { return reflect.DeepEqual(want, got) }
 	}
+
 	for _, c := range cases {
 		t.Run(c.Name, func(st *testing.T) {
 			st.Helper()

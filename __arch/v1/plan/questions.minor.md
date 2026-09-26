@@ -20,8 +20,8 @@ Each has a proposed default. If a major question overrides it, follow the major 
   - `internal/config/` - viper loading, typed config struct
   - `lang/token`, `lang/lexer`, `lang/ast`, `lang/parser`, `lang/eval`
   - `lang/module/` - `Ak`, `FS`, later `AI`
-  - `backend/auth`, `backend/llm`, `backend/logs`, `backend/store`, `backend/server`
-  - `worker/client`, `worker/runner`, `worker/sandbox`
+  - `../../../platform/backend`, `../../../platform/backend`, `../../../platform/backend`, `../../../platform/backend`, `../../../platform/backend`
+  - `../../../platform/worker`, `../../../platform/worker`, `../../../platform/worker`
 - is `internal/` allowed or must all be public? default: `internal/` for non sdk code
 
 ## language

@@ -1,22 +1,21 @@
 package main
 
 import (
-	"context"
 	"log/slog"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/siper92/akha/platform/backend"
+	auth2 "github.com/siper92/akha/platform/backend/auth"
+	"github.com/siper92/akha/platform/backend/server"
+	"github.com/siper92/akha/platform/sdk/db-sdk"
+	"github.com/siper92/akha/platform/worker"
 	"github.com/spf13/cobra"
 
-	"github.com/siper92/akha/backend"
-	"github.com/siper92/akha/backend/auth"
-	"github.com/siper92/akha/backend/server"
 	"github.com/siper92/akha/internal/config"
 	"github.com/siper92/akha/lang/runner"
-	db_sdk "github.com/siper92/akha/sdk/db-sdk"
-	"github.com/siper92/akha/worker"
 )
 
 func newBackendCmd() *cobra.Command {
@@ -44,30 +43,32 @@ func runBackendServe(cmd *cobra.Command, args []string) error {
 	defer stop()
 
 	log := slog.Default()
-	db, err := auth.OpenDB(ctx, cfg.DBPath)
+	db, err := auth2.OpenDB(ctx, cfg.DBPath)
 	if err != nil {
 		return err
 	}
+
 	defer db.Close()
 
 	//@TODO: seed must be a SQL on just level
-	store := auth.NewStore(db_sdk.New(db))
+	store := auth2.NewStore(db_sdk.New(db))
 	if err := store.Seed(ctx, cfg.AccessTokens); err != nil {
 		return err
 	}
 
-	kp, err := auth.LoadOrCreateKeys(cfg.JWT.PrivateKeyPath, cfg.JWT.PublicKeyPath)
+	kp, err := auth2.LoadOrCreateKeys(cfg.JWT.PrivateKeyPath, cfg.JWT.PublicKeyPath)
 	if err != nil {
 		return err
 	}
 
-	keys := auth.NewKeyring(kp, cfg.JWT.TTL)
-	authn := auth.NewAuthenticator(keys, store, log)
+	keys := auth2.NewKeyring(kp, cfg.JWT.TTL)
+	authn := auth2.NewAuthenticator(keys, store, log)
 
 	lis, err := net.Listen("tcp", cfg.Addr)
 	if err != nil {
 		return err
 	}
+
 	srv := server.New(lis, authn, log)
 
 	if cfg.Workers > 0 {
@@ -80,5 +81,3 @@ func runBackendServe(cmd *cobra.Command, args []string) error {
 	log.Info("backend config", "db", cfg.DBPath, "workers", cfg.Workers, "ttl", cfg.JWT.TTL, "tokens", len(cfg.AccessTokens))
 	return srv.Serve(ctx)
 }
-
-var _ context.Context = context.Background()

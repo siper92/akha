@@ -6,10 +6,9 @@ import (
 	"log/slog"
 	"net"
 
+	"github.com/siper92/akha/platform/backend/auth"
+	"github.com/siper92/akha/platform/sdk/proto-sdk"
 	"google.golang.org/grpc"
-
-	"github.com/siper92/akha/backend/auth"
-	proto_sdk "github.com/siper92/akha/sdk/proto-sdk"
 )
 
 type server struct {
