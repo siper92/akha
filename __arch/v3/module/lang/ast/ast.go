@@ -1,6 +1,10 @@
 package ast
 
-import "github.com/siper92/akha/lang/token"
+import (
+	"fmt"
+
+	"github.com/siper92/akha/lang/token"
+)
 
 type Pos struct {
 	Line int
@@ -11,6 +15,7 @@ func (p Pos) Position() Pos {
 }
 
 type Node interface {
+	fmt.Stringer
 	Position() Pos
 }
 

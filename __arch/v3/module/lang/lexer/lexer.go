@@ -51,7 +51,7 @@ var escapes = map[rune]rune{
 const escapeHint = `valid escapes: \n \t \r \" \\ \$`
 
 func New(src string) Lexer {
-	src = strings.TrimPrefix(src, "﻿")
+	src = strings.TrimPrefix(src, "\xEF\xBB\xBF") // remove BOM
 	src = strings.ReplaceAll(src, "\r\n", "\n")
 	return newLexer(src, token.Pos{Line: 1, Col: 1})
 }

@@ -48,7 +48,7 @@ sources: `task.ai_spec.md`, `__arch/v3/spec_ded.md`, `__arch/v3/spec_def.ak`
 
 # identifiers, keywords, reserved words
  - identifier: `[A-Za-z_][A-Za-z0-9_]*`, ASCII only
- - case-sensitive for identifiers and keywords, `True` is an identifier, not `true`
+ - identifiers are case-sensitive, keywords and reserved words are case-insensitive, `True` is the keyword `true`
  - `_` alone is a valid name that discards the value (eg `let _ = expr`)
    - only executes the expression, does not bind the value to a name
    - for expressions that have side effects but are not needed

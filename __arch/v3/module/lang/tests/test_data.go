@@ -17,16 +17,24 @@ for var i, v in [1, 2] {
 return {name: name, total: n}
 `
 
-var SampleAST = `(let name "ak")
-(var n 0)
-(if (and (< n 3) (not false)) {(= n (+ n 1))} else {(return)})
-(for var i v in [1 2] {(continue)})
-(return (obj "name":name "total":n))`
+var SampleCanonical = `let name = "ak"
+var n = 0
+if n < 3 and not false {
+    n = n + 1
+} else {
+    return
+}
+for var i, v in [1, 2] {
+    continue
+}
+return {name: name, total: n}`
 
 var SampleCRLF = "let a = 1\r\n\r\nif a {\r\n    let b = \"x\"\r\n}\r\n"
 
-var SampleCRLFAST = `(let a 1)
-(if a {(let b "x")})`
+var SampleCRLFCanonical = `let a = 1
+if a {
+    let b = "x"
+}`
 
 var SpecDef = `// akha v1 - the spec by example
 // one statement per line, ` + "`//`" + ` comments run to the end of the line
