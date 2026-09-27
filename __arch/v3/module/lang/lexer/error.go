@@ -54,6 +54,10 @@ const (
 	CodeLoopControl       = "loop-control"
 )
 
+var (
+	_ error = (*Error)(nil)
+)
+
 type Error struct {
 	Kind error
 	File string

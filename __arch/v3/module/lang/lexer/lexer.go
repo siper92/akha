@@ -344,7 +344,7 @@ func (l *lexer) operator(pos Pos) (Token, error) {
 			l.advance()
 			return l.tok(And, "&&", pos)
 		}
-		return l.fail(pos, CodeUnexpectedChar, "use and", `unexpected character "&"`)
+		return l.fail(pos, CodeUnexpectedChar, "", `unexpected character "&"`)
 	case '|':
 		if next == '|' {
 			l.advance()
