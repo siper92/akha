@@ -15,12 +15,15 @@ type Lexer interface {
 
 var _ Lexer = (*lexer)(nil)
 
+const MaxDepth = 1000
+
 type lexer struct {
-	src  []rune
-	off  int
-	line int
-	col  int
-	err  error
+	src   []rune
+	off   int
+	line  int
+	col   int
+	depth int
+	err   error
 }
 
 var single = map[rune]token.Kind{
@@ -207,6 +210,9 @@ func (l *lexer) str(pos token.Pos) (token.Token, error) {
 			if l.off >= len(l.src) {
 				return l.fail(pos, diag.CodeUnterminatedString, "", "unterminated string")
 			}
+			if l.src[l.off] == '\n' {
+				return l.fail(l.pos(), diag.CodeNewlineInString, `use \n for a line break`, "string cannot contain a raw newline")
+			}
 			e, ok := escapes[l.src[l.off]]
 			if !ok {
 				return l.fail(at, diag.CodeInvalidEscape, escapeHint, fmt.Sprintf("unknown escape \\%c", l.src[l.off]))
@@ -344,9 +350,27 @@ func (l *lexer) operator(pos token.Pos) (token.Token, error) {
 		return l.fail(pos, diag.CodeSingleQuote, `use double quotes "..."`, "single quotes are not allowed")
 	}
 	if k, ok := single[r]; ok {
+		if err := l.nest(k, pos); err != nil {
+			return token.Token{}, err
+		}
 		return l.tok(k, string(r), pos)
 	}
 	return l.fail(pos, diag.CodeUnexpectedChar, "", fmt.Sprintf("unexpected character %q", r))
+}
+
+func (l *lexer) nest(k token.Kind, pos token.Pos) error {
+	switch k {
+	case token.LParen, token.LBracket, token.LBrace:
+		l.depth++
+		if l.depth > MaxDepth {
+			return l.errAt(pos, diag.CodeNesting, "", "excessive nesting")
+		}
+	case token.RParen, token.RBracket, token.RBrace:
+		if l.depth > 0 {
+			l.depth--
+		}
+	}
+	return nil
 }
 
 func (l *lexer) tok(kind token.Kind, lit string, pos token.Pos) (token.Token, error) {

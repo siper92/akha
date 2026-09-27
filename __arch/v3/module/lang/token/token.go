@@ -1,6 +1,9 @@
 package token
 
-import "strconv"
+import (
+	"strconv"
+	"strings"
+)
 
 type Kind int
 
@@ -140,10 +143,11 @@ func (k Kind) IsKeyword() bool {
 }
 
 func Lookup(ident string) Kind {
-	if k, ok := keywords[ident]; ok {
+	lower := strings.ToLower(ident)
+	if k, ok := keywords[lower]; ok {
 		return k
 	}
-	if reserved[ident] {
+	if reserved[lower] {
 		return Reserved
 	}
 	return Ident
@@ -152,6 +156,14 @@ func Lookup(ident string) Kind {
 type Pos struct {
 	Line int
 	Col  int
+}
+
+func (p Pos) IsValid() bool {
+	return p.Line > 0
+}
+
+func (p Pos) String() string {
+	return strconv.Itoa(p.Line) + ":" + strconv.Itoa(p.Col)
 }
 
 type Part struct {
@@ -166,4 +178,18 @@ type Token struct {
 	Lit   string
 	Pos   Pos
 	Parts []Part
+}
+
+func (t Token) Describe() string {
+	switch t.Kind {
+	case EOF:
+		return "end of file"
+	case Newline:
+		return "end of line"
+	case Ident, Number, Reserved:
+		return t.Kind.String() + " " + t.Lit
+	case String, Template:
+		return "string " + strconv.Quote(t.Lit)
+	}
+	return strconv.Quote(t.Lit)
 }

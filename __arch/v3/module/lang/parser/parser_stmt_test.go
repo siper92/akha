@@ -3,12 +3,12 @@ package parser_test
 import (
 	"testing"
 
-	"github.com/siper92/akha/lang/tests"
+	"github.com/siper92/akha/lang/tests_utils"
 )
 
 func TestScriptLayout(t *testing.T) {
 	// --- script and line
-	tests.RunAst(t, []tests.AstCase{
+	tests_utils.RunAst(t, []tests_utils.AstCase{
 		{
 			Name: "empty_source",
 			Src:  "",
@@ -52,7 +52,7 @@ func TestScriptLayout(t *testing.T) {
 	})
 
 	// --- block
-	tests.RunAst(t, []tests.AstCase{
+	tests_utils.RunAst(t, []tests_utils.AstCase{
 		{
 			Name: "empty_block",
 			Src:  "if a {\n}\n",
@@ -91,7 +91,7 @@ func TestScriptLayout(t *testing.T) {
 	})
 
 	// --- layout errors
-	tests.RunParseErr(t, []tests.ParseErrCase{
+	tests_utils.RunParseErr(t, []tests_utils.ParseErrCase{
 		{
 			Name: "two_statements_one_line",
 			Src:  "let a = 1 let b = 2",
@@ -139,7 +139,7 @@ func TestScriptLayout(t *testing.T) {
 
 func TestLet(t *testing.T) {
 	// --- let_stmt
-	tests.RunAst(t, []tests.AstCase{
+	tests_utils.RunAst(t, []tests_utils.AstCase{
 		{
 			Name: "let_number",
 			Src:  "let a = 1",
@@ -173,7 +173,7 @@ func TestLet(t *testing.T) {
 	})
 
 	// --- let errors
-	tests.RunParseErr(t, []tests.ParseErrCase{
+	tests_utils.RunParseErr(t, []tests_utils.ParseErrCase{
 		{
 			Name: "let_without_init",
 			Src:  "let x",
@@ -224,7 +224,7 @@ func TestLet(t *testing.T) {
 
 func TestVar(t *testing.T) {
 	// --- var_stmt
-	tests.RunAst(t, []tests.AstCase{
+	tests_utils.RunAst(t, []tests_utils.AstCase{
 		{
 			Name: "var_with_init",
 			Src:  "var n = 0",
@@ -248,7 +248,7 @@ func TestVar(t *testing.T) {
 	})
 
 	// --- var errors
-	tests.RunParseErr(t, []tests.ParseErrCase{
+	tests_utils.RunParseErr(t, []tests_utils.ParseErrCase{
 		{
 			Name: "var_missing_expr",
 			Src:  "var x =",
@@ -274,7 +274,7 @@ func TestVar(t *testing.T) {
 
 func TestAssign(t *testing.T) {
 	// --- assign_stmt
-	tests.RunAst(t, []tests.AstCase{
+	tests_utils.RunAst(t, []tests_utils.AstCase{
 		{
 			Name: "assign_ident",
 			Src:  "x = 1",
@@ -298,7 +298,7 @@ func TestAssign(t *testing.T) {
 	})
 
 	// --- target
-	tests.RunOK(t, []tests.ParseOkCase{
+	tests_utils.RunOK(t, []tests_utils.ParseOkCase{
 		{
 			Name: "target_member",
 			Src:  "state.count = state.count + 1",
@@ -326,7 +326,7 @@ func TestAssign(t *testing.T) {
 	})
 
 	// --- invalid targets
-	tests.RunParseErr(t, []tests.ParseErrCase{
+	tests_utils.RunParseErr(t, []tests_utils.ParseErrCase{
 		{
 			Name: "number_target",
 			Src:  "1 = 2",
@@ -356,6 +356,19 @@ func TestAssign(t *testing.T) {
 			Name: "grouped_target",
 			Src:  "(a) = 1",
 			Line: 1,
+			Msg:  "cannot assign to this expression",
+		},
+		{
+			Name: "grouped_member_target",
+			Src:  "(a).b = 1",
+			Line: 1,
+			Msg:  "cannot assign to this expression",
+		},
+		{
+			Name: "grouped_index_target",
+			Src:  "(a)[0] = 1",
+			Line: 1,
+			Msg:  "cannot assign to this expression",
 		},
 		{
 			Name: "array_literal_target",
@@ -388,7 +401,7 @@ func TestAssign(t *testing.T) {
 
 func TestCallStmt(t *testing.T) {
 	// --- call_stmt
-	tests.RunOK(t, []tests.ParseOkCase{
+	tests_utils.RunOK(t, []tests_utils.ParseOkCase{
 		{
 			Name: "call_no_args",
 			Src:  "f()",
@@ -423,7 +436,7 @@ func TestCallStmt(t *testing.T) {
 		},
 	})
 
-	tests.RunAst(t, []tests.AstCase{
+	tests_utils.RunAst(t, []tests_utils.AstCase{
 		{
 			Name: "call_canonical",
 			Src:  "f( a+1 , [1,2] , {k:1} )",
@@ -437,7 +450,7 @@ func TestCallStmt(t *testing.T) {
 	})
 
 	// --- call multi line
-	tests.RunSame(t, []tests.ParseSameCase{
+	tests_utils.RunSame(t, []tests_utils.ParseSameCase{
 		{
 			Name: "call_split_lines",
 			Src:  "f(\n    1,\n    2,\n)\n",
@@ -451,7 +464,7 @@ func TestCallStmt(t *testing.T) {
 	})
 
 	// --- unused value
-	tests.RunParseErr(t, []tests.ParseErrCase{
+	tests_utils.RunParseErr(t, []tests_utils.ParseErrCase{
 		{
 			Name: "unused_binary",
 			Src:  "1 + 2",
@@ -533,7 +546,7 @@ func TestCallStmt(t *testing.T) {
 	})
 
 	// --- call syntax errors
-	tests.RunParseErr(t, []tests.ParseErrCase{
+	tests_utils.RunParseErr(t, []tests_utils.ParseErrCase{
 		{
 			Name: "call_only_comma",
 			Src:  "f(,)",
@@ -558,7 +571,7 @@ func TestCallStmt(t *testing.T) {
 
 func TestIf(t *testing.T) {
 	// --- if_stmt
-	tests.RunAst(t, []tests.AstCase{
+	tests_utils.RunAst(t, []tests_utils.AstCase{
 		{
 			Name: "if_empty",
 			Src:  "if a {\n}\n",
@@ -602,7 +615,7 @@ func TestIf(t *testing.T) {
 	})
 
 	// --- else if
-	tests.RunOK(t, []tests.ParseOkCase{
+	tests_utils.RunOK(t, []tests_utils.ParseOkCase{
 		{
 			Name: "else_if",
 			Src:  "if a {\n} else if b {\n}\n",
@@ -622,7 +635,7 @@ func TestIf(t *testing.T) {
 	})
 
 	// --- header
-	tests.RunOK(t, []tests.ParseOkCase{
+	tests_utils.RunOK(t, []tests_utils.ParseOkCase{
 		{
 			Name: "header_grouped_object_in",
 			Src:  "if (\"name\" in {name: 1}) {\n}\n",
@@ -645,7 +658,7 @@ func TestIf(t *testing.T) {
 		},
 	})
 
-	tests.RunSame(t, []tests.ParseSameCase{
+	tests_utils.RunSame(t, []tests_utils.ParseSameCase{
 		{
 			Name: "header_grouping_dropped",
 			Src:  "if (a) {\n}\n",
@@ -654,7 +667,7 @@ func TestIf(t *testing.T) {
 	})
 
 	// --- if errors
-	tests.RunParseErr(t, []tests.ParseErrCase{
+	tests_utils.RunParseErr(t, []tests_utils.ParseErrCase{
 		{
 			Name: "else_on_new_line",
 			Src:  "if a {\n}\nelse {\n}\n",
@@ -702,7 +715,7 @@ func TestIf(t *testing.T) {
 
 func TestFor(t *testing.T) {
 	// --- for_stmt in
-	tests.RunAst(t, []tests.AstCase{
+	tests_utils.RunAst(t, []tests_utils.AstCase{
 		{
 			Name: "for_var_pair_sample",
 			Src:  "for var i, v in [1, 2] {\n    continue\n}\n",
@@ -741,7 +754,7 @@ func TestFor(t *testing.T) {
 	})
 
 	// --- for_stmt range
-	tests.RunAst(t, []tests.AstCase{
+	tests_utils.RunAst(t, []tests_utils.AstCase{
 		{
 			Name: "range_literal",
 			Src:  "for i range [0..10] {\n}\n",
@@ -765,7 +778,7 @@ func TestFor(t *testing.T) {
 	})
 
 	// --- for_stmt range
-	tests.RunOK(t, []tests.ParseOkCase{
+	tests_utils.RunOK(t, []tests_utils.ParseOkCase{
 		{
 			Name: "range_literal",
 			Src:  "for i range [0..10] {\n}\n",
@@ -789,7 +802,7 @@ func TestFor(t *testing.T) {
 	})
 
 	// --- for header
-	tests.RunOK(t, []tests.ParseOkCase{
+	tests_utils.RunOK(t, []tests_utils.ParseOkCase{
 		{
 			Name: "for_multi_line_array",
 			Src:  "for x in [\n    1,\n    2,\n] {\n}\n",
@@ -808,7 +821,7 @@ func TestFor(t *testing.T) {
 		},
 	})
 
-	tests.RunSame(t, []tests.ParseSameCase{
+	tests_utils.RunSame(t, []tests_utils.ParseSameCase{
 		{
 			Name: "range_bound_precedence",
 			Src:  "for i range [0..n + 1] {\n}\n",
@@ -816,7 +829,7 @@ func TestFor(t *testing.T) {
 		},
 	})
 
-	tests.RunDiff(t, []tests.ParseSameCase{
+	tests_utils.RunDiff(t, []tests_utils.ParseSameCase{
 		{
 			Name: "range_var_is_kept",
 			Src:  "for var i range [0..3] {\n}\n",
@@ -835,7 +848,7 @@ func TestFor(t *testing.T) {
 	})
 
 	// --- for errors
-	tests.RunParseErr(t, []tests.ParseErrCase{
+	tests_utils.RunParseErr(t, []tests_utils.ParseErrCase{
 		{
 			Name: "for_let",
 			Src:  "for let x in a {\n}\n",
@@ -905,7 +918,7 @@ func TestFor(t *testing.T) {
 
 func TestBreakContinue(t *testing.T) {
 	// --- break_stmt and continue_stmt
-	tests.RunAst(t, []tests.AstCase{
+	tests_utils.RunAst(t, []tests_utils.AstCase{
 		{
 			Name: "break_in_for",
 			Src:  "for x in a {\n    break\n}\n",
@@ -918,7 +931,7 @@ func TestBreakContinue(t *testing.T) {
 		},
 	})
 
-	tests.RunOK(t, []tests.ParseOkCase{
+	tests_utils.RunOK(t, []tests_utils.ParseOkCase{
 		{
 			Name: "break_in_if_in_loop",
 			Src:  "for x in a {\n    if x {\n        break\n    }\n}\n",
@@ -938,7 +951,7 @@ func TestBreakContinue(t *testing.T) {
 	})
 
 	// --- outside a loop
-	tests.RunParseErr(t, []tests.ParseErrCase{
+	tests_utils.RunParseErr(t, []tests_utils.ParseErrCase{
 		{
 			Name: "break_top_level",
 			Src:  "break",
@@ -974,7 +987,7 @@ func TestBreakContinue(t *testing.T) {
 
 func TestReturn(t *testing.T) {
 	// --- return_stmt
-	tests.RunAst(t, []tests.AstCase{
+	tests_utils.RunAst(t, []tests_utils.AstCase{
 		{
 			Name: "return_bare",
 			Src:  "return",
@@ -998,7 +1011,7 @@ func TestReturn(t *testing.T) {
 	})
 
 	// --- exit alias keeps its keyword
-	tests.RunAst(t, []tests.AstCase{
+	tests_utils.RunAst(t, []tests_utils.AstCase{
 		{
 			Name: "exit_bare",
 			Src:  "exit",
@@ -1016,7 +1029,7 @@ func TestReturn(t *testing.T) {
 		},
 	})
 
-	tests.RunDiff(t, []tests.ParseSameCase{
+	tests_utils.RunDiff(t, []tests_utils.ParseSameCase{
 		{
 			Name: "exit_is_not_printed_as_return",
 			Src:  "exit",
@@ -1024,7 +1037,7 @@ func TestReturn(t *testing.T) {
 		},
 	})
 
-	tests.RunOK(t, []tests.ParseOkCase{
+	tests_utils.RunOK(t, []tests_utils.ParseOkCase{
 		{
 			Name: "return_in_loop",
 			Src:  "for x in a {\n    if x {\n        return x\n    }\n}\n",
@@ -1040,7 +1053,7 @@ func TestReturn(t *testing.T) {
 	})
 
 	// --- return errors
-	tests.RunParseErr(t, []tests.ParseErrCase{
+	tests_utils.RunParseErr(t, []tests_utils.ParseErrCase{
 		{
 			Name: "return_two_values",
 			Src:  "return 1 2",
@@ -1061,7 +1074,7 @@ func TestReturn(t *testing.T) {
 
 func TestNames(t *testing.T) {
 	// --- keywords and reserved words as names
-	tests.RunParseErr(t, []tests.ParseErrCase{
+	tests_utils.RunParseErr(t, []tests_utils.ParseErrCase{
 		{
 			Name: "let_if",
 			Src:  "let if = 1",
@@ -1155,7 +1168,7 @@ func TestNames(t *testing.T) {
 	})
 
 	// --- keywords are case insensitive
-	tests.RunParseErr(t, []tests.ParseErrCase{
+	tests_utils.RunParseErr(t, []tests_utils.ParseErrCase{
 		{
 			Name: "let_title_true",
 			Src:  "let True = 1",
@@ -1198,7 +1211,7 @@ func TestNames(t *testing.T) {
 		},
 	})
 
-	tests.RunSame(t, []tests.ParseSameCase{
+	tests_utils.RunSame(t, []tests_utils.ParseSameCase{
 		{
 			Name: "upper_let",
 			Src:  "LET a = 1",
@@ -1237,7 +1250,7 @@ func TestNames(t *testing.T) {
 	})
 
 	// --- valid names
-	tests.RunOK(t, []tests.ParseOkCase{
+	tests_utils.RunOK(t, []tests_utils.ParseOkCase{
 		{
 			Name: "capital_ident",
 			Src:  "let Name = 1",

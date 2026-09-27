@@ -3,7 +3,6 @@ package parser
 import (
 	"errors"
 	"fmt"
-	"slices"
 	"strconv"
 
 	"github.com/siper92/akha/lang/ast"
@@ -19,6 +18,8 @@ type Parser interface {
 
 var _ Parser = (*parser)(nil)
 
+const MaxDepth = 1000
+
 type parser struct {
 	file  string
 	src   string
@@ -27,13 +28,51 @@ type parser struct {
 	tok   token.Token
 	nest  int
 	loops int
+	depth int
 }
 
 type bailout struct {
 	err *diag.Error
 }
 
-var comparisons = []token.Kind{token.Eq, token.NotEq, token.Lt, token.LtEq, token.Gt, token.GtEq}
+const (
+	precOr = iota
+	precAnd
+	precNot
+	precIn
+	precCmp
+	precAdd
+	precMul
+	precUnary
+)
+
+var levels = [precUnary][]token.Kind{
+	precOr:  {token.Or},
+	precAnd: {token.And},
+	precIn:  {token.In, token.NotIn},
+	precCmp: {token.Eq, token.NotEq, token.Lt, token.LtEq, token.Gt, token.GtEq},
+	precAdd: {token.Plus, token.Minus},
+	precMul: {token.Star, token.Slash, token.Percent},
+}
+
+var precedence = func() map[token.Kind]int {
+	m := make(map[token.Kind]int)
+	for level, ops := range levels {
+		for _, op := range ops {
+			m[op] = level
+		}
+	}
+	return m
+}()
+
+type chainErr struct {
+	code, hint, msg string
+}
+
+var nonAssoc = map[int]chainErr{
+	precIn:  {code: diag.CodeChainedIn, hint: "use ( ) to group", msg: "in does not chain"},
+	precCmp: {code: diag.CodeChainedComparison, hint: "use a < b and b < c", msg: "comparisons do not chain"},
+}
 
 func New(file, src string) Parser {
 	return &parser{file: file, src: src}
@@ -51,26 +90,37 @@ func (p *parser) ParseExpr() (_ ast.Expr, err error) {
 	x := p.parseExpr()
 	p.skipNewlines()
 	if p.tok.Kind != token.EOF {
-		p.fail(diag.CodeUnexpectedToken, "", "unexpected %s after expression", describe(p.tok))
+		p.fail(diag.CodeUnexpectedToken, "", "unexpected %s after expression", p.tok.Describe())
 	}
 	return x, nil
 }
 
 func (p *parser) recover(err *error) {
-	r := recover()
-	if r == nil {
-		return
+	switch r := recover().(type) {
+	case nil:
+	case bailout:
+		r.err.File = p.file
+		*err = r.err
+	default:
+		de := diag.New(diag.ErrParse, p.tok.Pos, diag.CodeInternal, fmt.Sprintf("internal error: %v", r), "")
+		de.File = p.file
+		*err = de
 	}
-	b, ok := r.(bailout)
-	if !ok {
-		panic(r)
+}
+
+func (p *parser) enter() {
+	p.depth++
+	if p.depth > MaxDepth {
+		p.fail(diag.CodeNesting, "", "excessive nesting")
 	}
-	b.err.File = p.file
-	*err = b.err
+}
+
+func (p *parser) leave() {
+	p.depth--
 }
 
 func (p *parser) load(l lexer.Lexer) {
-	p.toks, p.i, p.nest, p.loops = nil, -1, 0, 0
+	p.toks, p.i, p.nest, p.loops, p.depth = nil, -1, 0, 0, 0
 	for {
 		t, err := l.Next()
 		if err != nil {
@@ -108,6 +158,15 @@ func (p *parser) peek() token.Token {
 	return p.toks[len(p.toks)-1]
 }
 
+func (p *parser) consume(kind token.Kind) token.Token {
+	t := p.tok
+	if t.Kind != kind {
+		p.fail(diag.CodeUnexpectedToken, "", "expected %s, got %s", kind, t.Describe())
+	}
+	p.next()
+	return t
+}
+
 func (p *parser) open() {
 	p.nest++
 	p.next()
@@ -115,7 +174,7 @@ func (p *parser) open() {
 
 func (p *parser) close(kind token.Kind) {
 	if p.tok.Kind != kind {
-		p.fail(diag.CodeUnexpectedToken, "", "expected %s, got %s", kind, describe(p.tok))
+		p.fail(diag.CodeUnexpectedToken, "", "expected %s, got %s", kind, p.tok.Describe())
 	}
 	p.nest--
 	p.next()
@@ -135,6 +194,7 @@ func (p *parser) failAt(pos token.Pos, code, hint, format string, args ...any) {
 	panic(bailout{err: diag.New(diag.ErrParse, pos, code, fmt.Sprintf(format, args...), hint)})
 }
 
+// Script = {Line} eof .
 func (p *parser) parseScript() *ast.Script {
 	script := &ast.Script{}
 	for {
@@ -147,29 +207,34 @@ func (p *parser) parseScript() *ast.Script {
 	}
 }
 
+// Line = [Statement] newline .
 func (p *parser) endStmt() {
 	switch p.tok.Kind {
 	case token.Newline:
 		p.next()
 	case token.EOF:
 	default:
-		p.fail(diag.CodeExpectedNewline, "one statement per line", "expected end of line, got %s", describe(p.tok))
+		p.fail(diag.CodeExpectedNewline, "one statement per line", "expected end of line, got %s", p.tok.Describe())
 	}
 }
 
+// Block = '{' newline {Line} '}' .
 func (p *parser) parseBlock() *ast.Block {
+	p.enter()
+	defer p.leave()
+
 	switch p.tok.Kind {
 	case token.LBrace:
 	case token.Newline:
 		p.fail(diag.CodeBlockOpen, "put { at the end of the header line", "expected { on the header line")
 	default:
-		p.fail(diag.CodeUnexpectedToken, "", "expected {, got %s", describe(p.tok))
+		p.fail(diag.CodeUnexpectedToken, "", "expected {, got %s", p.tok.Describe())
 	}
 	open := p.tok
 	block := &ast.Block{Pos: line(open)}
 	p.next()
 	if p.tok.Kind != token.Newline && p.tok.Kind != token.EOF {
-		p.fail(diag.CodeBlockNewline, "} must be on its own line", "expected a new line after {, got %s", describe(p.tok))
+		p.fail(diag.CodeBlockNewline, "} must be on its own line", "expected a new line after {, got %s", p.tok.Describe())
 	}
 	for {
 		p.skipNewlines()
@@ -185,6 +250,7 @@ func (p *parser) parseBlock() *ast.Block {
 	}
 }
 
+// Statement = LetStmt | VarStmt | IfStmt | ForStmt | BreakStmt | ContinueStmt | ReturnStmt | AssignStmt | CallStmt .
 func (p *parser) parseStmt() ast.Stmt {
 	switch p.tok.Kind {
 	case token.Let:
@@ -220,10 +286,11 @@ func (p *parser) parseName() string {
 	case t.Kind == token.Reserved:
 		p.fail(diag.CodeReserved, "", "%q is reserved for a later version", t.Lit)
 	}
-	p.fail(diag.CodeExpectedName, "", "expected a name, got %s", describe(t))
+	p.fail(diag.CodeExpectedName, "", "expected a name, got %s", t.Describe())
 	return ""
 }
 
+// LetStmt = 'let' identifier '=' Expr .
 func (p *parser) parseLet() ast.Stmt {
 	pos := line(p.tok)
 	p.next()
@@ -235,6 +302,7 @@ func (p *parser) parseLet() ast.Stmt {
 	return &ast.LetStmt{Pos: pos, Name: name, Value: p.parseExpr()}
 }
 
+// VarStmt = 'var' identifier ['=' Expr] .
 func (p *parser) parseVar() ast.Stmt {
 	pos := line(p.tok)
 	p.next()
@@ -251,7 +319,11 @@ func (p *parser) parseVar() ast.Stmt {
 	return stmt
 }
 
+// IfStmt = 'if' Header Block ['else' (IfStmt | Block)] .
 func (p *parser) parseIf() *ast.IfStmt {
+	p.enter()
+	defer p.leave()
+
 	stmt := &ast.IfStmt{Pos: line(p.tok)}
 	p.next()
 	stmt.Cond = p.parseHeader()
@@ -268,6 +340,7 @@ func (p *parser) parseIf() *ast.IfStmt {
 	return stmt
 }
 
+// Header = Expr .
 func (p *parser) parseHeader() ast.Expr {
 	if p.tok.Kind == token.LBrace {
 		if p.peek().Kind == token.Newline {
@@ -278,6 +351,7 @@ func (p *parser) parseHeader() ast.Expr {
 	return p.parseExpr()
 }
 
+// ForStmt = 'for' ['var'] LoopVariables ('in' Header | 'range' Range) Block .
 func (p *parser) parseFor() ast.Stmt {
 	pos := line(p.tok)
 	p.next()
@@ -288,12 +362,7 @@ func (p *parser) parseFor() ast.Stmt {
 	if mutable {
 		p.next()
 	}
-	first := p.parseName()
-	second := ""
-	if p.tok.Kind == token.Comma {
-		p.next()
-		second = p.parseName()
-	}
+	first, second := p.parseLoopVars()
 	switch p.tok.Kind {
 	case token.In:
 		p.next()
@@ -313,18 +382,29 @@ func (p *parser) parseFor() ast.Stmt {
 		stmt.Body = p.parseLoopBody()
 		return stmt
 	}
-	p.fail(diag.CodeUnexpectedToken, "", "expected in or range, got %s", describe(p.tok))
+	p.fail(diag.CodeUnexpectedToken, "", "expected in or range, got %s", p.tok.Describe())
 	return nil
 }
 
+// LoopVariables = identifier [',' identifier] .
+func (p *parser) parseLoopVars() (string, string) {
+	first := p.parseName()
+	if p.tok.Kind != token.Comma {
+		return first, ""
+	}
+	p.next()
+	return first, p.parseName()
+}
+
+// Range = '[' Expr '..' Expr ']' .
 func (p *parser) parseRange() (ast.Expr, ast.Expr) {
 	if p.tok.Kind != token.LBracket {
-		p.fail(diag.CodeRangeSyntax, "use range [start..end]", "expected [ after range, got %s", describe(p.tok))
+		p.fail(diag.CodeRangeSyntax, "use range [start..end]", "expected [ after range, got %s", p.tok.Describe())
 	}
 	p.open()
 	start := p.parseExpr()
 	if p.tok.Kind != token.DotDot {
-		p.fail(diag.CodeRangeSyntax, "use range [start..end]", "expected .. in range, got %s", describe(p.tok))
+		p.fail(diag.CodeRangeSyntax, "use range [start..end]", "expected .. in range, got %s", p.tok.Describe())
 	}
 	p.next()
 	end := p.parseExpr()
@@ -339,10 +419,12 @@ func (p *parser) parseLoopBody() *ast.Block {
 	return body
 }
 
+// BreakStmt = 'break' .
+// ContinueStmt = 'continue' .
 func (p *parser) parseLoopControl() ast.Stmt {
 	t := p.tok
 	if p.loops == 0 {
-		p.fail(diag.CodeLoopControl, "", "%s outside of a loop", t.Lit)
+		p.fail(diag.CodeLoopControl, "", "%s outside of a loop", t.Kind)
 	}
 	p.next()
 	if t.Kind == token.Break {
@@ -351,6 +433,7 @@ func (p *parser) parseLoopControl() ast.Stmt {
 	return &ast.ContinueStmt{Pos: line(t)}
 }
 
+// ReturnStmt = ('return' | 'exit') [Expr] .
 func (p *parser) parseReturn() ast.Stmt {
 	t := p.tok
 	p.next()
@@ -361,11 +444,13 @@ func (p *parser) parseReturn() ast.Stmt {
 	return stmt
 }
 
+// AssignStmt = Target '=' Expr .
+// CallStmt = PostfixExpr .
 func (p *parser) parseSimple() ast.Stmt {
 	start := p.tok
 	x := p.parseExpr()
 	if p.tok.Kind == token.Assign {
-		if !assignable(x) {
+		if start.Kind != token.Ident || !assignable(x) {
 			p.failAt(start.Pos, diag.CodeAssignTarget, "", "cannot assign to this expression")
 		}
 		p.next()
@@ -377,88 +462,66 @@ func (p *parser) parseSimple() ast.Stmt {
 	return &ast.ExprStmt{Pos: line(start), X: x}
 }
 
+// Expr = OrExpr .
 func (p *parser) parseExpr() ast.Expr {
-	return p.parseOr()
+	return p.parsePrec(precOr)
 }
 
-func (p *parser) parseBinary(operand func() ast.Expr, ops ...token.Kind) ast.Expr {
-	left := operand()
-	for slices.Contains(ops, p.tok.Kind) {
+// NotExpr = ('not' | '!') NotExpr | InExpr .
+func (p *parser) parsePrec(prec int) ast.Expr {
+	p.enter()
+	defer p.leave()
+
+	if prec >= precUnary {
+		return p.parseUnary()
+	}
+	if prec == precNot && p.tok.Kind == token.Not {
 		op := p.tok
 		p.next()
-		left = &ast.BinaryExpr{Pos: line(op), Op: op.Kind, Left: left, Right: operand()}
+		return &ast.UnaryExpr{Pos: line(op), Op: token.Not, X: p.parsePrec(precNot)}
 	}
-	return left
+	return p.parseBinop(prec)
 }
 
-func (p *parser) parseOr() ast.Expr {
-	return p.parseBinary(p.parseAnd, token.Or)
-}
-
-func (p *parser) parseAnd() ast.Expr {
-	return p.parseBinary(p.parseNot, token.And)
-}
-
-func (p *parser) parseNot() ast.Expr {
-	if p.tok.Kind != token.Not {
-		return p.parseMembership()
+// OrExpr = AndExpr {('or' | '||') AndExpr} .
+// AndExpr = NotExpr {('and' | '&&') NotExpr} .
+// InExpr = CmpExpr [('in' | 'not' 'in') CmpExpr] .
+// CmpExpr = AddExpr [('==' | '!=' | '<' | '<=' | '>' | '>=') AddExpr] .
+// AddExpr = MulExpr {('+' | '-') MulExpr} .
+// MulExpr = UnaryExpr {('*' | '/' | '%') UnaryExpr} .
+func (p *parser) parseBinop(prec int) ast.Expr {
+	x := p.parsePrec(prec + 1)
+	for first := true; ; first = false {
+		op, ok := p.binop()
+		level := precedence[op]
+		if !ok || level < prec {
+			return x
+		}
+		if chain, ok := nonAssoc[level]; ok && !first {
+			p.fail(chain.code, chain.hint, "%s", chain.msg)
+		}
+		at := p.tok
+		if op == token.NotIn {
+			p.next()
+		}
+		p.next()
+		x = &ast.BinaryExpr{Pos: line(at), Op: op, Left: x, Right: p.parsePrec(level + 1)}
 	}
-	op := p.tok
-	p.next()
-	return &ast.UnaryExpr{Pos: line(op), Op: token.Not, X: p.parseNot()}
 }
 
-func (p *parser) membershipOp() (token.Kind, bool) {
-	switch {
-	case p.tok.Kind == token.In:
-		return token.In, true
-	case p.tok.Kind == token.Not && p.tok.Lit == "not" && p.peek().Kind == token.In:
+func (p *parser) binop() (token.Kind, bool) {
+	if p.tok.Kind == token.Not && p.tok.Lit != "!" && p.peek().Kind == token.In {
 		return token.NotIn, true
 	}
-	return 0, false
+	_, ok := precedence[p.tok.Kind]
+	return p.tok.Kind, ok
 }
 
-func (p *parser) parseMembership() ast.Expr {
-	left := p.parseComparison()
-	op, ok := p.membershipOp()
-	if !ok {
-		return left
-	}
-	at := p.tok
-	if op == token.NotIn {
-		p.next()
-	}
-	p.next()
-	x := &ast.BinaryExpr{Pos: line(at), Op: op, Left: left, Right: p.parseComparison()}
-	if _, again := p.membershipOp(); again {
-		p.fail(diag.CodeChainedIn, "use ( ) to group", "in does not chain")
-	}
-	return x
-}
-
-func (p *parser) parseComparison() ast.Expr {
-	left := p.parseAdd()
-	if !slices.Contains(comparisons, p.tok.Kind) {
-		return left
-	}
-	op := p.tok
-	p.next()
-	x := &ast.BinaryExpr{Pos: line(op), Op: op.Kind, Left: left, Right: p.parseAdd()}
-	if slices.Contains(comparisons, p.tok.Kind) {
-		p.fail(diag.CodeChainedComparison, "use a < b and b < c", "comparisons do not chain")
-	}
-	return x
-}
-
-func (p *parser) parseAdd() ast.Expr {
-	return p.parseBinary(p.parseMul, token.Plus, token.Minus)
-}
-
-func (p *parser) parseMul() ast.Expr {
-	return p.parseBinary(p.parseUnary, token.Star, token.Slash, token.Percent)
-}
-
+// UnaryExpr = '-' UnaryExpr | PostfixExpr .
 func (p *parser) parseUnary() ast.Expr {
+	p.enter()
+	defer p.leave()
+
 	if p.tok.Kind != token.Minus {
 		return p.parsePostfix()
 	}
@@ -467,6 +530,10 @@ func (p *parser) parseUnary() ast.Expr {
 	return &ast.UnaryExpr{Pos: line(op), Op: token.Minus, X: p.parseUnary()}
 }
 
+// PostfixExpr = Operand {DotSuffix | IndexSuffix | CallSuffix} .
+// DotSuffix = '.' identifier .
+// IndexSuffix = '[' Expr ']' .
+// CallSuffix = '(' [List] ')' .
 func (p *parser) parsePostfix() ast.Expr {
 	x := p.parsePrimary()
 	for {
@@ -475,7 +542,7 @@ func (p *parser) parsePostfix() ast.Expr {
 		case token.Dot:
 			p.next()
 			if p.tok.Kind != token.Ident {
-				p.fail(diag.CodeExpectedName, "", "expected a member name after ., got %s", describe(p.tok))
+				p.fail(diag.CodeExpectedName, "", "expected a member name after ., got %s", p.tok.Describe())
 			}
 			x = &ast.MemberExpr{Pos: line(at), X: x, Name: p.tok.Lit}
 			p.next()
@@ -496,6 +563,7 @@ func (p *parser) parsePostfix() ast.Expr {
 	}
 }
 
+// List = Expr {',' Expr} [','] .
 func (p *parser) parseList(end token.Kind) []ast.Expr {
 	var items []ast.Expr
 	for p.tok.Kind != end {
@@ -509,6 +577,9 @@ func (p *parser) parseList(end token.Kind) []ast.Expr {
 	return items
 }
 
+// Operand = identifier | number | String | 'true' | 'false' | 'null' | ArrayExpr | ObjectExpr | '(' Expr ')' .
+// String = string | Template .
+// ArrayExpr = '[' [List] ']' .
 func (p *parser) parsePrimary() ast.Expr {
 	t := p.tok
 	pos := line(t)
@@ -546,10 +617,12 @@ func (p *parser) parsePrimary() ast.Expr {
 	case token.LBrace:
 		return p.parseObject()
 	}
-	p.fail(diag.CodeExpectedExpr, "", "expected an expression, got %s", describe(t))
+	p.fail(diag.CodeExpectedExpr, "", "expected an expression, got %s", t.Describe())
 	return nil
 }
 
+// ObjectExpr = '{' [Entry {',' Entry} [',']] '}' .
+// Entry = (identifier | string) ':' Expr .
 func (p *parser) parseObject() ast.Expr {
 	obj := &ast.ObjectLit{Pos: line(p.tok)}
 	p.open()
@@ -561,17 +634,14 @@ func (p *parser) parseObject() ast.Expr {
 		case token.Template:
 			p.fail(diag.CodeObjectKey, "", "computed keys are not supported in v1")
 		default:
-			p.fail(diag.CodeObjectKey, "use a name or a string as key", "invalid object key %s", describe(key))
+			p.fail(diag.CodeObjectKey, "use a name or a string as key", "invalid object key %s", key.Describe())
 		}
 		if seen[key.Lit] {
 			p.fail(diag.CodeDuplicateKey, "", "duplicate key %q", key.Lit)
 		}
 		seen[key.Lit] = true
 		p.next()
-		if p.tok.Kind != token.Colon {
-			p.fail(diag.CodeUnexpectedToken, "", "expected :, got %s", describe(p.tok))
-		}
-		p.next()
+		p.consume(token.Colon)
 		obj.Entries = append(obj.Entries, ast.Entry{Pos: line(key), Key: key.Lit, Value: p.parseExpr()})
 		if p.tok.Kind != token.Comma {
 			break
@@ -582,6 +652,7 @@ func (p *parser) parseObject() ast.Expr {
 	return obj
 }
 
+// Template = '"' {char | escape | '${' ValueRef '}'} '"' .
 func (p *parser) parseTemplate(t token.Token) ast.Expr {
 	lit := &ast.TemplateLit{Pos: line(t)}
 	for _, part := range t.Parts {
@@ -593,7 +664,7 @@ func (p *parser) parseTemplate(t token.Token) ast.Expr {
 		sub.load(lexer.NewAt(part.Expr, part.Pos))
 		x := sub.parseExpr()
 		if sub.tok.Kind != token.EOF {
-			sub.fail(diag.CodeInterpExpr, "", "unexpected %s inside ${ }", describe(sub.tok))
+			sub.fail(diag.CodeInterpExpr, "", "unexpected %s inside ${ }", sub.tok.Describe())
 		}
 		if !valueRef(x) {
 			p.failAt(part.Pos, diag.CodeInterpExpr, "move the expression to a let", "only names, members and indexes are allowed inside ${ }")
@@ -603,6 +674,7 @@ func (p *parser) parseTemplate(t token.Token) ast.Expr {
 	return lit
 }
 
+// Target = identifier {DotSuffix | IndexSuffix} .
 func assignable(x ast.Expr) bool {
 	switch x := x.(type) {
 	case *ast.Ident:
@@ -615,6 +687,7 @@ func assignable(x ast.Expr) bool {
 	return false
 }
 
+// ValueRef = identifier {DotSuffix | '[' (number | string | ValueRef) ']'} .
 func valueRef(x ast.Expr) bool {
 	switch x := x.(type) {
 	case *ast.Ident:
@@ -633,18 +706,4 @@ func valueRef(x ast.Expr) bool {
 
 func line(t token.Token) ast.Pos {
 	return ast.Pos{Line: t.Pos.Line}
-}
-
-func describe(t token.Token) string {
-	switch t.Kind {
-	case token.EOF:
-		return "end of file"
-	case token.Newline:
-		return "end of line"
-	case token.Ident, token.Number, token.Reserved:
-		return t.Kind.String() + " " + t.Lit
-	case token.String, token.Template:
-		return "string " + strconv.Quote(t.Lit)
-	}
-	return strconv.Quote(t.Lit)
 }

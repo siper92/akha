@@ -303,7 +303,7 @@ func key(k string) string {
 }
 
 func isName(s string) bool {
-	if s == "" || token.Lookup(strings.ToLower(s)) != token.Ident {
+	if s == "" || token.Lookup(s) != token.Ident {
 		return false
 	}
 	for i, r := range s {

@@ -1,10 +1,11 @@
-package tests
+package tests_utils
 
 import (
 	"fmt"
 	"reflect"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/siper92/akha/lang/token"
@@ -47,6 +48,43 @@ func LexTokenize(t *testing.T, src string) []token.Token {
 	}
 
 	return toks
+}
+
+type LexKindsCase struct {
+	Name string
+	Src  string
+	Want string
+}
+
+func LexKinds(t *testing.T, src string) string {
+	t.Helper()
+	toks := LexTokenize(t, src)
+	parts := make([]string, len(toks))
+	for i, tk := range toks {
+		switch tk.Kind {
+		case token.Ident, token.Number:
+			parts[i] = tk.Lit
+		case token.String:
+			parts[i] = strconv.Quote(tk.Lit)
+		case token.Newline:
+			parts[i] = "NL"
+		default:
+			parts[i] = tk.Kind.String()
+		}
+	}
+
+	return strings.Join(parts, " ")
+}
+
+func RunLexKinds(t *testing.T, cases []LexKindsCase) {
+	t.Helper()
+	for _, c := range cases {
+		t.Run(c.Name, func(t *testing.T) {
+			if got := LexKinds(t, c.Src); got != c.Want {
+				t.Fatalf("tokens of %q\n got: %s\nwant: %s", c.Src, got, c.Want)
+			}
+		})
+	}
 }
 
 func LexErrPosRe(line, col int) *regexp.Regexp {

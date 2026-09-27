@@ -3,12 +3,12 @@ package parser_test
 import (
 	"testing"
 
-	"github.com/siper92/akha/lang/tests"
+	"github.com/siper92/akha/lang/tests_utils"
 )
 
 func TestExprAst(t *testing.T) {
 	// --- expr: canonical ebnf form
-	tests.RunExprAst(t, []tests.AstCase{
+	tests_utils.RunExprAst(t, []tests_utils.AstCase{
 		{
 			Name: "add_mul",
 			Src:  "1 + 2 * 3",
@@ -87,7 +87,7 @@ func TestExprAst(t *testing.T) {
 	})
 
 	// --- expr: redundant grouping is dropped
-	tests.RunExprAst(t, []tests.AstCase{
+	tests_utils.RunExprAst(t, []tests_utils.AstCase{
 		{
 			Name: "group_left_assoc_dropped",
 			Src:  "(a - b) - c",
@@ -121,7 +121,7 @@ func TestExprAst(t *testing.T) {
 	})
 
 	// --- expr: needed grouping is kept
-	tests.RunExprAst(t, []tests.AstCase{
+	tests_utils.RunExprAst(t, []tests_utils.AstCase{
 		{
 			Name: "group_right_sub_kept",
 			Src:  "a - (b - c)",
@@ -165,7 +165,7 @@ func TestExprAst(t *testing.T) {
 	})
 
 	// --- expr: aliases and case normalize to the ebnf keywords
-	tests.RunExprAst(t, []tests.AstCase{
+	tests_utils.RunExprAst(t, []tests_utils.AstCase{
 		{
 			Name: "and_alias",
 			Src:  "a && b",
@@ -211,7 +211,7 @@ func TestExprAst(t *testing.T) {
 
 func TestPrecedence(t *testing.T) {
 	// --- or_expr
-	tests.RunSameExpr(t, []tests.ParseSameCase{
+	tests_utils.RunSameExpr(t, []tests_utils.ParseSameCase{
 		{
 			Name: "or_left_assoc",
 			Src:  "a or b or c",
@@ -230,7 +230,7 @@ func TestPrecedence(t *testing.T) {
 	})
 
 	// --- and_expr
-	tests.RunSameExpr(t, []tests.ParseSameCase{
+	tests_utils.RunSameExpr(t, []tests_utils.ParseSameCase{
 		{
 			Name: "and_left_assoc",
 			Src:  "a and b and c",
@@ -254,7 +254,7 @@ func TestPrecedence(t *testing.T) {
 	})
 
 	// --- not_expr
-	tests.RunSameExpr(t, []tests.ParseSameCase{
+	tests_utils.RunSameExpr(t, []tests_utils.ParseSameCase{
 		{
 			Name: "not_over_eq",
 			Src:  "not a == b",
@@ -288,7 +288,7 @@ func TestPrecedence(t *testing.T) {
 	})
 
 	// --- in_expr
-	tests.RunSameExpr(t, []tests.ParseSameCase{
+	tests_utils.RunSameExpr(t, []tests_utils.ParseSameCase{
 		{
 			Name: "in_lower_than_cmp",
 			Src:  "a == b in c",
@@ -316,7 +316,7 @@ func TestPrecedence(t *testing.T) {
 		},
 	})
 
-	tests.RunOK(t, []tests.ParseOkCase{
+	tests_utils.RunOK(t, []tests_utils.ParseOkCase{
 		{
 			Name: "grouped_in_chain_left",
 			Src:  "let x = (a in b) in c",
@@ -332,7 +332,7 @@ func TestPrecedence(t *testing.T) {
 	})
 
 	// --- cmp_expr
-	tests.RunSameExpr(t, []tests.ParseSameCase{
+	tests_utils.RunSameExpr(t, []tests_utils.ParseSameCase{
 		{
 			Name: "cmp_lower_than_add",
 			Src:  "a + 1 < b * 2",
@@ -350,7 +350,7 @@ func TestPrecedence(t *testing.T) {
 		},
 	})
 
-	tests.RunOK(t, []tests.ParseOkCase{
+	tests_utils.RunOK(t, []tests_utils.ParseOkCase{
 		{
 			Name: "grouped_cmp_chain_left",
 			Src:  "let x = (a < b) < c",
@@ -362,7 +362,7 @@ func TestPrecedence(t *testing.T) {
 	})
 
 	// --- non associative levels
-	tests.RunParseErr(t, []tests.ParseErrCase{
+	tests_utils.RunParseErr(t, []tests_utils.ParseErrCase{
 		{
 			Name: "lt_chain",
 			Src:  "let x = a < b < c",
@@ -406,7 +406,7 @@ func TestPrecedence(t *testing.T) {
 	})
 
 	// --- add_expr
-	tests.RunSameExpr(t, []tests.ParseSameCase{
+	tests_utils.RunSameExpr(t, []tests_utils.ParseSameCase{
 		{
 			Name: "add_left_assoc",
 			Src:  "a - b - c",
@@ -425,7 +425,7 @@ func TestPrecedence(t *testing.T) {
 	})
 
 	// --- mul_expr
-	tests.RunSameExpr(t, []tests.ParseSameCase{
+	tests_utils.RunSameExpr(t, []tests_utils.ParseSameCase{
 		{
 			Name: "div_left_assoc",
 			Src:  "a / b / c",
@@ -444,7 +444,7 @@ func TestPrecedence(t *testing.T) {
 	})
 
 	// --- unary_expr
-	tests.RunSameExpr(t, []tests.ParseSameCase{
+	tests_utils.RunSameExpr(t, []tests_utils.ParseSameCase{
 		{
 			Name: "neg_over_mul",
 			Src:  "-a * b",
@@ -478,7 +478,7 @@ func TestPrecedence(t *testing.T) {
 	})
 
 	// --- grouping changes the tree
-	tests.RunDiffExpr(t, []tests.ParseSameCase{
+	tests_utils.RunDiffExpr(t, []tests_utils.ParseSameCase{
 		{
 			Name: "grouped_add_then_mul",
 			Src:  "(1 + 2) * 3",
@@ -514,7 +514,7 @@ func TestPrecedence(t *testing.T) {
 
 func TestPostfix(t *testing.T) {
 	// --- postfix_expr
-	tests.RunSameExpr(t, []tests.ParseSameCase{
+	tests_utils.RunSameExpr(t, []tests_utils.ParseSameCase{
 		{
 			Name: "member_left_assoc",
 			Src:  "a.b.c",
@@ -542,7 +542,7 @@ func TestPostfix(t *testing.T) {
 		},
 	})
 
-	tests.RunOK(t, []tests.ParseOkCase{
+	tests_utils.RunOK(t, []tests_utils.ParseOkCase{
 		{
 			Name: "string_index",
 			Src:  `let x = user["content-type"]`,
@@ -566,7 +566,7 @@ func TestPostfix(t *testing.T) {
 	})
 
 	// --- slices
-	tests.RunParseErr(t, []tests.ParseErrCase{
+	tests_utils.RunParseErr(t, []tests_utils.ParseErrCase{
 		{
 			Name: "slice_both",
 			Src:  "let x = a[1:2]",
@@ -593,7 +593,7 @@ func TestPostfix(t *testing.T) {
 	})
 
 	// --- postfix errors
-	tests.RunParseErr(t, []tests.ParseErrCase{
+	tests_utils.RunParseErr(t, []tests_utils.ParseErrCase{
 		{
 			Name: "member_missing_name",
 			Src:  "let x = a.",
@@ -623,7 +623,7 @@ func TestPostfix(t *testing.T) {
 
 func TestPrimary(t *testing.T) {
 	// --- primary
-	tests.RunExprAst(t, []tests.AstCase{
+	tests_utils.RunExprAst(t, []tests_utils.AstCase{
 		{
 			Name: "integer",
 			Src:  "42",
@@ -722,7 +722,7 @@ func TestPrimary(t *testing.T) {
 	})
 
 	// --- keyword operators are case insensitive
-	tests.RunSameExpr(t, []tests.ParseSameCase{
+	tests_utils.RunSameExpr(t, []tests_utils.ParseSameCase{
 		{
 			Name: "upper_and_or",
 			Src:  "a AND b OR c",
@@ -745,7 +745,7 @@ func TestPrimary(t *testing.T) {
 		},
 	})
 
-	tests.RunDiffExpr(t, []tests.ParseSameCase{
+	tests_utils.RunDiffExpr(t, []tests_utils.ParseSameCase{
 		{
 			Name: "ident_case_kept",
 			Src:  "Name",
@@ -754,7 +754,7 @@ func TestPrimary(t *testing.T) {
 	})
 
 	// --- grouping
-	tests.RunSameExpr(t, []tests.ParseSameCase{
+	tests_utils.RunSameExpr(t, []tests_utils.ParseSameCase{
 		{
 			Name: "double_group",
 			Src:  "((a))",
@@ -773,7 +773,7 @@ func TestPrimary(t *testing.T) {
 	})
 
 	// --- primary errors
-	tests.RunParseErr(t, []tests.ParseErrCase{
+	tests_utils.RunParseErr(t, []tests_utils.ParseErrCase{
 		{
 			Name: "empty_group",
 			Src:  "let x = ()",
@@ -813,7 +813,7 @@ func TestPrimary(t *testing.T) {
 
 func TestArray(t *testing.T) {
 	// --- array
-	tests.RunExprAst(t, []tests.AstCase{
+	tests_utils.RunExprAst(t, []tests_utils.AstCase{
 		{
 			Name: "array_numbers",
 			Src:  "[1, 2]",
@@ -847,7 +847,7 @@ func TestArray(t *testing.T) {
 	})
 
 	// --- array multi line and trailing comma
-	tests.RunSameExpr(t, []tests.ParseSameCase{
+	tests_utils.RunSameExpr(t, []tests_utils.ParseSameCase{
 		{
 			Name: "array_split_lines",
 			Src:  "[\n    1,\n    2,\n]",
@@ -871,7 +871,7 @@ func TestArray(t *testing.T) {
 	})
 
 	// --- array errors
-	tests.RunParseErr(t, []tests.ParseErrCase{
+	tests_utils.RunParseErr(t, []tests_utils.ParseErrCase{
 		{
 			Name: "array_only_comma",
 			Src:  "let x = [,]",
@@ -901,7 +901,7 @@ func TestArray(t *testing.T) {
 
 func TestObject(t *testing.T) {
 	// --- object and entry
-	tests.RunExprAst(t, []tests.AstCase{
+	tests_utils.RunExprAst(t, []tests_utils.AstCase{
 		{
 			Name: "object_ident_keys",
 			Src:  "{name: name, total: n}",
@@ -950,7 +950,7 @@ func TestObject(t *testing.T) {
 	})
 
 	// --- object multi line and trailing comma
-	tests.RunSameExpr(t, []tests.ParseSameCase{
+	tests_utils.RunSameExpr(t, []tests_utils.ParseSameCase{
 		{
 			Name: "object_trailing_comma",
 			Src:  "{a: 1, b: 2,}",
@@ -973,7 +973,7 @@ func TestObject(t *testing.T) {
 		},
 	})
 
-	tests.RunOK(t, []tests.ParseOkCase{
+	tests_utils.RunOK(t, []tests_utils.ParseOkCase{
 		{
 			Name: "object_same_key_other_level",
 			Src:  "let x = {a: {a: 1}}",
@@ -993,7 +993,7 @@ func TestObject(t *testing.T) {
 	})
 
 	// --- duplicate keys
-	tests.RunParseErr(t, []tests.ParseErrCase{
+	tests_utils.RunParseErr(t, []tests_utils.ParseErrCase{
 		{
 			Name: "duplicate_ident_key",
 			Src:  "let x = {a: 1, a: 2}",
@@ -1022,7 +1022,7 @@ func TestObject(t *testing.T) {
 	})
 
 	// --- entry errors
-	tests.RunParseErr(t, []tests.ParseErrCase{
+	tests_utils.RunParseErr(t, []tests_utils.ParseErrCase{
 		{
 			Name: "number_key",
 			Src:  "let x = {1: 2}",
@@ -1077,7 +1077,7 @@ func TestObject(t *testing.T) {
 
 func TestList(t *testing.T) {
 	// --- list
-	tests.RunSame(t, []tests.ParseSameCase{
+	tests_utils.RunSame(t, []tests_utils.ParseSameCase{
 		{
 			Name: "list_call_trailing_comma",
 			Src:  "f(a, b,)",
@@ -1100,7 +1100,7 @@ func TestList(t *testing.T) {
 		},
 	})
 
-	tests.RunDiff(t, []tests.ParseSameCase{
+	tests_utils.RunDiff(t, []tests_utils.ParseSameCase{
 		{
 			Name: "list_call_arity_kept",
 			Src:  "f(a, b)",
@@ -1111,7 +1111,7 @@ func TestList(t *testing.T) {
 
 func TestInterpolation(t *testing.T) {
 	// --- value_ref in string interpolation
-	tests.RunOK(t, []tests.ParseOkCase{
+	tests_utils.RunOK(t, []tests_utils.ParseOkCase{
 		{
 			Name: "interp_ident",
 			Src:  `let s = "hi ${name}"`,
@@ -1150,7 +1150,7 @@ func TestInterpolation(t *testing.T) {
 		},
 	})
 
-	tests.RunDiff(t, []tests.ParseSameCase{
+	tests_utils.RunDiff(t, []tests_utils.ParseSameCase{
 		{
 			Name: "interp_differs_from_escaped",
 			Src:  `let s = "${price}"`,
@@ -1159,7 +1159,7 @@ func TestInterpolation(t *testing.T) {
 	})
 
 	// --- value_ref errors
-	tests.RunParseErr(t, []tests.ParseErrCase{
+	tests_utils.RunParseErr(t, []tests_utils.ParseErrCase{
 		{
 			Name: "interp_binary",
 			Src:  `let s = "${1 + 2}"`,

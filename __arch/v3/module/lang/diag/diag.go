@@ -26,6 +26,8 @@ const (
 	CodeUnterminatedInterp = "unterminated-interp"
 	CodeCompoundAssign     = "compound-assign"
 	CodeUnexpectedChar     = "unexpected-char"
+	CodeNesting            = "nesting"
+	CodeInternal           = "internal"
 
 	CodeUnexpectedToken   = "unexpected-token"
 	CodeExpectedExpr      = "expected-expr"
@@ -73,7 +75,7 @@ func (e *Error) Error() string {
 		b.WriteString(e.File)
 		b.WriteByte(':')
 	}
-	fmt.Fprintf(&b, "%d:%d: error[%s]: %s", e.Pos.Line, e.Pos.Col, e.Code, e.Msg)
+	fmt.Fprintf(&b, "%s: error[%s]: %s", e.Pos, e.Code, e.Msg)
 	if e.Hint != "" {
 		b.WriteString("\nhint: ")
 		b.WriteString(e.Hint)

@@ -1,4 +1,4 @@
-package tests
+package tests_utils
 
 import (
 	"github.com/siper92/akha/lang/ast"

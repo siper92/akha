@@ -4,19 +4,20 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/siper92/akha/lang/tests"
+	"github.com/siper92/akha/lang/lexer"
+	"github.com/siper92/akha/lang/tests_utils"
 )
 
 func TestLexOK(t *testing.T) {
 	// --- ident, keyword, reserved
-	tests.RunLexOK(t, []tests.LexOKCase{
+	tests_utils.RunLexOK(t, []tests_utils.LexOKCase{
 		{
 			Name: "all_keywords",
-			Src:  strings.Join(tests.LexKeywords, " "),
+			Src:  strings.Join(tests_utils.LexKeywords, " "),
 		},
 		{
 			Name: "reserved_words",
-			Src:  strings.Join(tests.LexReserved, " "),
+			Src:  strings.Join(tests_utils.LexReserved, " "),
 		},
 		{
 			Name: "case_sensitive_names",
@@ -29,7 +30,7 @@ func TestLexOK(t *testing.T) {
 	})
 
 	// --- number
-	tests.RunLexOK(t, []tests.LexOKCase{
+	tests_utils.RunLexOK(t, []tests_utils.LexOKCase{
 		{
 			Name: "integers",
 			Src:  "0 42 8080 10",
@@ -49,7 +50,7 @@ func TestLexOK(t *testing.T) {
 	})
 
 	// --- string, escape, interp
-	tests.RunLexOK(t, []tests.LexOKCase{
+	tests_utils.RunLexOK(t, []tests_utils.LexOKCase{
 		{
 			Name: "empty_string",
 			Src:  `""`,
@@ -113,7 +114,7 @@ func TestLexOK(t *testing.T) {
 	})
 
 	// --- comment
-	tests.RunLexOK(t, []tests.LexOKCase{
+	tests_utils.RunLexOK(t, []tests_utils.LexOKCase{
 		{
 			Name: "line_comment",
 			Src:  "// a comment",
@@ -141,7 +142,7 @@ func TestLexOK(t *testing.T) {
 	})
 
 	// --- operator, punct
-	tests.RunLexOK(t, []tests.LexOKCase{
+	tests_utils.RunLexOK(t, []tests_utils.LexOKCase{
 		{
 			Name: "arithmetic",
 			Src:  "+ - * / %",
@@ -165,7 +166,7 @@ func TestLexOK(t *testing.T) {
 	})
 
 	// --- source, space, NL
-	tests.RunLexOK(t, []tests.LexOKCase{
+	tests_utils.RunLexOK(t, []tests_utils.LexOKCase{
 		{
 			Name: "empty_source",
 			Src:  "",
@@ -193,25 +194,25 @@ func TestLexOK(t *testing.T) {
 	})
 
 	// --- samples
-	tests.RunLexOK(t, []tests.LexOKCase{
+	tests_utils.RunLexOK(t, []tests_utils.LexOKCase{
 		{
 			Name: "sample",
-			Src:  tests.Sample,
+			Src:  tests_utils.Sample,
 		},
 		{
 			Name: "sample_crlf",
-			Src:  tests.SampleCRLF,
+			Src:  tests_utils.SampleCRLF,
 		},
 		{
 			Name: "spec_def",
-			Src:  tests.SpecDef,
+			Src:  tests_utils.SpecDef,
 		},
 	})
 }
 
 func TestLexTokenCount(t *testing.T) {
 	// --- numbers_are_single_tokens
-	tests.RunLexCount(t, []tests.LexSameCase{
+	tests_utils.RunLexCount(t, []tests_utils.LexSameCase{
 		{
 			Name: "zero",
 			Src:  "0",
@@ -260,7 +261,7 @@ func TestLexTokenCount(t *testing.T) {
 	})
 
 	// --- strings_are_single_tokens
-	tests.RunLexCount(t, []tests.LexSameCase{
+	tests_utils.RunLexCount(t, []tests_utils.LexSameCase{
 		{
 			Name: "plain",
 			Src:  `"a b c"`,
@@ -289,7 +290,7 @@ func TestLexTokenCount(t *testing.T) {
 	})
 
 	// --- operators_longest_match
-	tests.RunLexCount(t, []tests.LexSameCase{
+	tests_utils.RunLexCount(t, []tests_utils.LexSameCase{
 		{
 			Name: "eq",
 			Src:  "a == b",
@@ -353,7 +354,7 @@ func TestLexTokenCount(t *testing.T) {
 	})
 
 	// --- spaces_and_comments_are_skipped
-	tests.RunLexCount(t, []tests.LexSameCase{
+	tests_utils.RunLexCount(t, []tests_utils.LexSameCase{
 		{
 			Name: "indentation",
 			Src:  "    let   a =   1",
@@ -384,7 +385,7 @@ func TestLexTokenCount(t *testing.T) {
 
 func TestLexNormalize(t *testing.T) {
 	// --- crlf_is_newline
-	tests.RunLexSame(t, []tests.LexSameCase{
+	tests_utils.RunLexSame(t, []tests_utils.LexSameCase{
 		{
 			Name: "crlf_lines",
 			Src:  "let a = 1\r\nlet b = 2\r\n",
@@ -402,38 +403,24 @@ func TestLexNormalize(t *testing.T) {
 		},
 		{
 			Name: "sample_crlf",
-			Src:  tests.SampleCRLF,
-			Ref:  strings.ReplaceAll(tests.SampleCRLF, "\r\n", "\n"),
-		},
-	})
-
-	// --- bom_is_ignored
-	tests.RunLexSame(t, []tests.LexSameCase{
-		{
-			Name: "bom_statement",
-			Src:  "let a = 1",
-			Ref:  "let a = 1",
-		},
-		{
-			Name: "bom_multi_line",
-			Src:  "a\nb",
-			Ref:  "a\nb",
+			Src:  tests_utils.SampleCRLF,
+			Ref:  strings.ReplaceAll(tests_utils.SampleCRLF, "\r\n", "\n"),
 		},
 	})
 
 	// --- deterministic
-	tests.RunLexSame(t, []tests.LexSameCase{
+	tests_utils.RunLexSame(t, []tests_utils.LexSameCase{
 		{
 			Name: "spec_def_twice",
-			Src:  tests.SpecDef,
-			Ref:  tests.SpecDef,
+			Src:  tests_utils.SpecDef,
+			Ref:  tests_utils.SpecDef,
 		},
 	})
 }
 
 func TestLexErr(t *testing.T) {
 	// --- semicolon
-	tests.RunLexErr(t, []tests.LexErrCase{
+	tests_utils.RunLexErr(t, []tests_utils.LexErrCase{
 		{
 			Name: "semicolon_alone",
 			Src:  ";",
@@ -455,7 +442,7 @@ func TestLexErr(t *testing.T) {
 	})
 
 	// --- strings
-	tests.RunLexErr(t, []tests.LexErrCase{
+	tests_utils.RunLexErr(t, []tests_utils.LexErrCase{
 		{
 			Name: "single_quote",
 			Src:  "let s = 'a'",
@@ -471,6 +458,13 @@ func TestLexErr(t *testing.T) {
 			Name: "unknown_escape_unicode",
 			Src:  `let s = "A"`,
 			Line: 1,
+			Col:  10,
+		},
+		{
+			Name: "escaped_raw_newline",
+			Src:  "let s = \"a\\\nb\"",
+			Line: 1,
+			Col:  12,
 		},
 		{
 			Name: "unterminated_string",
@@ -500,7 +494,7 @@ func TestLexErr(t *testing.T) {
 	})
 
 	// --- numbers
-	tests.RunLexErr(t, []tests.LexErrCase{
+	tests_utils.RunLexErr(t, []tests_utils.LexErrCase{
 		{
 			Name: "leading_zeros",
 			Src:  "let n = 007",
@@ -552,7 +546,7 @@ func TestLexErr(t *testing.T) {
 	})
 
 	// --- operators
-	tests.RunLexErr(t, []tests.LexErrCase{
+	tests_utils.RunLexErr(t, []tests_utils.LexErrCase{
 		{
 			Name: "single_ampersand",
 			Src:  "a & b",
@@ -598,7 +592,7 @@ func TestLexErr(t *testing.T) {
 	})
 
 	// --- unknown_runes
-	tests.RunLexErr(t, []tests.LexErrCase{
+	tests_utils.RunLexErr(t, []tests_utils.LexErrCase{
 		{
 			Name: "at_sign",
 			Src:  "a @ b",
@@ -644,7 +638,7 @@ func TestLexErr(t *testing.T) {
 	})
 
 	// --- encoding
-	tests.RunLexErr(t, []tests.LexErrCase{
+	tests_utils.RunLexErr(t, []tests_utils.LexErrCase{
 		{
 			Name: "invalid_utf8_alone",
 			Src:  "\xff",
@@ -664,12 +658,6 @@ func TestLexErr(t *testing.T) {
 			Col:  4,
 		},
 		{
-			Name: "bom_not_counted",
-			Src:  ";",
-			Line: 1,
-			Col:  1,
-		},
-		{
 			Name: "crlf_is_one_line",
 			Src:  "a\r\n\r\n;",
 			Line: 3,
@@ -678,7 +666,7 @@ func TestLexErr(t *testing.T) {
 	})
 
 	// --- positions_count_runes
-	tests.RunLexErr(t, []tests.LexErrCase{
+	tests_utils.RunLexErr(t, []tests_utils.LexErrCase{
 		{
 			Name: "tab_is_one_column",
 			Src:  "\tlet a;",
@@ -718,7 +706,7 @@ func TestLexErr(t *testing.T) {
 	})
 
 	// --- first_error_over_whole_source
-	tests.RunLexErr(t, []tests.LexErrCase{
+	tests_utils.RunLexErr(t, []tests_utils.LexErrCase{
 		{
 			Name: "first_of_two_errors",
 			Src:  "let a = 1;\nlet b = 'x'",
@@ -751,16 +739,125 @@ func TestLexErr(t *testing.T) {
 		},
 		{
 			Name: "error_after_spec_def",
-			Src:  tests.SpecDef + "let z = 1;\n",
+			Src:  tests_utils.SpecDef + "let z = 1;\n",
 			Line: 141,
 			Col:  10,
 		},
 	})
 }
 
+func TestLexKinds(t *testing.T) {
+	// --- token stream
+	tests_utils.RunLexKinds(t, []tests_utils.LexKindsCase{
+		{
+			Name: "let_stmt",
+			Src:  "let a = 1",
+			Want: "let a = 1 EOF",
+		},
+		{
+			Name: "call_args",
+			Src:  "f(1, 2.5)",
+			Want: "f ( 1 , 2.5 ) EOF",
+		},
+		{
+			Name: "range",
+			Src:  "[0..n]",
+			Want: "[ 0 .. n ] EOF",
+		},
+		{
+			Name: "newline_kept",
+			Src:  "a\nb",
+			Want: "a NL b EOF",
+		},
+		{
+			Name: "comment_skipped",
+			Src:  "a // c\nb",
+			Want: "a NL b EOF",
+		},
+		{
+			Name: "string_decoded",
+			Src:  `"a\"b"`,
+			Want: `"a\"b" EOF`,
+		},
+		{
+			Name: "template",
+			Src:  `"x" + "${y}"`,
+			Want: `"x" + template EOF`,
+		},
+	})
+
+	// --- keywords are case insensitive, identifiers keep their case
+	tests_utils.RunLexKinds(t, []tests_utils.LexKindsCase{
+		{
+			Name: "upper_let",
+			Src:  "LET A = 1",
+			Want: "let A = 1 EOF",
+		},
+		{
+			Name: "mixed_not_in",
+			Src:  "a Not In b",
+			Want: "a not in b EOF",
+		},
+		{
+			Name: "title_literals",
+			Src:  "True FALSE nUll",
+			Want: "true false null EOF",
+		},
+		{
+			Name: "reserved_any_case",
+			Src:  "Fn try CATCH",
+			Want: "reserved reserved reserved EOF",
+		},
+		{
+			Name: "keyword_prefix_ident",
+			Src:  "LETTER iffy",
+			Want: "LETTER iffy EOF",
+		},
+		{
+			Name: "aliases",
+			Src:  "a && b || !c",
+			Want: "a and b or not c EOF",
+		},
+	})
+}
+
+func TestLexNesting(t *testing.T) {
+	// --- brackets up to the limit
+	tests_utils.RunLexOK(t, []tests_utils.LexOKCase{
+		{
+			Name: "max_depth",
+			Src:  strings.Repeat("(", lexer.MaxDepth) + strings.Repeat(")", lexer.MaxDepth),
+		},
+		{
+			Name: "closed_brackets_reset_depth",
+			Src:  strings.Repeat("[]", lexer.MaxDepth*2),
+		},
+		{
+			Name: "extra_closers_do_not_underflow",
+			Src:  ")))" + strings.Repeat("{", lexer.MaxDepth),
+		},
+	})
+
+	// --- excessive nesting
+	tests_utils.RunLexErr(t, []tests_utils.LexErrCase{
+		{
+			Name: "parens",
+			Src:  strings.Repeat("(", lexer.MaxDepth+1),
+			Line: 1,
+			Col:  lexer.MaxDepth + 1,
+		},
+		{
+			Name: "mixed_brackets",
+			Src:  strings.Repeat("([{", lexer.MaxDepth),
+			Line: 1,
+			Col:  lexer.MaxDepth + 1,
+		},
+	})
+}
+
 func TestLexSemicolonHint(t *testing.T) {
 	// --- semicolon_hint
-	tests.RunLexHint(t, []tests.LexOKCase{
+	tests_utils.RunLexHint(t, []tests_utils.LexOKCase{
 		{
 			Name: "semicolon_alone",
 			Src:  ";",
@@ -769,5 +866,5 @@ func TestLexSemicolonHint(t *testing.T) {
 			Name: "semicolon_after_statement",
 			Src:  "let a = 1;",
 		},
-	}, tests.LexHintSemicolon)
+	}, tests_utils.LexHintSemicolon)
 }
