@@ -5,7 +5,39 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/siper92/akha/lang/token"
+	"github.com/siper92/akha/lang/lexer"
+)
+
+var (
+	_ fmt.Stringer = (*Script)(nil)
+	_ fmt.Stringer = (*Block)(nil)
+	_ fmt.Stringer = (*Entry)(nil)
+	_ fmt.Stringer = (*TemplatePart)(nil)
+
+	_ fmt.Stringer = (*LetStmt)(nil)
+	_ fmt.Stringer = (*VarStmt)(nil)
+	_ fmt.Stringer = (*AssignStmt)(nil)
+	_ fmt.Stringer = (*ExprStmt)(nil)
+	_ fmt.Stringer = (*IfStmt)(nil)
+	_ fmt.Stringer = (*ForInStmt)(nil)
+	_ fmt.Stringer = (*ForRangeStmt)(nil)
+	_ fmt.Stringer = (*BreakStmt)(nil)
+	_ fmt.Stringer = (*ContinueStmt)(nil)
+	_ fmt.Stringer = (*ReturnStmt)(nil)
+
+	_ fmt.Stringer = (*Ident)(nil)
+	_ fmt.Stringer = (*NumberLit)(nil)
+	_ fmt.Stringer = (*StringLit)(nil)
+	_ fmt.Stringer = (*TemplateLit)(nil)
+	_ fmt.Stringer = (*BoolLit)(nil)
+	_ fmt.Stringer = (*NullLit)(nil)
+	_ fmt.Stringer = (*ArrayLit)(nil)
+	_ fmt.Stringer = (*ObjectLit)(nil)
+	_ fmt.Stringer = (*UnaryExpr)(nil)
+	_ fmt.Stringer = (*BinaryExpr)(nil)
+	_ fmt.Stringer = (*MemberExpr)(nil)
+	_ fmt.Stringer = (*IndexExpr)(nil)
+	_ fmt.Stringer = (*CallExpr)(nil)
 )
 
 const indent = "    "
@@ -20,12 +52,6 @@ const (
 	precMul
 	precNeg
 	precPostfix
-)
-
-var (
-	_ fmt.Stringer = (*Script)(nil)
-	_ fmt.Stringer = Entry{}
-	_ fmt.Stringer = TemplatePart{}
 )
 
 type printer struct {
@@ -115,7 +141,7 @@ func (x *ObjectLit) String() string {
 }
 
 func (x *UnaryExpr) String() string {
-	if x.Op == token.Not {
+	if x.Op == lexer.Not {
 		return "not " + group(x.X, precNot)
 	}
 	operand := group(x.X, precNeg)
@@ -262,7 +288,7 @@ func prec(x Expr) int {
 	case *BinaryExpr:
 		return binaryPrec(x.Op)
 	case *UnaryExpr:
-		if x.Op == token.Not {
+		if x.Op == lexer.Not {
 			return precNot
 		}
 		return precNeg
@@ -270,19 +296,19 @@ func prec(x Expr) int {
 	return precPostfix
 }
 
-func binaryPrec(op token.Kind) int {
+func binaryPrec(op lexer.Kind) int {
 	switch op {
-	case token.Or:
+	case lexer.Or:
 		return precOr
-	case token.And:
+	case lexer.And:
 		return precAnd
-	case token.In, token.NotIn:
+	case lexer.In, lexer.NotIn:
 		return precIn
-	case token.Eq, token.NotEq, token.Lt, token.LtEq, token.Gt, token.GtEq:
+	case lexer.Eq, lexer.NotEq, lexer.Lt, lexer.LtEq, lexer.Gt, lexer.GtEq:
 		return precCmp
-	case token.Plus, token.Minus:
+	case lexer.Plus, lexer.Minus:
 		return precAdd
-	case token.Star, token.Slash, token.Percent:
+	case lexer.Star, lexer.Slash, lexer.Percent:
 		return precMul
 	}
 	return precPostfix
@@ -303,7 +329,7 @@ func key(k string) string {
 }
 
 func isName(s string) bool {
-	if s == "" || token.Lookup(s) != token.Ident {
+	if s == "" || lexer.Lookup(s) != lexer.Ident {
 		return false
 	}
 	for i, r := range s {

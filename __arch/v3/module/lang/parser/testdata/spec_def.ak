@@ -1,42 +1,4 @@
-package tests_utils
-
-var Sample = `// a small step
-let name = "ak"
-var n = 0
-
-if n < 3 and not false {
-    n = n + 1
-} else {
-    return
-}
-
-for var i, v in [1, 2] {
-    continue
-}
-
-return {name: name, total: n}
-`
-
-var SampleCanonical = `let name = "ak"
-var n = 0
-if n < 3 and not false {
-    n = n + 1
-} else {
-    return
-}
-for var i, v in [1, 2] {
-    continue
-}
-return {name: name, total: n}`
-
-var SampleCRLF = "let a = 1\r\n\r\nif a {\r\n    let b = \"x\"\r\n}\r\n"
-
-var SampleCRLFCanonical = `let a = 1
-if a {
-    let b = "x"
-}`
-
-var SpecDef = `// akha v1 - the spec by example
+// akha v1 - the spec by example
 // one statement per line, ` + "`//`" + ` comments run to the end of the line
 // indentation has no meaning, blocks use { on the header line and } on its own line
 
@@ -176,4 +138,3 @@ if total > 0 {
 
 // --- step output: return ends the script, exit is an alias
 return {total: total, greeting: greeting}
-`

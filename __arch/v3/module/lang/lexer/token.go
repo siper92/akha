@@ -1,4 +1,4 @@
-package token
+package lexer
 
 import (
 	"strconv"
@@ -147,9 +147,11 @@ func Lookup(ident string) Kind {
 	if k, ok := keywords[lower]; ok {
 		return k
 	}
+
 	if reserved[lower] {
 		return Reserved
 	}
+
 	return Ident
 }
 
@@ -190,6 +192,7 @@ func (t Token) Describe() string {
 		return t.Kind.String() + " " + t.Lit
 	case String, Template:
 		return "string " + strconv.Quote(t.Lit)
+	default:
+		return strconv.Quote(t.Lit)
 	}
-	return strconv.Quote(t.Lit)
 }

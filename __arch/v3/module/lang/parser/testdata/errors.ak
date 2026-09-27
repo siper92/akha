@@ -83,3 +83,7 @@ for x in a {
 }
 ---
 let a = 1 let b = 2 // ### "expected end of line"
+---
+let a = 1 // ### unexpected end of file
+return a
+let b = 2

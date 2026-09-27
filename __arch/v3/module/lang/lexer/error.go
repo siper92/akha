@@ -1,11 +1,9 @@
-package diag
+package lexer
 
 import (
 	"errors"
 	"fmt"
 	"strings"
-
-	"github.com/siper92/akha/lang/token"
 )
 
 var (
@@ -59,13 +57,13 @@ const (
 type Error struct {
 	Kind error
 	File string
-	Pos  token.Pos
+	Pos  Pos
 	Code string
 	Msg  string
 	Hint string
 }
 
-func New(kind error, pos token.Pos, code, msg, hint string) *Error {
+func NewLexError(kind error, pos Pos, code, msg, hint string) *Error {
 	return &Error{Kind: kind, Pos: pos, Code: code, Msg: msg, Hint: hint}
 }
 
@@ -75,11 +73,13 @@ func (e *Error) Error() string {
 		b.WriteString(e.File)
 		b.WriteByte(':')
 	}
+
 	fmt.Fprintf(&b, "%s: error[%s]: %s", e.Pos, e.Code, e.Msg)
 	if e.Hint != "" {
 		b.WriteString("\nhint: ")
 		b.WriteString(e.Hint)
 	}
+
 	return b.String()
 }
 

@@ -4,13 +4,10 @@ import (
 	"fmt"
 	"strings"
 	"unicode/utf8"
-
-	"github.com/siper92/akha/lang/diag"
-	"github.com/siper92/akha/lang/token"
 )
 
 type Lexer interface {
-	Next() (token.Token, error)
+	Next() (Token, error)
 }
 
 var _ Lexer = (*lexer)(nil)
@@ -26,20 +23,20 @@ type lexer struct {
 	err   error
 }
 
-var single = map[rune]token.Kind{
-	'+': token.Plus,
-	'-': token.Minus,
-	'*': token.Star,
-	'/': token.Slash,
-	'%': token.Percent,
-	'(': token.LParen,
-	')': token.RParen,
-	'[': token.LBracket,
-	']': token.RBracket,
-	'{': token.LBrace,
-	'}': token.RBrace,
-	',': token.Comma,
-	':': token.Colon,
+var single = map[rune]Kind{
+	'+': Plus,
+	'-': Minus,
+	'*': Star,
+	'/': Slash,
+	'%': Percent,
+	'(': LParen,
+	')': RParen,
+	'[': LBracket,
+	']': RBracket,
+	'{': LBrace,
+	'}': RBrace,
+	',': Comma,
+	':': Colon,
 }
 
 var escapes = map[rune]rune{
@@ -53,45 +50,53 @@ var escapes = map[rune]rune{
 
 const escapeHint = `valid escapes: \n \t \r \" \\ \$`
 
+var LexKeywords = []string{
+	"let", "var", "if", "else", "for", "in", "range",
+	"break", "continue", "return", "exit",
+	"and", "or", "not",
+	"true", "false", "null",
+}
+
 func New(src string) Lexer {
 	src = strings.TrimPrefix(src, "\xEF\xBB\xBF") // remove BOM
 	src = strings.ReplaceAll(src, "\r\n", "\n")
-	return newLexer(src, token.Pos{Line: 1, Col: 1})
+	return newLexer(src, Pos{Line: 1, Col: 1})
 }
 
-func NewAt(src string, pos token.Pos) Lexer {
+func NewAt(src string, pos Pos) Lexer {
 	return newLexer(src, pos)
 }
 
-func Tokenize(src string) ([]token.Token, error) {
+func Tokenize(src string) ([]Token, error) {
 	return Collect(New(src))
 }
 
-func Collect(l Lexer) ([]token.Token, error) {
-	var toks []token.Token
+func Collect(l Lexer) ([]Token, error) {
+	var toks []Token
 	for {
 		t, err := l.Next()
 		if err != nil {
 			return nil, err
 		}
+
 		toks = append(toks, t)
-		if t.Kind == token.EOF {
+		if t.Kind == EOF {
 			return toks, nil
 		}
 	}
 }
 
-func newLexer(src string, pos token.Pos) *lexer {
+func newLexer(src string, pos Pos) *lexer {
 	l := &lexer{line: pos.Line, col: pos.Col}
 	if bad, ok := invalidUTF8(src, pos); ok {
-		l.err = diag.New(diag.ErrLex, bad, diag.CodeInvalidUTF8, "invalid UTF-8 in source", "")
+		l.err = NewLexError(ErrLex, bad, CodeInvalidUTF8, "invalid UTF-8 in source", "")
 		return l
 	}
 	l.src = []rune(src)
 	return l
 }
 
-func invalidUTF8(src string, pos token.Pos) (token.Pos, bool) {
+func invalidUTF8(src string, pos Pos) (Pos, bool) {
 	for i := 0; i < len(src); {
 		r, size := utf8.DecodeRuneInString(src[i:])
 		if r == utf8.RuneError && size == 1 {
@@ -105,31 +110,34 @@ func invalidUTF8(src string, pos token.Pos) (token.Pos, bool) {
 		}
 		i += size
 	}
+
 	return pos, false
 }
 
-func (l *lexer) Next() (token.Token, error) {
+func (l *lexer) Next() (Token, error) {
 	if l.err != nil {
-		return token.Token{}, l.err
+		return Token{}, l.err
 	}
+
 	t, err := l.scan()
 	if err != nil {
 		l.err = err
 	}
+
 	return t, err
 }
 
-func (l *lexer) scan() (token.Token, error) {
+func (l *lexer) scan() (Token, error) {
 	l.skipSpace()
 	pos := l.pos()
 	if l.off >= len(l.src) {
-		return l.tok(token.EOF, "", pos)
+		return l.tok(EOF, "", pos)
 	}
 	r := l.src[l.off]
 	switch {
 	case r == '\n':
 		l.advance()
-		return l.tok(token.Newline, "\n", pos)
+		return l.tok(Newline, "\n", pos)
 	case isLetter(r):
 		return l.ident(pos)
 	case isDigit(r):
@@ -155,29 +163,34 @@ func (l *lexer) skipSpace() {
 	}
 }
 
-func (l *lexer) ident(pos token.Pos) (token.Token, error) {
+func (l *lexer) ident(pos Pos) (Token, error) {
 	start := l.off
 	for l.off < len(l.src) && (isLetter(l.src[l.off]) || isDigit(l.src[l.off])) {
 		l.advance()
 	}
+
 	lit := string(l.src[start:l.off])
-	return l.tok(token.Lookup(lit), lit, pos)
+
+	return l.tok(Lookup(lit), lit, pos)
 }
 
-func (l *lexer) number(pos token.Pos) (token.Token, error) {
+func (l *lexer) number(pos Pos) (Token, error) {
 	start := l.off
 	if l.src[l.off] == '0' && isDigit(l.peek(1)) {
-		return l.fail(pos, diag.CodeLeadingZero, "write 7 instead of 007", "numbers cannot have leading zeros")
+		return l.fail(pos, CodeLeadingZero, "write 7 instead of 007", "numbers cannot have leading zeros")
 	}
+
 	l.digits()
 	if l.peek(0) == '.' && isDigit(l.peek(1)) {
 		l.advance()
 		l.digits()
 	}
+
 	if isLetter(l.peek(0)) {
-		return l.fail(pos, diag.CodeInvalidNumber, "", "invalid number literal")
+		return l.fail(pos, CodeInvalidNumber, "", "invalid number literal")
 	}
-	return l.tok(token.Number, string(l.src[start:l.off]), pos)
+
+	return l.tok(Number, string(l.src[start:l.off]), pos)
 }
 
 func (l *lexer) digits() {
@@ -186,36 +199,36 @@ func (l *lexer) digits() {
 	}
 }
 
-func (l *lexer) str(pos token.Pos) (token.Token, error) {
+func (l *lexer) str(pos Pos) (Token, error) {
 	start := l.off
 	l.advance()
 	var text strings.Builder
-	var parts []token.Part
+	var parts []Part
 	for l.off < len(l.src) {
 		at := l.pos()
 		switch r := l.src[l.off]; r {
 		case '"':
 			l.advance()
 			if parts == nil {
-				return l.tok(token.String, text.String(), pos)
+				return l.tok(String, text.String(), pos)
 			}
 			if text.Len() > 0 {
-				parts = append(parts, token.Part{Text: text.String()})
+				parts = append(parts, Part{Text: text.String()})
 			}
-			return token.Token{Kind: token.Template, Lit: string(l.src[start:l.off]), Pos: pos, Parts: parts}, nil
+			return Token{Kind: Template, Lit: string(l.src[start:l.off]), Pos: pos, Parts: parts}, nil
 		case '\n':
-			return l.fail(at, diag.CodeNewlineInString, `use \n for a line break`, "string cannot contain a raw newline")
+			return l.fail(at, CodeNewlineInString, `use \n for a line break`, "string cannot contain a raw newline")
 		case '\\':
 			l.advance()
 			if l.off >= len(l.src) {
-				return l.fail(pos, diag.CodeUnterminatedString, "", "unterminated string")
+				return l.fail(pos, CodeUnterminatedString, "", "unterminated string")
 			}
 			if l.src[l.off] == '\n' {
-				return l.fail(l.pos(), diag.CodeNewlineInString, `use \n for a line break`, "string cannot contain a raw newline")
+				return l.fail(l.pos(), CodeNewlineInString, `use \n for a line break`, "string cannot contain a raw newline")
 			}
 			e, ok := escapes[l.src[l.off]]
 			if !ok {
-				return l.fail(at, diag.CodeInvalidEscape, escapeHint, fmt.Sprintf("unknown escape \\%c", l.src[l.off]))
+				return l.fail(at, CodeInvalidEscape, escapeHint, fmt.Sprintf("unknown escape \\%c", l.src[l.off]))
 			}
 			l.advance()
 			text.WriteRune(e)
@@ -225,22 +238,22 @@ func (l *lexer) str(pos token.Pos) (token.Token, error) {
 				continue
 			}
 			if text.Len() > 0 {
-				parts = append(parts, token.Part{Text: text.String()})
+				parts = append(parts, Part{Text: text.String()})
 				text.Reset()
 			}
 			part, err := l.interp(at)
 			if err != nil {
-				return token.Token{}, err
+				return Token{}, err
 			}
 			parts = append(parts, part)
 		default:
 			text.WriteRune(l.advance())
 		}
 	}
-	return l.fail(pos, diag.CodeUnterminatedString, "", "unterminated string")
+	return l.fail(pos, CodeUnterminatedString, "", "unterminated string")
 }
 
-func (l *lexer) interp(at token.Pos) (token.Part, error) {
+func (l *lexer) interp(at Pos) (Part, error) {
 	l.advance()
 	l.advance()
 	pos := l.pos()
@@ -249,10 +262,10 @@ func (l *lexer) interp(at token.Pos) (token.Part, error) {
 	for l.off < len(l.src) {
 		switch l.src[l.off] {
 		case '\n':
-			return token.Part{}, l.errAt(l.pos(), diag.CodeNewlineInString, `use \n for a line break`, "string cannot contain a raw newline")
+			return Part{}, l.errAt(l.pos(), CodeNewlineInString, `use \n for a line break`, "string cannot contain a raw newline")
 		case '"':
 			if err := l.skipString(at); err != nil {
-				return token.Part{}, err
+				return Part{}, err
 			}
 			continue
 		case '{':
@@ -265,107 +278,107 @@ func (l *lexer) interp(at token.Pos) (token.Part, error) {
 			expr := string(l.src[start:l.off])
 			l.advance()
 			if strings.TrimSpace(expr) == "" {
-				return token.Part{}, l.errAt(at, diag.CodeEmptyInterp, "", "empty ${ } in string")
+				return Part{}, l.errAt(at, CodeEmptyInterp, "", "empty ${ } in string")
 			}
-			return token.Part{Expr: expr, IsExpr: true, Pos: pos}, nil
+			return Part{Expr: expr, IsExpr: true, Pos: pos}, nil
 		}
 		l.advance()
 	}
-	return token.Part{}, l.errAt(at, diag.CodeUnterminatedInterp, "", "missing } to close ${")
+	return Part{}, l.errAt(at, CodeUnterminatedInterp, "", "missing } to close ${")
 }
 
-func (l *lexer) skipString(at token.Pos) error {
+func (l *lexer) skipString(at Pos) error {
 	l.advance()
 	for l.off < len(l.src) {
 		switch l.src[l.off] {
 		case '\n':
-			return l.errAt(l.pos(), diag.CodeNewlineInString, `use \n for a line break`, "string cannot contain a raw newline")
+			return l.errAt(l.pos(), CodeNewlineInString, `use \n for a line break`, "string cannot contain a raw newline")
 		case '"':
 			l.advance()
 			return nil
 		case '\\':
 			l.advance()
 			if l.off >= len(l.src) {
-				return l.errAt(at, diag.CodeUnterminatedInterp, "", "missing } to close ${")
+				return l.errAt(at, CodeUnterminatedInterp, "", "missing } to close ${")
 			}
 		}
 		l.advance()
 	}
-	return l.errAt(at, diag.CodeUnterminatedInterp, "", "missing } to close ${")
+	return l.errAt(at, CodeUnterminatedInterp, "", "missing } to close ${")
 }
 
-func (l *lexer) operator(pos token.Pos) (token.Token, error) {
+func (l *lexer) operator(pos Pos) (Token, error) {
 	r := l.advance()
 	next := l.peek(0)
 	switch r {
 	case '+', '-', '*', '/', '%':
 		if next == '=' {
-			return l.fail(pos, diag.CodeCompoundAssign, fmt.Sprintf("use x = x %c y", r), fmt.Sprintf("compound assignment %c= is not supported", r))
+			return l.fail(pos, CodeCompoundAssign, fmt.Sprintf("use x = x %c y", r), fmt.Sprintf("compound assignment %c= is not supported", r))
 		}
 	case '=':
 		if next == '=' {
 			l.advance()
-			return l.tok(token.Eq, "==", pos)
+			return l.tok(Eq, "==", pos)
 		}
-		return l.tok(token.Assign, "=", pos)
+		return l.tok(Assign, "=", pos)
 	case '!':
 		if next == '=' {
 			l.advance()
-			return l.tok(token.NotEq, "!=", pos)
+			return l.tok(NotEq, "!=", pos)
 		}
-		return l.tok(token.Not, "!", pos)
+		return l.tok(Not, "!", pos)
 	case '<':
 		if next == '=' {
 			l.advance()
-			return l.tok(token.LtEq, "<=", pos)
+			return l.tok(LtEq, "<=", pos)
 		}
-		return l.tok(token.Lt, "<", pos)
+		return l.tok(Lt, "<", pos)
 	case '>':
 		if next == '=' {
 			l.advance()
-			return l.tok(token.GtEq, ">=", pos)
+			return l.tok(GtEq, ">=", pos)
 		}
-		return l.tok(token.Gt, ">", pos)
+		return l.tok(Gt, ">", pos)
 	case '&':
 		if next == '&' {
 			l.advance()
-			return l.tok(token.And, "&&", pos)
+			return l.tok(And, "&&", pos)
 		}
-		return l.fail(pos, diag.CodeUnexpectedChar, "use and", `unexpected character "&"`)
+		return l.fail(pos, CodeUnexpectedChar, "use and", `unexpected character "&"`)
 	case '|':
 		if next == '|' {
 			l.advance()
-			return l.tok(token.Or, "||", pos)
+			return l.tok(Or, "||", pos)
 		}
-		return l.fail(pos, diag.CodeUnexpectedChar, "use or", `unexpected character "|"`)
+		return l.fail(pos, CodeUnexpectedChar, "use or", `unexpected character "|"`)
 	case '.':
 		if next == '.' {
 			l.advance()
-			return l.tok(token.DotDot, "..", pos)
+			return l.tok(DotDot, "..", pos)
 		}
-		return l.tok(token.Dot, ".", pos)
+		return l.tok(Dot, ".", pos)
 	case ';':
-		return l.fail(pos, diag.CodeSemicolon, "one statement per line", `";" is not allowed`)
+		return l.fail(pos, CodeSemicolon, "one statement per line", `";" is not allowed`)
 	case '\'':
-		return l.fail(pos, diag.CodeSingleQuote, `use double quotes "..."`, "single quotes are not allowed")
+		return l.fail(pos, CodeSingleQuote, `use double quotes "..."`, "single quotes are not allowed")
 	}
 	if k, ok := single[r]; ok {
 		if err := l.nest(k, pos); err != nil {
-			return token.Token{}, err
+			return Token{}, err
 		}
 		return l.tok(k, string(r), pos)
 	}
-	return l.fail(pos, diag.CodeUnexpectedChar, "", fmt.Sprintf("unexpected character %q", r))
+	return l.fail(pos, CodeUnexpectedChar, "", fmt.Sprintf("unexpected character %q", r))
 }
 
-func (l *lexer) nest(k token.Kind, pos token.Pos) error {
+func (l *lexer) nest(k Kind, pos Pos) error {
 	switch k {
-	case token.LParen, token.LBracket, token.LBrace:
+	case LParen, LBracket, LBrace:
 		l.depth++
 		if l.depth > MaxDepth {
-			return l.errAt(pos, diag.CodeNesting, "", "excessive nesting")
+			return l.errAt(pos, CodeNesting, "", "excessive nesting")
 		}
-	case token.RParen, token.RBracket, token.RBrace:
+	case RParen, RBracket, RBrace:
 		if l.depth > 0 {
 			l.depth--
 		}
@@ -373,20 +386,20 @@ func (l *lexer) nest(k token.Kind, pos token.Pos) error {
 	return nil
 }
 
-func (l *lexer) tok(kind token.Kind, lit string, pos token.Pos) (token.Token, error) {
-	return token.Token{Kind: kind, Lit: lit, Pos: pos}, nil
+func (l *lexer) tok(kind Kind, lit string, pos Pos) (Token, error) {
+	return Token{Kind: kind, Lit: lit, Pos: pos}, nil
 }
 
-func (l *lexer) fail(pos token.Pos, code, hint, msg string) (token.Token, error) {
-	return token.Token{}, l.errAt(pos, code, hint, msg)
+func (l *lexer) fail(pos Pos, code, hint, msg string) (Token, error) {
+	return Token{}, l.errAt(pos, code, hint, msg)
 }
 
-func (l *lexer) errAt(pos token.Pos, code, hint, msg string) error {
-	return diag.New(diag.ErrLex, pos, code, msg, hint)
+func (l *lexer) errAt(pos Pos, code, hint, msg string) error {
+	return NewLexError(ErrLex, pos, code, msg, hint)
 }
 
-func (l *lexer) pos() token.Pos {
-	return token.Pos{Line: l.line, Col: l.col}
+func (l *lexer) pos() Pos {
+	return Pos{Line: l.line, Col: l.col}
 }
 
 func (l *lexer) peek(n int) rune {

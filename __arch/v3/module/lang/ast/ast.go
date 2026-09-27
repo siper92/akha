@@ -3,7 +3,7 @@ package ast
 import (
 	"fmt"
 
-	"github.com/siper92/akha/lang/token"
+	"github.com/siper92/akha/lang/lexer"
 )
 
 type Pos struct {
@@ -153,13 +153,13 @@ type ObjectLit struct {
 
 type UnaryExpr struct {
 	Pos
-	Op token.Kind
+	Op lexer.Kind
 	X  Expr
 }
 
 type BinaryExpr struct {
 	Pos
-	Op    token.Kind
+	Op    lexer.Kind
 	Left  Expr
 	Right Expr
 }

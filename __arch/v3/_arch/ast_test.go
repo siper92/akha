@@ -1,12 +1,12 @@
-package ast_test
+package _arch_test
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/siper92/akha/lang/ast"
+	"github.com/siper92/akha/lang/lexer"
 	"github.com/siper92/akha/lang/tests_utils"
-	"github.com/siper92/akha/lang/token"
 )
 
 var (
@@ -171,7 +171,7 @@ func arrayObjectCases() []tests_utils.StringCase {
 		},
 		{
 			Name: "array_expr_element",
-			Node: tests_utils.Arr(tests_utils.Bin(token.Plus, a, tests_utils.Num(1))),
+			Node: tests_utils.Arr(tests_utils.Bin(lexer.Plus, a, tests_utils.Num(1))),
 			Want: "[a + 1]",
 		},
 		{
@@ -214,7 +214,7 @@ func arrayObjectCases() []tests_utils.StringCase {
 		},
 		{
 			Name: "entry",
-			Node: ast.Entry{Key: "a", Value: tests_utils.Bin(token.Plus, tests_utils.Num(1), tests_utils.Num(2))},
+			Node: ast.Entry{Key: "a", Value: tests_utils.Bin(lexer.Plus, tests_utils.Num(1), tests_utils.Num(2))},
 			Want: "a: 1 + 2",
 		},
 		{
@@ -234,170 +234,170 @@ func operatorCases() []tests_utils.StringCase {
 	return []tests_utils.StringCase{
 		{
 			Name: "or_left_assoc",
-			Node: tests_utils.Bin(token.Or, tests_utils.Bin(token.Or, a, b), c),
+			Node: tests_utils.Bin(lexer.Or, tests_utils.Bin(lexer.Or, a, b), c),
 			Want: "a or b or c",
 		},
 		{
 			Name: "or_right_grouped",
-			Node: tests_utils.Bin(token.Or, a, tests_utils.Bin(token.Or, b, c)),
+			Node: tests_utils.Bin(lexer.Or, a, tests_utils.Bin(lexer.Or, b, c)),
 			Want: "a or (b or c)",
 		},
 		{
 			Name: "and_under_or",
-			Node: tests_utils.Bin(token.Or, a, tests_utils.Bin(token.And, b, c)),
+			Node: tests_utils.Bin(lexer.Or, a, tests_utils.Bin(lexer.And, b, c)),
 			Want: "a or b and c",
 		},
 		{
 			Name: "or_under_and_grouped",
-			Node: tests_utils.Bin(token.And, tests_utils.Bin(token.Or, a, b), c),
+			Node: tests_utils.Bin(lexer.And, tests_utils.Bin(lexer.Or, a, b), c),
 			Want: "(a or b) and c",
 		},
 		{
 			Name: "not_under_and",
-			Node: tests_utils.Bin(token.And, tests_utils.Un(token.Not, a), b),
+			Node: tests_utils.Bin(lexer.And, tests_utils.Un(lexer.Not, a), b),
 			Want: "not a and b",
 		},
 		{
 			Name: "not_over_cmp",
-			Node: tests_utils.Un(token.Not, tests_utils.Bin(token.Eq, a, b)),
+			Node: tests_utils.Un(lexer.Not, tests_utils.Bin(lexer.Eq, a, b)),
 			Want: "not a == b",
 		},
 		{
 			Name: "not_over_in",
-			Node: tests_utils.Un(token.Not, tests_utils.Bin(token.In, a, b)),
+			Node: tests_utils.Un(lexer.Not, tests_utils.Bin(lexer.In, a, b)),
 			Want: "not a in b",
 		},
 		{
 			Name: "not_over_and_grouped",
-			Node: tests_utils.Un(token.Not, tests_utils.Bin(token.And, a, b)),
+			Node: tests_utils.Un(lexer.Not, tests_utils.Bin(lexer.And, a, b)),
 			Want: "not (a and b)",
 		},
 		{
 			Name: "not_not",
-			Node: tests_utils.Un(token.Not, tests_utils.Un(token.Not, a)),
+			Node: tests_utils.Un(lexer.Not, tests_utils.Un(lexer.Not, a)),
 			Want: "not not a",
 		},
 		{
 			Name: "not_left_of_cmp_grouped",
-			Node: tests_utils.Bin(token.Eq, tests_utils.Un(token.Not, a), b),
+			Node: tests_utils.Bin(lexer.Eq, tests_utils.Un(lexer.Not, a), b),
 			Want: "(not a) == b",
 		},
 		{
 			Name: "not_right_of_cmp_grouped",
-			Node: tests_utils.Bin(token.Eq, a, tests_utils.Un(token.Not, b)),
+			Node: tests_utils.Bin(lexer.Eq, a, tests_utils.Un(lexer.Not, b)),
 			Want: "a == (not b)",
 		},
 		{
 			Name: "in",
-			Node: tests_utils.Bin(token.In, tests_utils.Num(2), tests_utils.Id("arr")),
+			Node: tests_utils.Bin(lexer.In, tests_utils.Num(2), tests_utils.Id("arr")),
 			Want: "2 in arr",
 		},
 		{
 			Name: "not_in",
-			Node: tests_utils.Bin(token.NotIn, tests_utils.Str("x"), tests_utils.Id("obj")),
+			Node: tests_utils.Bin(lexer.NotIn, tests_utils.Str("x"), tests_utils.Id("obj")),
 			Want: `"x" not in obj`,
 		},
 		{
 			Name: "in_left_chain_grouped",
-			Node: tests_utils.Bin(token.In, tests_utils.Bin(token.In, a, b), c),
+			Node: tests_utils.Bin(lexer.In, tests_utils.Bin(lexer.In, a, b), c),
 			Want: "(a in b) in c",
 		},
 		{
 			Name: "in_right_chain_grouped",
-			Node: tests_utils.Bin(token.In, a, tests_utils.Bin(token.NotIn, b, c)),
+			Node: tests_utils.Bin(lexer.In, a, tests_utils.Bin(lexer.NotIn, b, c)),
 			Want: "a in (b not in c)",
 		},
 		{
 			Name: "cmp_under_in",
-			Node: tests_utils.Bin(token.In, tests_utils.Bin(token.Eq, a, b), c),
+			Node: tests_utils.Bin(lexer.In, tests_utils.Bin(lexer.Eq, a, b), c),
 			Want: "a == b in c",
 		},
 		{
 			Name: "cmp_all_ops",
-			Node: tests_utils.Bin(token.And,
-				tests_utils.Bin(token.And, tests_utils.Bin(token.NotEq, a, b), tests_utils.Bin(token.Lt, a, b)),
-				tests_utils.Bin(token.And, tests_utils.Bin(token.LtEq, a, b), tests_utils.Bin(token.Or, tests_utils.Bin(token.Gt, a, b), tests_utils.Bin(token.GtEq, a, b))),
+			Node: tests_utils.Bin(lexer.And,
+				tests_utils.Bin(lexer.And, tests_utils.Bin(lexer.NotEq, a, b), tests_utils.Bin(lexer.Lt, a, b)),
+				tests_utils.Bin(lexer.And, tests_utils.Bin(lexer.LtEq, a, b), tests_utils.Bin(lexer.Or, tests_utils.Bin(lexer.Gt, a, b), tests_utils.Bin(lexer.GtEq, a, b))),
 			),
 			Want: "a != b and a < b and (a <= b and (a > b or a >= b))",
 		},
 		{
 			Name: "cmp_left_chain_grouped",
-			Node: tests_utils.Bin(token.Lt, tests_utils.Bin(token.Lt, a, b), c),
+			Node: tests_utils.Bin(lexer.Lt, tests_utils.Bin(lexer.Lt, a, b), c),
 			Want: "(a < b) < c",
 		},
 		{
 			Name: "cmp_right_chain_grouped",
-			Node: tests_utils.Bin(token.Eq, a, tests_utils.Bin(token.Eq, b, c)),
+			Node: tests_utils.Bin(lexer.Eq, a, tests_utils.Bin(lexer.Eq, b, c)),
 			Want: "a == (b == c)",
 		},
 		{
 			Name: "add_under_cmp",
-			Node: tests_utils.Bin(token.Lt, tests_utils.Bin(token.Plus, a, tests_utils.Num(1)), tests_utils.Bin(token.Star, b, tests_utils.Num(2))),
+			Node: tests_utils.Bin(lexer.Lt, tests_utils.Bin(lexer.Plus, a, tests_utils.Num(1)), tests_utils.Bin(lexer.Star, b, tests_utils.Num(2))),
 			Want: "a + 1 < b * 2",
 		},
 		{
 			Name: "sub_left_assoc",
-			Node: tests_utils.Bin(token.Minus, tests_utils.Bin(token.Minus, a, b), c),
+			Node: tests_utils.Bin(lexer.Minus, tests_utils.Bin(lexer.Minus, a, b), c),
 			Want: "a - b - c",
 		},
 		{
 			Name: "sub_right_grouped",
-			Node: tests_utils.Bin(token.Minus, a, tests_utils.Bin(token.Minus, b, c)),
+			Node: tests_utils.Bin(lexer.Minus, a, tests_utils.Bin(lexer.Minus, b, c)),
 			Want: "a - (b - c)",
 		},
 		{
 			Name: "mul_under_add",
-			Node: tests_utils.Bin(token.Plus, tests_utils.Num(1), tests_utils.Bin(token.Star, tests_utils.Num(2), tests_utils.Num(3))),
+			Node: tests_utils.Bin(lexer.Plus, tests_utils.Num(1), tests_utils.Bin(lexer.Star, tests_utils.Num(2), tests_utils.Num(3))),
 			Want: "1 + 2 * 3",
 		},
 		{
 			Name: "add_under_mul_grouped",
-			Node: tests_utils.Bin(token.Star, tests_utils.Bin(token.Plus, tests_utils.Num(1), tests_utils.Num(2)), tests_utils.Num(3)),
+			Node: tests_utils.Bin(lexer.Star, tests_utils.Bin(lexer.Plus, tests_utils.Num(1), tests_utils.Num(2)), tests_utils.Num(3)),
 			Want: "(1 + 2) * 3",
 		},
 		{
 			Name: "mul_div_mod_left",
-			Node: tests_utils.Bin(token.Percent, tests_utils.Bin(token.Slash, tests_utils.Bin(token.Star, a, b), c), tests_utils.Id("d")),
+			Node: tests_utils.Bin(lexer.Percent, tests_utils.Bin(lexer.Slash, tests_utils.Bin(lexer.Star, a, b), c), tests_utils.Id("d")),
 			Want: "a * b / c % d",
 		},
 		{
 			Name: "div_right_grouped",
-			Node: tests_utils.Bin(token.Slash, a, tests_utils.Bin(token.Slash, b, c)),
+			Node: tests_utils.Bin(lexer.Slash, a, tests_utils.Bin(lexer.Slash, b, c)),
 			Want: "a / (b / c)",
 		},
 		{
 			Name: "neg",
-			Node: tests_utils.Un(token.Minus, tests_utils.Num(3.2)),
+			Node: tests_utils.Un(lexer.Minus, tests_utils.Num(3.2)),
 			Want: "-3.2",
 		},
 		{
 			Name: "neg_neg_spaced",
-			Node: tests_utils.Un(token.Minus, tests_utils.Un(token.Minus, a)),
+			Node: tests_utils.Un(lexer.Minus, tests_utils.Un(lexer.Minus, a)),
 			Want: "- -a",
 		},
 		{
 			Name: "neg_under_mul",
-			Node: tests_utils.Bin(token.Star, tests_utils.Un(token.Minus, a), b),
+			Node: tests_utils.Bin(lexer.Star, tests_utils.Un(lexer.Minus, a), b),
 			Want: "-a * b",
 		},
 		{
 			Name: "neg_right_of_sub",
-			Node: tests_utils.Bin(token.Minus, a, tests_utils.Un(token.Minus, b)),
+			Node: tests_utils.Bin(lexer.Minus, a, tests_utils.Un(lexer.Minus, b)),
 			Want: "a - -b",
 		},
 		{
 			Name: "neg_over_add_grouped",
-			Node: tests_utils.Un(token.Minus, tests_utils.Bin(token.Plus, a, b)),
+			Node: tests_utils.Un(lexer.Minus, tests_utils.Bin(lexer.Plus, a, b)),
 			Want: "-(a + b)",
 		},
 		{
 			Name: "neg_over_not_grouped",
-			Node: tests_utils.Un(token.Minus, tests_utils.Un(token.Not, a)),
+			Node: tests_utils.Un(lexer.Minus, tests_utils.Un(lexer.Not, a)),
 			Want: "-(not a)",
 		},
 		{
 			Name: "neg_over_index",
-			Node: tests_utils.Un(token.Minus, tests_utils.Index(a, tests_utils.Num(0))),
+			Node: tests_utils.Un(lexer.Minus, tests_utils.Index(a, tests_utils.Num(0))),
 			Want: "-a[0]",
 		},
 	}
@@ -427,7 +427,7 @@ func postfixCases() []tests_utils.StringCase {
 		},
 		{
 			Name: "index_expr",
-			Node: tests_utils.Index(a, tests_utils.Bin(token.Plus, tests_utils.Id("i"), tests_utils.Num(1))),
+			Node: tests_utils.Index(a, tests_utils.Bin(lexer.Plus, tests_utils.Id("i"), tests_utils.Num(1))),
 			Want: "a[i + 1]",
 		},
 		{
@@ -442,7 +442,7 @@ func postfixCases() []tests_utils.StringCase {
 		},
 		{
 			Name: "call_args",
-			Node: tests_utils.Call(tests_utils.Id("f"), tests_utils.Bin(token.Plus, a, tests_utils.Num(1)), tests_utils.Arr(tests_utils.Num(1)), tests_utils.Obj(ast.Entry{Key: "k", Value: tests_utils.Num(1)})),
+			Node: tests_utils.Call(tests_utils.Id("f"), tests_utils.Bin(lexer.Plus, a, tests_utils.Num(1)), tests_utils.Arr(tests_utils.Num(1)), tests_utils.Obj(ast.Entry{Key: "k", Value: tests_utils.Num(1)})),
 			Want: "f(a + 1, [1], {k: 1})",
 		},
 		{
@@ -457,17 +457,17 @@ func postfixCases() []tests_utils.StringCase {
 		},
 		{
 			Name: "index_on_neg_grouped",
-			Node: tests_utils.Index(tests_utils.Un(token.Minus, a), tests_utils.Num(0)),
+			Node: tests_utils.Index(tests_utils.Un(lexer.Minus, a), tests_utils.Num(0)),
 			Want: "(-a)[0]",
 		},
 		{
 			Name: "member_on_binary_grouped",
-			Node: tests_utils.Member(tests_utils.Bin(token.Plus, a, b), "c"),
+			Node: tests_utils.Member(tests_utils.Bin(lexer.Plus, a, b), "c"),
 			Want: "(a + b).c",
 		},
 		{
 			Name: "call_on_not_grouped",
-			Node: tests_utils.Call(tests_utils.Un(token.Not, a)),
+			Node: tests_utils.Call(tests_utils.Un(lexer.Not, a)),
 			Want: "(not a)()",
 		},
 		{
@@ -487,7 +487,7 @@ func stmtCases() []tests_utils.StringCase {
 		},
 		{
 			Name: "let_discard",
-			Node: &ast.LetStmt{Name: "_", Value: tests_utils.Bin(token.Star, tests_utils.Id("count"), tests_utils.Num(2))},
+			Node: &ast.LetStmt{Name: "_", Value: tests_utils.Bin(lexer.Star, tests_utils.Id("count"), tests_utils.Num(2))},
 			Want: "let _ = count * 2",
 		},
 		{
@@ -502,7 +502,7 @@ func stmtCases() []tests_utils.StringCase {
 		},
 		{
 			Name: "assign_ident",
-			Node: &ast.AssignStmt{Target: tests_utils.Id("n"), Value: tests_utils.Bin(token.Plus, tests_utils.Id("n"), tests_utils.Num(1))},
+			Node: &ast.AssignStmt{Target: tests_utils.Id("n"), Value: tests_utils.Bin(lexer.Plus, tests_utils.Id("n"), tests_utils.Num(1))},
 			Want: "n = n + 1",
 		},
 		{
@@ -535,7 +535,7 @@ func stmtCases() []tests_utils.StringCase {
 		},
 		{
 			Name: "exit_value",
-			Node: &ast.ReturnStmt{Exit: true, Value: tests_utils.Bin(token.Plus, a, b)},
+			Node: &ast.ReturnStmt{Exit: true, Value: tests_utils.Bin(lexer.Plus, a, b)},
 			Want: "exit a + b",
 		},
 		{
@@ -546,8 +546,8 @@ func stmtCases() []tests_utils.StringCase {
 		{
 			Name: "if_else",
 			Node: &ast.IfStmt{
-				Cond: tests_utils.Bin(token.And, tests_utils.Bin(token.Lt, tests_utils.Id("n"), tests_utils.Num(3)), tests_utils.Un(token.Not, &ast.BoolLit{})),
-				Then: tests_utils.Blk(&ast.AssignStmt{Target: tests_utils.Id("n"), Value: tests_utils.Bin(token.Plus, tests_utils.Id("n"), tests_utils.Num(1))}),
+				Cond: tests_utils.Bin(lexer.And, tests_utils.Bin(lexer.Lt, tests_utils.Id("n"), tests_utils.Num(3)), tests_utils.Un(lexer.Not, &ast.BoolLit{})),
+				Then: tests_utils.Blk(&ast.AssignStmt{Target: tests_utils.Id("n"), Value: tests_utils.Bin(lexer.Plus, tests_utils.Id("n"), tests_utils.Num(1))}),
 				Else: tests_utils.Blk(&ast.ReturnStmt{}),
 			},
 			Want: "if n < 3 and not false {\n    n = n + 1\n} else {\n    return\n}",
@@ -572,12 +572,12 @@ func stmtCases() []tests_utils.StringCase {
 		},
 		{
 			Name: "if_object_first_operand_grouped",
-			Node: &ast.IfStmt{Cond: tests_utils.Bin(token.Eq, tests_utils.Member(tests_utils.Obj(ast.Entry{Key: "a", Value: tests_utils.Num(1)}), "a"), tests_utils.Num(1)), Then: tests_utils.Blk()},
+			Node: &ast.IfStmt{Cond: tests_utils.Bin(lexer.Eq, tests_utils.Member(tests_utils.Obj(ast.Entry{Key: "a", Value: tests_utils.Num(1)}), "a"), tests_utils.Num(1)), Then: tests_utils.Blk()},
 			Want: "if ({a: 1}.a == 1) {\n}",
 		},
 		{
 			Name: "if_object_right_operand_kept",
-			Node: &ast.IfStmt{Cond: tests_utils.Bin(token.In, tests_utils.Str("name"), tests_utils.Obj(ast.Entry{Key: "name", Value: tests_utils.Num(1)})), Then: tests_utils.Blk()},
+			Node: &ast.IfStmt{Cond: tests_utils.Bin(lexer.In, tests_utils.Str("name"), tests_utils.Obj(ast.Entry{Key: "name", Value: tests_utils.Num(1)})), Then: tests_utils.Blk()},
 			Want: "if \"name\" in {name: 1} {\n}",
 		},
 		{
@@ -615,8 +615,8 @@ func stmtCases() []tests_utils.StringCase {
 			Node: &ast.ForRangeStmt{
 				Mutable: true,
 				Name:    "i",
-				Start:   tests_utils.Bin(token.Plus, a, tests_utils.Num(1)),
-				End:     tests_utils.Bin(token.Star, b, tests_utils.Num(2)),
+				Start:   tests_utils.Bin(lexer.Plus, a, tests_utils.Num(1)),
+				End:     tests_utils.Bin(lexer.Star, b, tests_utils.Num(2)),
 				Body:    tests_utils.Blk(&ast.BreakStmt{}),
 			},
 			Want: "for var i range [a + 1..b * 2] {\n    break\n}",
