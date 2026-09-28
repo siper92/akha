@@ -553,7 +553,7 @@ func TestParserParseTwice(t *testing.T) {
 }
 
 func extractErrors() ([]tests_utils.Case[string, string], error) {
-	cases := []tests_utils.Case[string, string]{}
+	var cases []tests_utils.Case[string, string]
 
 	text, err := os.ReadFile("testdata/errors.ak")
 	if err != nil {

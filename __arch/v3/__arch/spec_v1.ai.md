@@ -1,6 +1,6 @@
 # Akha language v1 - spec
 
-sources: `task.ai_spec.md`, `__arch/v3/spec_ded.md`, `__arch/v3/spec_def.ak`
+sources: `spec_def.ak`
 
 ## overview
 # purpose, goals, non goals
@@ -287,98 +287,6 @@ sources: `task.ai_spec.md`, `__arch/v3/spec_ded.md`, `__arch/v3/spec_def.ak`
  - statements after a `return` in the same block are a static error "unreachable"
  - error handling: none in v1, a runtime error stops the step and the step fails
  - exit is alias to `return`
-
-## grammar (EBNF)
-# notation
- - ISO style EBNF: `=` define, `|` choice, `[ ]` optional, `{ }` repeat, `( )` group, `;` end of rule
- - `"x"` terminal, `? ... ?` prose, `(* *)` comment
- - `NL` is a newline token, `EOF` the end of the source
-
-# lexical grammar
-```ebnf
-source        = [ BOM ] { token | space | comment | NL } EOF ;
-space         = " " | "\t" | "\r" ;
-NL            = "\n" ;                                  (* "\r\n" is normalized to "\n" *)
-comment       = "//" { ? any rune except NL ? } ;
-
-letter        = "A" | ... | "Z" | "a" | ... | "z" | "_" ;
-digit         = "0" | ... | "9" ;
-nonzero       = "1" | ... | "9" ;
-
-ident         = letter { letter | digit } ;             (* not a keyword or reserved word *)
-keyword       = "let" | "var" | "if" | "else" | "for" | "in" | "range"
-              | "break" | "continue" | "return" | "exit"
-              | "and" | "or" | "not" | "true" | "false" | "null" ;
-reserved      = "fn" | "try" | "catch" ;
-
-number        = ( "0" | nonzero { digit } ) [ "." digit { digit } ] ;
-                                                        (* no leading zeros, no exponent, not followed by a letter *)
-string        = '"' { char | escape | interp } '"' ;
-char          = ? any rune except '"', "\", NL and "$" followed by "{" ? ;
-escape        = "\" ( "n" | "t" | "r" | '"' | "\" | "$" ) ;
-interp        = "${" value_ref "}" ;
-plain_string  = ? a string without interp ? ;
-
-operator      = "+" | "-" | "*" | "/" | "%"
-              | "==" | "!=" | "<" | "<=" | ">" | ">="
-              | "=" | "&&" | "||" | "!" ;
-punct         = "(" | ")" | "[" | "]" | "{" | "}" | "," | ":" | "." | ".." ;
-```
-
-# syntax grammar
-```ebnf
-script        = { line } EOF ;
-line          = [ stmt ] ( NL | EOF ) ;
-block         = "{" NL { line } "}" ;                   (* "{" on the header line, "}" on its own line *)
-
-stmt          = let_stmt | var_stmt | if_stmt | for_stmt
-              | break_stmt | continue_stmt | return_stmt
-              | assign_stmt | call_stmt ;
-
-let_stmt      = "let" ( ident | "_" ) "=" expr ;
-var_stmt      = "var" ident [ "=" expr ] ;
-assign_stmt   = target "=" expr ;
-target        = ident { "." ident | "[" expr "]" } ;    (* ident is not "_" *)
-call_stmt     = postfix_expr ;                          (* must end with a call, else "unused value" *)
-
-if_stmt       = "if" header block [ "else" ( if_stmt | block ) ] ;
-                                                        (* "else" on the same line as "}" *)
-for_stmt      = "for" [ "var" ] loop_var ( [ "," loop_var ] "in" header | "range" range ) block ;
-loop_var      = ident | "_" ;
-range         = "[" expr ".." expr "]" ;
-header        = expr ;                                  (* must not start with an object literal *)
-
-break_stmt    = "break" ;                               (* inside a loop only *)
-continue_stmt = "continue" ;                            (* inside a loop only *)
-return_stmt   = ( "return" | "exit" ) [ expr ] ;
-
-expr          = or_expr ;
-or_expr       = and_expr { ( "or" | "||" ) and_expr } ;
-and_expr      = not_expr { ( "and" | "&&" ) not_expr } ;
-not_expr      = ( "not" | "!" ) not_expr | in_expr ;
-in_expr       = cmp_expr [ ( "in" | "not" "in" ) cmp_expr ] ;
-cmp_expr      = add_expr [ cmp_op add_expr ] ;
-cmp_op        = "==" | "!=" | "<" | "<=" | ">" | ">=" ;
-add_expr      = mul_expr { ( "+" | "-" ) mul_expr } ;
-mul_expr      = unary_expr { ( "*" | "/" | "%" ) unary_expr } ;
-unary_expr    = "-" unary_expr | postfix_expr ;
-postfix_expr  = primary { "." ident | "[" expr "]" | "(" [ list ] ")" } ;
-
-primary       = number | string | "true" | "false" | "null" | ident
-              | array | object | "(" expr ")" ;
-array         = "[" [ list ] "]" ;
-object        = "{" [ entry { "," entry } [ "," ] ] "}" ;
-entry         = ( ident | plain_string ) ":" expr ;     (* keys are unique *)
-list          = expr { "," expr } [ "," ] ;
-
-value_ref     = ident { "." ident | "[" ( number | plain_string | value_ref ) "]" } ;
-```
-
-# layout rules not expressed in the grammar
- - inside `( )`, `[ ]` and an object `{ }` newlines are ignored
- - a block `{` is never an object literal, an object literal is only parsed in operand position
- - `a < b < c` and `a in b in c` are parse errors, not left associative chains
- - `a[1:2]` is a parse error "slices are not supported in v1"
 
 ## v1 decisions
 # resolved from the notes above
