@@ -557,6 +557,9 @@ func (p *parser) parsePostfix() ast.Expr {
 		at := p.tok
 		switch at.Kind {
 		case lexer.Dot:
+			if !objectOperand(x) {
+				p.fail(lexer.CodeMemberKind, "use . on objects only", "member access works only on objects")
+			}
 			p.next()
 			if p.tok.Kind != lexer.Ident {
 				p.fail(lexer.CodeExpectedName, "", "expected a member name after ., got %s", p.tok.Describe())
@@ -722,6 +725,15 @@ func valueRef(x ast.Expr) bool {
 		return valueRef(x.X) && valueRef(x.Index)
 	}
 	return false
+}
+
+// ObjectOperand = PostfixExpr that is not a number, string, bool, null or array literal .
+func objectOperand(x ast.Expr) bool {
+	switch x.(type) {
+	case *ast.NumberLit, *ast.StringLit, *ast.TemplateLit, *ast.BoolLit, *ast.NullLit, *ast.ArrayLit:
+		return false
+	}
+	return true
 }
 
 func line(t lexer.Token) ast.Pos {

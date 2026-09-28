@@ -4,38 +4,47 @@ sources: `spec_def.ak`
 
 ## overview
 # purpose, goals, non goals
- - purpose: a flow step language, a script a flow os steps each step produces a result or moves to next step
+ - purpose: a flow step language, a script a flow of steps each step produces a result or moves to next step
+   - steps have events associated with them, the script has event observers on the exec buss
+     - assume macros assume definition for events
  - goals
-   - easy to read and write: 
-     - one statement per line 
+   - easy to read and write:
+     - one statement per line
        - statement is a step that produces a result or moves to next step
-     - braces for blocks, 
+     - braces for blocks,
      - few keywords
+   - data transfer and move
+   - simple types, representing value
+   - focus on parse and ast check to validate scripts before execution
+   - simple AI calls with min code build on chunks
+     - AI.get<funcs> that implement calls to AI models
    - loosely typed: variables have no declared type, containers hold mixed values
      - re-assignment is allowed for `var` variables, not for `let` variables
    - predictable: no implicit conversions between kinds
      - a clear error instead of a silent coercion that can lose data
    - every value is a Go object, an operation works when the value implements the operation interface
-   - one `number` kind, no int/float split
+   - one `number` kind, no int/float split 
+     - represent simplicity of types focus on few types and mostly on the type object (value semantics)s)
      - all numbers are float64
        - printed as int when integral (no decimal part), as float when not
- - non goals for v1
-   - user defined functions (v2, `fn` is reserved)
-   - error handling inside the script (`try`/`catch` is reserved)
-     - errors are thrown and break the execution of the step
    - modules and builtins (`Ak`, `FS`, `len`, `str` ...), later versions
    - classes, generics, type annotations, pattern matching
 
 ## lexical structure
 # source encoding, lines, statement terminator
- - source is UTF-8, a BOM is ignored, invalid UTF-8 is a lex error
+ - process only asckii ak files, check on lever level, no utf-8 check
+   - allow easy slap of encoder to allow many language script processing later
  - `\r\n` is normalized to `\n`
+   - normalize on lexer level, any special char is also determent by the processor
  - newline is the only statement terminator
    - `;` is not a token, using it is a lex error with the hint "one statement per line"
  - one statement per line, a blank line is ignored
+   - focus on results to allow max validation at parse level on line level
  - a statement continues across lines only inside an open `(` `[` or an object literal `{`
    - newlines inside those brackets are ignored, a trailing `,` before the closing bracket is allowed
    - long calls, arrays and objects are split this way
+ - create check validity interface that checks types
+   - only some types implement the interface, at this time
  - indentation has no meaning, it is for readability only
    - it's not included in the ast, it's not important
    - lexer only cares about position 
@@ -70,9 +79,10 @@ sources: `spec_def.ak`
    - double quotes only `"..."`, `'` is a lex error
    - escapes: `\n \t \r \" \\ \$`, an unknown escape is a lex error
    - interpolation `"hello ${name}"`, any expression inside `${ }`, the value is formatted with the string conversion rules
+     - string interpolation is considered a calculation and the string has its own block scope, so it can access the outer block variables
      - `${ }` is treated as a block with scope the current block the string is in
        - follows the nested block rules
-     - for v1 only allow direct value expressions inside `${ }`
+       - for v1 only allow direct value expressions inside `${ }`
    - a literal `${` is written as `\${`
    - no multiline strings declarations in v1
    - a `"..."` string cannot contain a raw newline, use `\n`
@@ -85,6 +95,7 @@ sources: `spec_def.ak`
      - computed keys are v2
    - a duplicate key in a literal is a static error
    - keys keep insertion order
+   - object is check on every access attempt and definition in the script
    - objects and maps are the same
 
 # operators and punctuation
@@ -98,8 +109,11 @@ sources: `spec_def.ak`
 
 ## types
 # number, string, boolean, array
- - number: float64, integral values are exact up to 2^53
-   - `3 == 3.0` is true, both print as `3`, `3.2` prints as `3.2` (shortest form)
+ - number: int64, integral values are exact up to int64
+   - on the parse, evaluated level every number is rounded to  int64
+   - rounded is only done with rounded int's 
+ - `3 == 3.0` is true, so numbers must be decimal, not hex or octal
+   - both print as `3`, `3.2` prints as `3.2` (shortest form)
    - `NaN` and `inf` cannot be produced, operations that would produce them are runtime errors
  - string: immutable UTF-8 text
    - strings are not character arrays, they are a single value
@@ -112,8 +126,8 @@ sources: `spec_def.ak`
    - operations are interfaces (`Adder`, `Comparer`, `Iterable` ...)
    - all types must implement `Value` and `Stringer` interfaces
 
-# missing: object/map, null
- - object and maps are the same
+# object/map, null
+ - object and maps are the same - they are never null, but missing keys are allays
    - string keys only, insertion ordered, mixed value kinds
    - `obj["key"]` read, reading a missing key returns `null`
      - keys are strings so they are treated the same way while parsing
@@ -165,6 +179,7 @@ sources: `spec_def.ak`
  - values have value semantics: arrays and objects are copied on assignment and when passed (copy on write in the Go impl)
    - `var b = a` then `b[0] = 1` does not change `a`
    - a `var` copy of a `let` array is mutable but not
+ - string templates have there own scope
 
 # block scope, lookup from current to root
  - every `{ }` block opens a new scope, the script is the root scope
@@ -225,7 +240,12 @@ sources: `spec_def.ak`
  - `s[i]`: doesn't work on strings
  - `obj["key"]`: missing key returns `null`
    - non string index on an object is a runtime error
- - `.` on array, string, number, boolean is a runtime error in v1 (methods come with builtins)
+ - `.` is the object member operator only
+   - `obj.name` reads the same as `obj["name"]`, a missing key returns `null`
+   - `obj.name = v` writes the same as `obj["name"] = v`
+   - `.` on a number, string, boolean, null or array literal is a parse error `member-kind`
+   - `.` on any other non object value is a runtime error in v1 (methods come with builtins)
+   - `Module.member` is reserved for modules in later versions, not implemented in v1
  - slices `arr[1:3]` are parse errors in v1, they are v2
 
 # calls, positional args, kwargs
@@ -279,6 +299,9 @@ sources: `spec_def.ak`
  - apply to the innermost loop
  - outside a loop is a static error
  - no labels in v1
+ - loop exit rule
+   - `break` leaves only the innermost loop
+   - `return` / `exit` always leave every loop and end the script, at any depth
 
 # missing: `return` / exit, error handling
  - `return` ends the script with `null` as the step output

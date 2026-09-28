@@ -10,6 +10,10 @@ akha: a platform for AI workflows, similar to n8n and temporal, written in Go
 tech stack: go 1.27, cobra, viper, grpc, sqlite, log/slog
 generate: sqlc, protobuf, graphql (deferred)
 
+# skill
+ - akha-language: use Claude to implement new language features for akha-language
+   - prefer specifically invocation over assumed usage
+
 # do
 - use simple formats for MD files
    - list, titles, sections and code blocks

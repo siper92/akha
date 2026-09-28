@@ -42,7 +42,7 @@ executes in 3 steps:
 - operations are optional interfaces, an operator works when the operand implements it
   - missing interface → runtime error `cannot <op> <kind> and <kind>`
 - numbers are float64
-  - `NaN` and `inf` are never produced, every arithmetic result is checked
+  - `NaN` and `inf` are never produced, every Operationmetic result is checked
   - `-0` is normalized to `0` on output and in equality
   - printed shortest form, integral values without `.0`
 - strings are immutable, no indexing
@@ -90,7 +90,6 @@ executes in 3 steps:
 - `obj.name` same as `obj["name"]`
 - `.` / `[ ]` on `null` -> runtime error "access on null"
 - `.` on array, string, number, boolean -> runtime error
-  - take speci
 - template: each part formatted with the string conversion rules
   - string raw, number shortest, bool, `null`, array and object compact JSON
 
@@ -207,13 +206,24 @@ type Adder interface {
 	Add(Value) (Value, error)
 }
 
-type Arith interface {
-	Value
-	Sub(Value) (Value, error)
-	Mul(Value) (Value, error)
-	Div(Value) (Value, error)
-	Mod(Value) (Value, error)
-	Neg() (Value, error)
+type OperationSum interface {
+  Value
+  Sum(Value) (Value, error)
+}
+
+type OperationMinus interface {
+  Value
+  Minus(Value) (Value, error)
+}
+
+type  OperationMul interface {
+  Value
+  Mul(Value) (Value, error)
+}
+
+type OperationDiv interface {
+  Value
+  Div(Value) (Value, error)
 }
 
 type Container interface {
@@ -285,7 +295,7 @@ type Object struct {
 
 - assertions
   - `Null`, `Bool` -> `Value`
-  - `Number` -> `Comparer`, `Adder`, `Arith`
+  - `Number` -> `Comparer`, `Adder`, `Operation`
   - `String` -> `Comparer`, `Adder`, `Container`
   - `*Array` -> `Adder`, `Container`, `IndexSetter`, `Iterable`, `Sizer`
   - `*Object` -> `Container`, `IndexSetter`, `MemberSetter`, `Iterable`, `Sizer`
@@ -422,7 +432,7 @@ type Checker interface {
 - each falsy value in `if`, `not`, `and`, `or`
 - `[0]`, `{a: null}`, `" "`, `-0` truthiness
 
-### arithmetic
+### Operationmetic
 - `7 / 2` is `3.5`
 - `10 % 3`, `-7 % 3`, `7.5 % 2`
 - division and modulo by zero

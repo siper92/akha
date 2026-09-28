@@ -347,6 +347,68 @@ func TestParserCanonical(t *testing.T) {
 	}
 }
 
+func TestParserLoopExit(t *testing.T) {
+	cases := []tests_utils.Case[string, string]{
+		// --- return and exit leave the script from any loop depth
+		{
+			Name:     "exit_in_for_in",
+			Input:    "for x in a {\nif x {\nexit x\n}\n}",
+			Expected: "for x in a {\n    if x {\n        exit x\n    }\n}",
+		},
+		{
+			Name:     "return_in_nested_range",
+			Input:    "for i range [0..n] {\nfor var k, v in o {\nreturn v\n}\n}",
+			Expected: "for i range [0..n] {\n    for var k, v in o {\n        return v\n    }\n}",
+		},
+		// --- break and continue stay loop only
+		{
+			Name:  "break_after_loop",
+			Input: "for x in a {\n}\nbreak",
+			Err:   errors.New("error[loop-control]: break outside of a loop"),
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.Name, func(t *testing.T) {
+			validateParserOutput(t, c)
+		})
+	}
+}
+
+func TestParserMemberAccess(t *testing.T) {
+	cases := []tests_utils.Case[string, string]{
+		// --- dot is the object member operator
+		{
+			Name:     "member_chain_on_name",
+			Input:    "let x = input.user.name",
+			Expected: "let x = input.user.name",
+		},
+		// @todo: if value provides checking during parsing check - and trow an error id not allowed
+		// 	- example is an object if it has a value in the script trow an error if member object exist
+		{
+			Name:     "member_on_array_literal",
+			Input:    `let x = [{b: "1""}].b`,
+			Expected: "let x = input.user.name",
+		},
+		{
+			Name:  "member_on_string_literal",
+			Input: `let x = "a".b`,
+			Err:   errors.New("error[member-kind]: member access works only on objects"),
+		},
+		{
+			Name:  "member_on_array_literal",
+			Input: "let x = [1].b",
+			Err:   errors.New("error[member-kind]: member access works only on objects"),
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.Name, func(t *testing.T) {
+			validateParserOutput(t, c)
+		})
+	}
+}
+
 func TestParserErrors(t *testing.T) {
 	cases, err := extractErrors()
 	if err != nil {

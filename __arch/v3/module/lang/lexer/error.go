@@ -52,6 +52,7 @@ const (
 	CodeSlice             = "slice"
 	CodeInterpExpr        = "interp-expr"
 	CodeLoopControl       = "loop-control"
+	CodeMemberKind        = "member-kind"
 )
 
 var (

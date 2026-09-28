@@ -8,7 +8,7 @@ A backend authenticates workers and issues JWT tokens over gRPC.
 ## parts
 
 - backend
-  - issues short lived JWT tokens to workers
+  - issues short-lived JWT tokens to workers
   - validates tokens on every gRPC call
   - logs every login attempt
   - can start its own workers as goroutines
