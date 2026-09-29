@@ -1,12 +1,14 @@
 package parser
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
 	"strconv"
 
 	"github.com/siper92/akha/lang/ast"
+	"github.com/siper92/akha/lang/check"
 	"github.com/siper92/akha/lang/lexer"
 )
 
@@ -19,14 +21,15 @@ var _ Parser = (*parser)(nil)
 const MaxDepth = 1000
 
 type parser struct {
-	file  string
-	src   string
-	toks  []lexer.Token
-	i     int
-	tok   lexer.Token
-	nest  int
-	loops int
-	depth int
+	file   string
+	src    string
+	toks   []lexer.Token
+	i      int
+	tok    lexer.Token
+	nest   int
+	loops  int
+	depth  int
+	values []check.ValueChecker
 }
 
 type bailout struct {
@@ -74,7 +77,7 @@ var nonAssoc = map[int]chainErr{
 }
 
 func New(file, src string) Parser {
-	return &parser{file: file, src: src}
+	return &parser{file: file, src: src, values: check.Values()}
 }
 
 func (p *parser) Parse() (_ *ast.Script, err error) {
@@ -193,6 +196,20 @@ func (p *parser) fail(code, hint, format string, args ...any) {
 
 func (p *parser) failAt(pos lexer.Pos, code, hint, format string, args ...any) {
 	panic(bailout{err: lexer.NewLexError(lexer.ErrParse, pos, code, fmt.Sprintf(format, args...), hint)})
+}
+
+func (p *parser) bind(pos lexer.Pos, x ast.Expr) ast.Expr {
+	for _, v := range p.values {
+		err := v.CheckValue(context.Background(), x, check.Literal)
+		if err == nil {
+			continue
+		}
+		if ce, ok := errors.AsType[*check.Error](err); ok {
+			p.failAt(pos, ce.Code, ce.Hint, "%s", ce.Msg)
+		}
+		p.failAt(pos, lexer.CodeInternal, "", "%v", err)
+	}
+	return x
 }
 
 // Script = {Line} eof .
@@ -521,7 +538,7 @@ func (p *parser) parseBinop(prec int) ast.Expr {
 			p.next()
 		}
 		p.next()
-		x = &ast.BinaryExpr{Pos: line(at), Op: op, Left: x, Right: p.parsePrec(level + 1)}
+		x = p.bind(at.Pos, &ast.BinaryExpr{Pos: line(at), Op: op, Left: x, Right: p.parsePrec(level + 1)})
 	}
 }
 
@@ -564,7 +581,7 @@ func (p *parser) parsePostfix() ast.Expr {
 			if p.tok.Kind != lexer.Ident {
 				p.fail(lexer.CodeExpectedName, "", "expected a member name after ., got %s", p.tok.Describe())
 			}
-			x = &ast.MemberExpr{Pos: line(at), X: x, Name: p.tok.Lit}
+			x = p.bind(at.Pos, &ast.MemberExpr{Pos: line(at), X: x, Name: p.tok.Lit})
 			p.next()
 		case lexer.LBracket:
 			p.open()
@@ -681,7 +698,7 @@ func (p *parser) parseTemplate(t lexer.Token) ast.Expr {
 			lit.Parts = append(lit.Parts, ast.TemplatePart{Text: part.Text})
 			continue
 		}
-		sub := &parser{file: p.file}
+		sub := &parser{file: p.file, values: p.values}
 		sub.load(lexer.NewAt(part.Expr, part.Pos))
 		x := sub.parseExpr()
 		if sub.tok.Kind != lexer.EOF {

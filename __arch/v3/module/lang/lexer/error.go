@@ -53,6 +53,15 @@ const (
 	CodeInterpExpr        = "interp-expr"
 	CodeLoopControl       = "loop-control"
 	CodeMemberKind        = "member-kind"
+
+	CodeUndeclared    = "undeclared"
+	CodeUseBeforeDecl = "use-before-decl"
+	CodeRedeclared    = "redeclared"
+	CodeImmutable     = "immutable"
+	CodeUnreachable   = "unreachable"
+	CodeNoCallable    = "no-callable"
+	CodeMemberMissing = "member-missing"
+	CodeDivZero       = "div-zero"
 )
 
 var (

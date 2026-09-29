@@ -381,14 +381,7 @@ func TestParserMemberAccess(t *testing.T) {
 		{
 			Name:     "member_chain_on_name",
 			Input:    "let x = input.user.name",
-			Expected: "let x = input.user.name",
-		},
-		// @todo: if value provides checking during parsing check - and trow an error id not allowed
-		// 	- example is an object if it has a value in the script trow an error if member object exist
-		{
-			Name:     "member_on_array_literal",
-			Input:    `let x = [{b: "1""}].b`,
-			Expected: "let x = input.user.name",
+			Expected: "let x = input.user.name", // value not known, so no simplification
 		},
 		{
 			Name:  "member_on_string_literal",
@@ -399,6 +392,55 @@ func TestParserMemberAccess(t *testing.T) {
 			Name:  "member_on_array_literal",
 			Input: "let x = [1].b",
 			Err:   errors.New("error[member-kind]: member access works only on objects"),
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.Name, func(t *testing.T) {
+			validateParserOutput(t, c)
+		})
+	}
+}
+
+func TestParserModulo(t *testing.T) {
+	cases := []tests_utils.Case[string, string]{
+		// --- % shares the * / level
+		{
+			Name:     "modulo_binds_like_mul",
+			Input:    "let x = 1 + 10 % 3 * 2",
+			Expected: "let x = 1 + 10 % 3 * 2",
+		},
+		{
+			Name:  "modulo_by_known_zero",
+			Input: "let x = a % 0",
+			Err:   errors.New("1:11: error[div-zero]: modulo by zero"),
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.Name, func(t *testing.T) {
+			validateParserOutput(t, c)
+		})
+	}
+}
+
+func TestParserKnownValues(t *testing.T) {
+	cases := []tests_utils.Case[string, string]{
+		// --- value checkers run on known values when the node is bound
+		{
+			Name:     "member_on_known_object",
+			Input:    "let x = {a: {b: 1}}.a.b",
+			Expected: "let x = {a: {b: 1}}.a.b",
+		},
+		{
+			Name:     "member_on_known_object",
+			Input:    "let x = {a: {b: {c: d: e}}}.a.b.c.d.e",
+			Expected: "let x = {a: {b: {c: d: e}}}.a.b.c.d.e",
+		},
+		{
+			Name:  "missing_member_on_known_object",
+			Input: "let x = {a: {b: 1}}.a.c",
+			Err:   errors.New(`error[member-missing]: member "c" does not exist on the object`),
 		},
 	}
 

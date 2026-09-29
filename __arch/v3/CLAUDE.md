@@ -10,6 +10,11 @@ akha: a platform for AI workflows, similar to n8n and temporal, written in Go
 tech stack: go 1.27, cobra, viper, grpc, sqlite, log/slog
 generate: sqlc, protobuf, graphql (deferred)
 
+# Code style
+
+- switch cases must have a default case 
+  - if your going to exit after the switch, use `return` inside the default case
+
 # skill
  - akha-language: use Claude to implement new language features for akha-language
    - prefer specifically invocation over assumed usage

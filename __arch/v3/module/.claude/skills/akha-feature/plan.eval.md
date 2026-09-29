@@ -398,6 +398,11 @@ package check
 type Checker interface {
 	Check(ctx context.Context, script *ast.Script) error
 }
+
+type ValueCanBeAssigned interface {
+  // check if map/object has value
+  CanBeAssigned(ctx context.Context, expr ast.Expr, v Value) bool
+}
 ```
 
 - undeclared, use before declaration, redeclare in same block
