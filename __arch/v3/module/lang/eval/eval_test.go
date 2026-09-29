@@ -69,6 +69,59 @@ func TestEvalState(t *testing.T) {
 	}
 }
 
+func TestEvalErrors(t *testing.T) {
+	cases := []tests_utils.Case[string, string]{
+		// --- runtime errors pass the check and stop the eval
+		{
+			Name:  "index_out_of_range",
+			Input: "let a = [1]\nreturn a[1]",
+			Err:   errors.New("2: runtime error: index 1 out of range for length 1"),
+		},
+		{
+			Name:  "member_on_null",
+			Input: "var o = null\nreturn o.name",
+			Err:   errors.New("2: runtime error: access on null"),
+		},
+		{
+			Name:  "iterate_number",
+			Input: "var n = 5\nfor x in n {\n}",
+			Err:   errors.New("2: runtime error: cannot iterate number"),
+		},
+		{
+			Name:  "max_iterations",
+			Input: "for i range [0..2000] {\n}",
+			Err:   errors.New("1: runtime error: max iterations 1000 exceeded"),
+		},
+		// --- operators and targets fail on runtime kinds hidden by var
+		{
+			Name:  "division_by_runtime_zero",
+			Input: "var zero = 0\nreturn 1 / zero",
+			Err:   errors.New("2: runtime error: division by zero"),
+		},
+		{
+			Name:  "compare_kind_mismatch",
+			Input: "var a = 1\nreturn a < \"b\"",
+			Err:   errors.New("2: runtime error: cannot compare number and string"),
+		},
+		{
+			Name:  "array_index_kind",
+			Input: "var a = [1]\nreturn a[\"x\"]",
+			Err:   errors.New("2: runtime error: array index must be a number, got string"),
+		},
+		{
+			Name:  "set_member_on_number",
+			Input: "var n = 1\nn.x = 2",
+			Err:   errors.New("2: runtime error: cannot set member x on number"),
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.Name, func(t *testing.T) {
+			pipeline.ValidateRun(t, c, nil)
+		})
+	}
+}
+
 func TestEvalSpecDef(t *testing.T) {
 	src, err := os.ReadFile("../parser/testdata/spec_def.ak")
 	if err != nil {

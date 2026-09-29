@@ -8,7 +8,8 @@ description: Add or change a feature of the akha language, Use for any change un
 ## sources
 - spec, source of truth: [spec_v1.ai.md](spec_v1.ai.md)
 - spec examples: [spec_def.ak](spec_def.ak)
-- arch folder with tasks and plans: [_arch](__arch)
+- arch folder with tasks and plans: [__arch](./__arch)
+- eval plan: [plan.eval.md](plan.eval.md)
 - canonical golden: `lang/parser/testdata/spec_def.canonical.ak`
 
 ## order
@@ -43,6 +44,14 @@ description: Add or change a feature of the akha language, Use for any change un
   - a 3 line header is prepended, so lines start at 4
 - a new behavior gets its own `TestParser<Feature>` function
 - keep it minimal: one happy case, one error case
+- check cases run through `pipeline.ValidateCheck(t, c)`, `Case[string, struct{}]`
+  - `Err` is `line: error[code]: message`, must wrap `check.ErrCheck`
+  - static rules live in `lang/check/checker.go`, known value rules implement `ValueChecker` in `lang/check/values.go`
+- eval cases run through `pipeline.ValidateRun(t, c, input)`, `Case[string, string]`
+  - `Expected` is the `String()` of the returned value
+  - `Err` is `line: runtime error: message`
+  - the runner checks first, so a runtime error case must hide the value from the checker (use `var`, not `let` or a literal)
+- error states are grouped in `TestCheckErrors` / `TestEvalErrors`, one case per error code
 
 ## current decisions
 - `.` is the object member operator only, literals of other kinds are `member-kind` parse errors

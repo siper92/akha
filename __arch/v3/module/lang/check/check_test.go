@@ -70,6 +70,59 @@ func TestCheckAssign(t *testing.T) {
 	}
 }
 
+func TestCheckErrors(t *testing.T) {
+	cases := []tests_utils.Case[string, struct{}]{
+		// --- static errors stop the script before eval
+		{
+			Name:  "undeclared_name",
+			Input: "let a = 1\nlet b = c",
+			Err:   errors.New("2: error[undeclared]: c is not declared"),
+		},
+		{
+			Name:  "assign_to_input",
+			Input: "input.name = \"x\"",
+			Err:   errors.New("1: error[immutable]: cannot assign to input"),
+		},
+		{
+			Name:  "unknown_callee",
+			Input: "let a = send(1)",
+			Err:   errors.New("1: error[no-callable]: unknown callee send, v1 has no callables"),
+		},
+		{
+			Name:  "member_on_known_number",
+			Input: "let n = 1\nlet x = n.size",
+			Err:   errors.New("2: error[member-kind]: member access works only on objects"),
+		},
+		// --- known values and nested scopes fail at check time
+		{
+			Name:  "division_by_known_zero",
+			Input: "let d = 0\nlet x = 1 / d",
+			Err:   errors.New("2: error[div-zero]: division by zero"),
+		},
+		{
+			Name:  "member_on_known_array",
+			Input: "let a = [1]\nlet n = a.size",
+			Err:   errors.New("2: error[member-kind]: member access works only on objects"),
+		},
+		{
+			Name:  "assign_to_undeclared",
+			Input: "x = 1",
+			Err:   errors.New("1: error[undeclared]: x is not declared"),
+		},
+		{
+			Name:  "nested_use_before_declaration",
+			Input: "if input {\n    let b = a\n}\nlet a = 1",
+			Err:   errors.New("2: error[use-before-decl]: a is used before its declaration"),
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.Name, func(t *testing.T) {
+			pipeline.ValidateCheck(t, c)
+		})
+	}
+}
+
 func TestCheckKnownValues(t *testing.T) {
 	cases := []tests_utils.Case[string, struct{}]{
 		// --- let bindings keep their known value for the value checkers

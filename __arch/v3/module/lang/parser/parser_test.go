@@ -433,9 +433,9 @@ func TestParserKnownValues(t *testing.T) {
 			Expected: "let x = {a: {b: 1}}.a.b",
 		},
 		{
-			Name:     "member_on_known_object",
-			Input:    "let x = {a: {b: {c: d: e}}}.a.b.c.d.e",
-			Expected: "let x = {a: {b: {c: d: e}}}.a.b.c.d.e",
+			Name:     "deep_member_on_known_object",
+			Input:    "let x = {a: {b: {c: {d: {e: 1}}}}}.a.b.c.d.e",
+			Expected: "let x = {a: {b: {c: {d: {e: 1}}}}}.a.b.c.d.e",
 		},
 		{
 			Name:  "missing_member_on_known_object",

@@ -14,6 +14,7 @@ import (
 
 func ValidateCheck(t *testing.T, c tests_utils.Case[string, struct{}]) {
 	t.Helper()
+
 	script, err := parser.New("", c.Input).Parse()
 	if err != nil {
 		t.Fatalf("parse error: %v", err)
@@ -24,6 +25,7 @@ func ValidateCheck(t *testing.T, c tests_utils.Case[string, struct{}]) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
+
 		return
 	}
 
@@ -34,11 +36,13 @@ func ValidateCheck(t *testing.T, c tests_utils.Case[string, struct{}]) {
 
 func ValidateRun(t *testing.T, c tests_utils.Case[string, string], input eval.Value) {
 	t.Helper()
+
 	out, err := runner.New(eval.Options{MaxStmts: 10_000, MaxIterations: 1_000}).Run(t.Context(), c.Input, input)
 	if c.Err != nil {
 		if err == nil || !strings.Contains(err.Error(), c.Err.Error()) {
 			t.Fatalf("expected error: %v, got: %v", c.Err, err)
 		}
+
 		return
 	}
 
