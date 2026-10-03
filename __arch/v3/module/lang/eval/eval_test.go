@@ -42,6 +42,42 @@ func TestEvalModulo(t *testing.T) {
 	}
 }
 
+func TestEvalLoops(t *testing.T) {
+	cases := []tests_utils.Case[string, string]{
+		// --- scopes, value semantics and loop flow
+		{
+			Name:     "loops_to_200",
+			Input:    "var sum = 0\nfor i range [0..200] {\nsum = sum + i\n}\nreturn sum",
+			Expected: "19900",
+		},
+		{
+			//@TODO: increase max inout to more than - 1000 and test the max iterations error
+			//original: 2000
+			Name:     "loops_to_500",
+			Input:    "var sum = 0\nfor i range [0..500] {\nsum = sum + 1\n}\nreturn sum",
+			Expected: "500",
+		},
+		{
+			Name:     "loops_till_break",
+			Input:    "var sum = 0\nfor i range [0..200] {\nif i == 100 {\nbreak\n}\nsum = sum + 1\n}\nreturn sum",
+			Expected: "100",
+		},
+		{
+			//@TODO: error if the loop is infinite
+			Name:     "loops_till_break",
+			Input:    "var sum = 5\nfor i range [0..1000] {\n\n}\nreturn sum",
+			Expected: "5",
+			//Err:   errors.New("2: runtime error: infinite loop detected"),
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.Name, func(t *testing.T) {
+			pipeline.ValidateRun(t, c, nil)
+		})
+	}
+}
+
 func TestEvalState(t *testing.T) {
 	cases := []tests_utils.Case[string, string]{
 		// --- scopes, value semantics and loop flow
@@ -54,6 +90,28 @@ func TestEvalState(t *testing.T) {
 			Name:     "copy_on_store",
 			Input:    "var a = [1, [2]]\nvar b = a\nb[1][0] = 9\nreturn [a, b]",
 			Expected: "[[1,[2]],[1,[9]]]",
+		},
+		{
+			Name:     "copy_on_store",
+			Input:    "var a = [1, [2,9]]\nvar b = a\nb[1][0] = 9\nreturn [a, b]",
+			Expected: "[[1,[2,9]],[1,[9,9]]]",
+		},
+		{
+			Name: "complex_range",
+			Input: `
+let pair2 = "testLeft2"
+var pair1 = ""
+var total = [1,2,3,4,5,100,200,300]
+var totalRes
+for n in total {
+    if n > 200 {
+		pair1 = "test" + pair2
+        totalRes = "break3" + pair1
+        break
+    }
+}
+return totalRes`,
+			Expected: `"break3testtestLeft2"`,
 		},
 		{
 			Name:     "return_leaves_every_loop",
