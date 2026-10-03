@@ -13,6 +13,7 @@ var (
 	_ fmt.Stringer = (*Block)(nil)
 	_ fmt.Stringer = (*Entry)(nil)
 	_ fmt.Stringer = (*TemplatePart)(nil)
+	_ fmt.Stringer = (*Kwarg)(nil)
 
 	_ fmt.Stringer = (*LetStmt)(nil)
 	_ fmt.Stringer = (*VarStmt)(nil)
@@ -168,8 +169,21 @@ func (x *IndexExpr) String() string {
 	return group(x.X, precPostfix) + "[" + str(x.Index) + "]"
 }
 
+func (k Kwarg) String() string {
+	return k.Name + "=" + str(k.Value)
+}
+
 func (x *CallExpr) String() string {
-	return group(x.Fn, precPostfix) + "(" + join(x.Args) + ")"
+	items := make([]string, 0, len(x.Args)+len(x.Kwargs))
+	for _, a := range x.Args {
+		items = append(items, str(a))
+	}
+
+	for _, k := range x.Kwargs {
+		items = append(items, k.String())
+	}
+
+	return group(x.Fn, precPostfix) + "(" + strings.Join(items, ", ") + ")"
 }
 
 func stmtString(s Stmt) string {

@@ -12,9 +12,14 @@ description: Add or change a feature of the akha language, Use for any change un
 - eval plan: [plan.eval.md](plan.eval.md)
 - canonical golden: `lang/parser/testdata/spec_def.canonical.ak`
 
+## execution plan
+flow.ak > lexer(token) > parser(ast) > check > eval
+
 ## order
 1. spec first
-   - add the rule to `spec_v1.ai.md` in the matching section, short list items
+   - on change
+     - add the rule to `spec_v1.ai.md` short list items
+     - make sure to keep the skill relevant
    - mark open points as unknown with a warning sign, do not assume
 2. data definitions
    - token kind and name: `lang/lexer/token.go`
@@ -55,7 +60,9 @@ description: Add or change a feature of the akha language, Use for any change un
 
 ## current decisions
 - `.` is the object member operator only, literals of other kinds are `member-kind` parse errors
-- modules (`Module.member`) are not implemented in v1
+- modules: interfaces in `lang/def/module_ast.go`, builders and registry in `lang/module`
+  - a module is a package under `lang/module/<name>`, registered in `lang/module/std`
+  - call rules live in `check.CallChecker` (parse and check), import scope in `lang/check/checker.go`
 - `return` / `exit` always leave every loop, `break` / `continue` only the innermost
 
 ## don't

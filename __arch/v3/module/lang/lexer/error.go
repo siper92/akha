@@ -53,6 +53,12 @@ const (
 	CodeInterpExpr        = "interp-expr"
 	CodeLoopControl       = "loop-control"
 	CodeMemberKind        = "member-kind"
+	CodeKwargOrder        = "kwarg-order"
+	CodeDuplicateKwarg    = "duplicate-kwarg"
+	CodeUnknownFunc       = "unknown-func"
+	CodeArity             = "arity"
+	CodeUnknownKwarg      = "unknown-kwarg"
+	CodeArgKind           = "arg-kind"
 
 	CodeUndeclared    = "undeclared"
 	CodeUseBeforeDecl = "use-before-decl"
@@ -62,6 +68,12 @@ const (
 	CodeNoCallable    = "no-callable"
 	CodeMemberMissing = "member-missing"
 	CodeDivZero       = "div-zero"
+	CodeUnknownModule = "unknown-module"
+	CodeNotImported   = "not-imported"
+	CodeImportArg     = "import-arg"
+	CodeImportScope   = "import-scope"
+	CodeImportDup     = "import-dup"
+	CodeModuleName    = "module-name"
 )
 
 var (

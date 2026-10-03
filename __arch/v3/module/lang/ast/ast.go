@@ -176,10 +176,17 @@ type IndexExpr struct {
 	Index Expr
 }
 
+type Kwarg struct {
+	Pos
+	Name  string
+	Value Expr
+}
+
 type CallExpr struct {
 	Pos
-	Fn   Expr
-	Args []Expr
+	Fn     Expr
+	Args   []Expr
+	Kwargs []Kwarg
 }
 
 var (
@@ -209,6 +216,7 @@ var (
 	_ Expr = (*MemberExpr)(nil)
 	_ Expr = (*IndexExpr)(nil)
 	_ Expr = (*CallExpr)(nil)
+	_ Expr = (*Kwarg)(nil)
 )
 
 func (*LetStmt) stmt()      {}
@@ -235,3 +243,4 @@ func (*BinaryExpr) expr()  {}
 func (*MemberExpr) expr()  {}
 func (*IndexExpr) expr()   {}
 func (*CallExpr) expr()    {}
+func (*Kwarg) expr()       {}

@@ -593,7 +593,7 @@ func (p *parser) parsePostfix() ast.Expr {
 			x = &ast.IndexExpr{Pos: line(at), X: x, Index: index}
 		case lexer.LParen:
 			p.open()
-			x = &ast.CallExpr{Pos: line(at), Fn: x, Args: p.parseList(lexer.RParen)}
+			x = p.bind(at.Pos, p.parseArgs(&ast.CallExpr{Pos: line(at), Fn: x}))
 		default:
 			return x
 		}
@@ -612,6 +612,43 @@ func (p *parser) parseList(end lexer.Kind) []ast.Expr {
 	}
 	p.close(end)
 	return items
+}
+
+// Args = [Arg {',' Arg} [',']] .
+// Arg = Expr | identifier '=' Expr .
+func (p *parser) parseArgs(call *ast.CallExpr) *ast.CallExpr {
+	seen := make(map[string]bool)
+	for p.tok.Kind != lexer.RParen {
+		at := p.tok
+		if at.Kind == lexer.Ident && p.peek().Kind == lexer.Assign {
+			if seen[at.Lit] {
+				p.fail(lexer.CodeDuplicateKwarg, "", "duplicate named argument %s", at.Lit)
+			}
+
+			seen[at.Lit] = true
+			p.next()
+			p.next()
+			call.Kwargs = append(call.Kwargs, ast.Kwarg{
+				Pos:   line(at),
+				Name:  at.Lit,
+				Value: p.parseExpr(),
+			})
+		} else {
+			if len(call.Kwargs) > 0 {
+				p.fail(lexer.CodeKwargOrder, "move positional arguments first", "positional argument after a named argument")
+			}
+
+			call.Args = append(call.Args, p.parseExpr())
+		}
+
+		if p.tok.Kind != lexer.Comma {
+			break
+		}
+		p.next()
+	}
+
+	p.close(lexer.RParen)
+	return call
 }
 
 // Operand = identifier | number | String | 'true' | 'false' | 'null' | ArrayExpr | ObjectExpr | '(' Expr ')' .

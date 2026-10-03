@@ -27,7 +27,7 @@ sources: `spec_def.ak`
      - represent simplicity of types focus on few types and mostly on the type object (value semantics)s)
      - all numbers are float64
        - printed as int when integral (no decimal part), as float when not
-   - modules and builtins (`Ak`, `FS`, `len`, `str` ...), later versions
+   - builtins (`len`, `str` ...), later versions
    - classes, generics, type annotations, pattern matching
 
 ## lexical structure
@@ -245,11 +245,15 @@ sources: `spec_def.ak`
    - `obj.name = v` writes the same as `obj["name"] = v`
    - `.` on a number, string, boolean, null or array literal is a parse error `member-kind`
    - `.` on any other non object value is a runtime error in v1 (methods come with builtins)
-   - `Module.member` is reserved for modules in later versions, not implemented in v1
+   - `module.func(...)` is a module call, see modules
  - slices `arr[1:3]` are parse errors in v1, they are v2
 
 # calls, positional args, kwargs
- - v1 has no callables
+ - only module functions are callable, `module.func(args)`
+ - positional args first, then named args `name=expr`
+   - a positional arg after a named arg is a parse error `kwarg-order`
+   - a duplicate named arg is a parse error `duplicate-kwarg`
+ - calls can span lines and take a trailing `,`
 
 # array and object literals
  - `[e1, e2, ...]`, elements are any expression
@@ -325,9 +329,32 @@ sources: `spec_def.ak`
  - reported by the parser: `break` / `continue` outside a loop, unused values, duplicate keys, keywords and reserved words as names, invalid assignment targets
  - reported by the checker (not in the lang module yet): undeclared names, use before declaration, redeclare, assignment to `let` / loop var / `input`, unreachable code
 
-## modules and builtins - for later versions, not in this one
-# modules and builtins
- - not in v1
+## modules
+# definitions
+ - a module is a named set of functions, defined in Go (`lang/def` interfaces)
+ - a function has positional params and named params (kwargs)
+   - positional params are required, the arg count must match
+   - named params must have a default, registering one without a default fails
+   - every param has a type, checked statically when the arg value is known and at runtime
+ - modules are registered in a registry, a duplicate module or function name fails
+ - module names are reserved, `let fs = 1` is a static error `module-name`
+
+# core module `ak`
+ - `ak` is always imported
+ - `ak.import("name")` imports a registered module
+   - the arg must be a string literal
+   - only at the root block
+   - importing twice is a static error `import-dup`
+ - `ak.setup(log="", debug="")` named args only
+ - `ak.log(msg)`, `ak.debug(msg)` - `msg` is a string
+
+# loading and checks
+ - parse: unknown function, arity, unknown named arg, known arg type of a registered module
+ - check: unknown module, module not imported, import rules, known arg type through `let`
+ - runtime: args are bound to params, defaults filled, types validated before the call
+ - a call on a declared name (`obj.fn()`) is a static error `no-callable`
+ - ⚠️ unknown: must imports come before every other statement
+ - ⚠️ unknown: return values of module functions
 
 ## errors
 # static check errors
