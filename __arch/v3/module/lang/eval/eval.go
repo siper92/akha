@@ -6,6 +6,7 @@ import (
 
 	"github.com/siper92/akha/lang/ast"
 	"github.com/siper92/akha/lang/lexer"
+	"github.com/siper92/akha/lang/module"
 )
 
 type Kind int
@@ -138,6 +139,7 @@ type Options struct {
 	MaxStmts      int
 	MaxIterations int
 	MaxValueSize  int
+	Modules       module.IRegistry
 }
 
 type Evaluator interface {

@@ -7,6 +7,7 @@ import (
 	"github.com/siper92/akha/lang/check"
 	"github.com/siper92/akha/lang/eval"
 	"github.com/siper92/akha/lang/lexer"
+	"github.com/siper92/akha/lang/module/std"
 	"github.com/siper92/akha/lang/parser"
 )
 
@@ -21,6 +22,9 @@ type runner struct {
 }
 
 func New(opts eval.Options) Runner {
+	if opts.Modules == nil {
+		opts.Modules = std.Default()
+	}
 	return &runner{opts: opts}
 }
 

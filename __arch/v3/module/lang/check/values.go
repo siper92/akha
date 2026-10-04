@@ -5,6 +5,7 @@ import (
 
 	"github.com/siper92/akha/lang/ast"
 	"github.com/siper92/akha/lang/lexer"
+	"github.com/siper92/akha/lang/module/std"
 )
 
 var (
@@ -17,7 +18,7 @@ type MemberChecker struct{}
 type DivisorChecker struct{}
 
 func Values() []ValueChecker {
-	return []ValueChecker{&MemberChecker{}, &DivisorChecker{}}
+	return []ValueChecker{&MemberChecker{}, &DivisorChecker{}, &CallChecker{Modules: std.Default()}}
 }
 
 func Literal(x ast.Expr) ast.Expr {

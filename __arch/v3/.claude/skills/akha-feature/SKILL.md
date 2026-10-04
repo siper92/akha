@@ -60,8 +60,10 @@ flow.ak > lexer(token) > parser(ast) > check > eval
 
 ## current decisions
 - `.` is the object member operator only, literals of other kinds are `member-kind` parse errors
-- modules: interfaces in `lang/def/module_ast.go`, builders and registry in `lang/module`
+- modules: interfaces in `lang/module/module_ast.go`, builders and registry in `lang/module/module.go`
   - a module is a package under `lang/module/<name>`, registered in `lang/module/std`
+  - param types live in `lang/module/types`, eval gets the registry via `eval.Options.Modules`
+  - parse level module tests use `pipeline.ValidateParse`
   - call rules live in `check.CallChecker` (parse and check), import scope in `lang/check/checker.go`
 - `return` / `exit` always leave every loop, `break` / `continue` only the innermost
 

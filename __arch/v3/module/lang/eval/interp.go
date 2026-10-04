@@ -8,6 +8,7 @@ import (
 
 	"github.com/siper92/akha/lang/ast"
 	"github.com/siper92/akha/lang/lexer"
+	"github.com/siper92/akha/lang/module"
 )
 
 var (
@@ -21,11 +22,12 @@ type evaluator struct {
 }
 
 type interp struct {
-	opts  Options
-	ops   Operators
-	stmts int
-	iters int
-	ret   Value
+	opts    Options
+	ops     Operators
+	stmts   int
+	iters   int
+	ret     Value
+	imports module.IScope
 }
 
 func New(opts Options) Evaluator {
@@ -34,6 +36,9 @@ func New(opts Options) Evaluator {
 
 func (e *evaluator) Run(ctx context.Context, script *ast.Script, input Value) (Value, error) {
 	in := &interp{opts: e.opts, ops: NewOperators(), ret: Null{}}
+	if e.opts.Modules != nil {
+		in.imports = module.NewScope(e.opts.Modules)
+	}
 	if input == nil {
 		input = Null{}
 	}
@@ -415,7 +420,7 @@ func (in *interp) Eval(ctx context.Context, env Env, x ast.Expr) (Value, error) 
 		r, err := ix.Index(idx)
 		return r, in.failIf(x.Pos, err)
 	case *ast.CallExpr:
-		return nil, in.fail(x.Pos, newError(CodeNoCallable, "no callables in v1"))
+		return in.call(ctx, env, x)
 	}
 	return nil, in.fail(x.Position(), newError(CodeInternal, "unknown expression %T", x))
 }
@@ -440,12 +445,66 @@ func (in *interp) binary(ctx context.Context, env Env, x *ast.BinaryExpr) (Value
 	if err != nil {
 		return nil, err
 	}
+
 	if x.Op == lexer.And || x.Op == lexer.Or {
 		return Bool(r.Truth()), nil
 	}
 
 	v, err := in.ops.Binary(x.Op, l, r)
 	return v, in.failIf(x.Pos, err)
+}
+
+func (in *interp) call(ctx context.Context, env Env, x *ast.CallExpr) (Value, error) {
+	name, fn, ok := module.Callee(x)
+	if !ok || in.imports == nil {
+		return nil, in.fail(x.Pos, newError(CodeNoCallable, "unknown callee %s", x.Fn))
+	}
+	f, err := in.imports.Callable(name, fn)
+	if err != nil {
+		return nil, in.fail(x.Pos, newError(CodeCall, "%v", err))
+	}
+
+	args := make([]module.IValue, 0, len(x.Args))
+	for _, a := range x.Args {
+		v, err := in.value(ctx, env, a)
+		if err != nil {
+			return nil, err
+		}
+		args = append(args, v)
+	}
+	kwargs := make(map[string]module.IValue, len(x.Kwargs))
+	for _, kw := range x.Kwargs {
+		v, err := in.value(ctx, env, kw.Value)
+		if err != nil {
+			return nil, err
+		}
+		kwargs[kw.Name] = v
+	}
+
+	bound, err := f.Bind(args, kwargs)
+	if err != nil {
+		return nil, in.fail(x.Pos, newError(CodeCall, "%s.%v", name, err))
+	}
+	if l, ok := f.(module.ILoader); ok {
+		target, _ := bound[0].(String)
+		if err := l.Load(in.imports, string(target)); err != nil {
+			return nil, in.fail(x.Pos, newError(CodeCall, "%v", err))
+		}
+		return Null{}, nil
+	}
+
+	out, err := f.Call(bound...)
+	if err != nil {
+		return nil, in.fail(x.Pos, newError(CodeCall, "%s.%s: %v", name, fn, err))
+	}
+	switch v := out.(type) {
+	case nil:
+		return Null{}, nil
+	case Value:
+		return v, nil
+	default:
+		return nil, in.fail(x.Pos, newError(CodeInternal, "%s.%s returned %T", name, fn, out))
+	}
 }
 
 func (in *interp) template(ctx context.Context, env Env, x *ast.TemplateLit) (Value, error) {

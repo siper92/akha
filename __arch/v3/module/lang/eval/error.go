@@ -26,6 +26,7 @@ const (
 	CodeUndeclared   = "undeclared"
 	CodeRedeclared   = "redeclared"
 	CodeNoCallable   = "no-callable"
+	CodeCall         = "call"
 	CodeLimit        = "limit"
 	CodeCanceled     = "canceled"
 	CodeInternal     = "internal"

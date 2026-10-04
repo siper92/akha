@@ -2,9 +2,13 @@ package check
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/siper92/akha/lang/ast"
 	"github.com/siper92/akha/lang/lexer"
+	"github.com/siper92/akha/lang/module"
+	"github.com/siper92/akha/lang/module/std"
 )
 
 var _ Checker = (*checker)(nil)
@@ -31,14 +35,17 @@ type scope struct {
 }
 
 type checker struct {
-	file   string
-	values []ValueChecker
+	file    string
+	values  []ValueChecker
+	modules module.IRegistry
 }
 
 type run struct {
-	ctx    context.Context
-	values []ValueChecker
-	scope  *scope
+	ctx     context.Context
+	values  []ValueChecker
+	scope   *scope
+	modules module.IRegistry
+	imports module.IScope
 }
 
 type bailout struct {
@@ -46,11 +53,11 @@ type bailout struct {
 }
 
 func New(file string) Checker {
-	return &checker{file: file, values: Values()}
+	return &checker{file: file, values: Values(), modules: std.Default()}
 }
 
 func (c *checker) Check(ctx context.Context, script *ast.Script) (err error) {
-	r := &run{ctx: ctx, values: c.values}
+	r := &run{ctx: ctx, values: c.values, modules: c.modules, imports: module.NewScope(c.modules)}
 	defer func() {
 		switch p := recover().(type) {
 		case nil:
@@ -94,9 +101,15 @@ func (r *run) declare(pos ast.Pos, name string, sym *symbol) {
 	if name == "_" {
 		return
 	}
+
+	if _, ok := r.modules.Module(name); ok {
+		r.fail(pos, lexer.CodeModuleName, "pick another name", "%s is a module name", name)
+	}
+
 	if _, ok := r.scope.names[name]; ok {
 		r.fail(pos, lexer.CodeRedeclared, "assign with name = value", "%s is already declared in this block", name)
 	}
+
 	r.scope.names[name] = sym
 }
 
@@ -106,13 +119,81 @@ func (r *run) lookup(pos ast.Pos, name string) *symbol {
 			return sym
 		}
 	}
+
 	for s := r.scope; s != nil; s = s.parent {
 		if s.pending[name] {
 			r.fail(pos, lexer.CodeUseBeforeDecl, "move the declaration up", "%s is used before its declaration", name)
 		}
 	}
+
 	r.fail(pos, lexer.CodeUndeclared, "declare it with let or var", "%s is not declared", name)
 	return nil
+}
+
+func (r *run) declared(name string) bool {
+	for s := r.scope; s != nil; s = s.parent {
+		if _, ok := s.names[name]; ok || s.pending[name] {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (r *run) call(x *ast.CallExpr) {
+	name, fn, ok := module.Callee(x)
+	if !ok {
+		r.fail(x.Pos, lexer.CodeNoCallable, "only module functions are callable", "unknown callee %s, v1 has no callables", x.Fn)
+	}
+	if _, ok := r.modules.Module(name); !ok {
+		if r.declared(name) {
+			r.fail(x.Pos, lexer.CodeNoCallable, "only module functions are callable", "%s is not a module", name)
+		}
+		r.fail(x.Pos, lexer.CodeUnknownModule, "", "unknown module %s", name)
+	}
+	if !r.imports.Imported(name) {
+		r.fail(x.Pos, lexer.CodeNotImported, fmt.Sprintf("add ak.import(%q) to the root block", name), "module %s is not imported", name)
+	}
+
+	for _, a := range x.Args {
+		r.expr(a)
+	}
+	for _, kw := range x.Kwargs {
+		r.expr(kw.Value)
+	}
+
+	f, err := r.modules.Lookup(name, fn)
+	if err != nil {
+		r.fail(x.Pos, lexer.CodeUnknownFunc, "", "unknown function %s.%s", name, fn)
+	}
+	if _, ok := f.(module.ILoader); ok {
+		r.load(x)
+	}
+}
+
+func (r *run) load(x *ast.CallExpr) {
+	if r.scope.parent != nil {
+		r.fail(x.Pos, lexer.CodeImportScope, "move the import to the root block", "imports are allowed only in the root block")
+	}
+
+	var lit *ast.StringLit
+	if len(x.Args) == 1 {
+		lit, _ = x.Args[0].(*ast.StringLit)
+	}
+	if lit == nil {
+		r.fail(x.Pos, lexer.CodeImportArg, `use ak.import("name")`, "import takes a module name as a string literal")
+	}
+
+	err := r.imports.Import(lit.Value)
+	switch {
+	case err == nil:
+	case errors.Is(err, module.ErrImported):
+		r.fail(x.Pos, lexer.CodeImportDup, "remove the second import", "module %s is already imported", lit.Value)
+	case errors.Is(err, module.ErrUnknownModule):
+		r.fail(x.Pos, lexer.CodeUnknownModule, "", "unknown module %s", lit.Value)
+	default:
+		r.fail(x.Pos, lexer.CodeInternal, "", "%v", err)
+	}
 }
 
 func (r *run) known(x ast.Expr) ast.Expr {
@@ -225,8 +306,9 @@ func (r *run) assign(target ast.Expr) {
 		r.fail(id.Pos, lexer.CodeImmutable, "copy it with var x = input", "cannot assign to input")
 	case symLoop:
 		r.fail(id.Pos, lexer.CodeImmutable, "use for var to make loop variables mutable", "cannot assign to loop variable %s", id.Name)
+	default:
+		r.fail(id.Pos, lexer.CodeImmutable, "use var for a mutable binding", "cannot assign to let %s", id.Name)
 	}
-	r.fail(id.Pos, lexer.CodeImmutable, "use var for a mutable binding", "cannot assign to let %s", id.Name)
 }
 
 func (r *run) expr(x ast.Expr) {
@@ -258,7 +340,7 @@ func (r *run) expr(x ast.Expr) {
 		r.expr(x.X)
 		r.expr(x.Index)
 	case *ast.CallExpr:
-		r.fail(x.Pos, lexer.CodeNoCallable, "calls come with modules in a later version", "unknown callee %s, v1 has no callables", x.Fn)
+		r.call(x)
 	}
 
 	for _, v := range r.values {

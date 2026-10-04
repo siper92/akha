@@ -331,7 +331,8 @@ sources: `spec_def.ak`
 
 ## modules
 # definitions
- - a module is a named set of functions, defined in Go (`lang/def` interfaces)
+ - a module is a named set of functions, defined in Go (`lang/module` interfaces)
+ - only `module.func(...)` is callable, the callee must be a module name
  - a function has positional params and named params (kwargs)
    - positional params are required, the arg count must match
    - named params must have a default, registering one without a default fails
@@ -346,7 +347,15 @@ sources: `spec_def.ak`
    - only at the root block
    - importing twice is a static error `import-dup`
  - `ak.setup(log="", debug="")` named args only
- - `ak.log(msg)`, `ak.debug(msg)` - `msg` is a string
+   - ⚠️ unknown: what `log` and `debug` configure, `setup` is a no op returning `null`
+ - `ak.log(msg)`, `ak.debug(msg)` - `msg` is a string, written to the worker logger at info / debug level
+
+# fs module
+ - `fs` works inside a sandboxed root (`os.Root`), paths outside the root are runtime errors
+ - `fs.read(path)` returns the file content as a string
+ - `fs.write(path, content)` writes a string, returns `null`
+ - `fs.exists(path)` returns a boolean
+ - ⚠️ unknown: the default root is `.` until the worker `root` config is passed in
 
 # loading and checks
  - parse: unknown function, arity, unknown named arg, known arg type of a registered module

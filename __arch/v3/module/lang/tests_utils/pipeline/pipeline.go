@@ -12,6 +12,27 @@ import (
 	"github.com/siper92/akha/lang/tests_utils"
 )
 
+func ValidateParse(t *testing.T, c tests_utils.Case[string, string]) {
+	t.Helper()
+
+	script, err := parser.New("", c.Input).Parse()
+	if c.Err != nil {
+		if err == nil || !strings.Contains(err.Error(), c.Err.Error()) {
+			t.Fatalf("expected error: %v, got: %v", c.Err, err)
+		}
+
+		return
+	}
+
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+
+	if got := script.String(); got != c.Expected {
+		t.Errorf("expected: %s, got: %s", c.Expected, got)
+	}
+}
+
 func ValidateCheck(t *testing.T, c tests_utils.Case[string, struct{}]) {
 	t.Helper()
 
