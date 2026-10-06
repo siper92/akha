@@ -2,7 +2,7 @@
 
 sources
 - `lang/parser/testdata/spec_def.canonical.ak`
-- `lang/lexer`, `lang/parser`, `lang/ast`
+- `../../../lang/lexer`, `lang/parser`, `lang/ast`
 - `../__arch/spec_v1.ai.md`
 
 scope
@@ -12,10 +12,10 @@ scope
 
 ## packages
 
-- `lang/eval` - values, operators, env, evaluator, runtime errors
-- `lang/check` - static checker, runs before eval (spec: "not in the lang module yet")
+- `../../../lang/eval` - values, operators, env, evaluator, runtime errors
+- `../../../lang/check` - static checker, runs before eval (spec: "not in the lang module yet")
   - the evaluator trusts a checked script but keeps defensive runtime errors
-- `lang/runner` - lex, parse, check, eval from a source string
+- `../../../lang/runner` - lex, parse, check, eval from a source string
 
 ## pipeline
 

@@ -1,0 +1,20 @@
+{
+  "team": "core",
+  "users": [
+    {
+      "name": "ann",
+      "roles": ["admin", "dev"],
+      "active": true,
+      "age": 31,
+      "address": {"city": "Sofia", "zip": "1000"}
+    },
+    {
+      "name": "bob",
+      "roles": ["dev"],
+      "active": false,
+      "age": 27,
+      "manager": null
+    }
+  ],
+  "limits": {"cpu": 2.5, "memory": 4096, "note": "say \"hi\"\n"}
+}

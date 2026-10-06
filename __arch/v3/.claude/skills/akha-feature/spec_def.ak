@@ -1,140 +1,96 @@
-// akha v1 - the spec by example
+// akha v1 - the spec by example, a flow step that reports on active users
 // one statement per line, `//` comments run to the end of the line
-// indentation has no meaning, blocks use { on the header line and } on its own line
+// blocks use { on the header line and } on its own line, indentation has no meaning
 
-// --- let: immutable bindings, an initializer is required
-let dir = "hello/" // comment statement
-let count = 3.0                 // number, float64, prints as 3
-let ratio = 0.5
-let neg = -3.2                  // unary minus on a literal
-let i = 0
-let bool1 = true
-let nothing = null
-let arr = [1, 2, 3.2]           // array, mixed kinds allowed
-let arr2 = ["a", "b", "c"]
-let arr3 = ["1", 2, true, 3.2, [1, {"1": 1, "2": 2}]]
-let obj = {"1": true, "2": 2, "3": 3.2}
-let user = {name: "ann", "content-type": "json", tags: []}
-let empty = {}
+// --- modules: ak is always imported, others are imported at the root block
+ak.import("fs")
+ak.setup(log="info")                // named args only
+ak.log("report step started")
 
-// --- multi line literals, newlines are ignored inside ( [ and an object {
-let matrix = [
-    [1, 2],
-    [3, 4],                     // trailing comma allowed
-]
-let config = {
-    retries: 3,
-    endpoint: {host: "localhost", port: 8080},
-}
-let long = (1 +
-    2 +
-    3)
-
-// --- var: mutable bindings
+// --- let is deep immutable, var is mutable, var alone starts as null
+let outDir = "out/"
+let minAge = 18                     // one number kind, float64, 18.0 prints as 18
+let offset = -0.5                   // unary minus on a literal
 var total = 0
-var last                        // starts as null
-total = total + 1               // plain assignment, no += -= *= /= %=
-last = "done"                   // null can take any kind
+var last
+let _ = minAge * offset             // _ evaluates and drops the value
+let previous = input                // output of the previous step, null when none
 
-// --- discard: evaluates the expression, drops the value
-let _ = count * 2
+// --- module calls return values, fs paths stay inside the worker root
+let data = fs.readJSON("users.json")
+let config = fs.readYAML("config.yaml")
+let users = data.users
+let retries = config.defaults.retries
+let city = users[0]["address"].city // index and member access, a missing key is null
 
-// --- strings: escapes and interpolation
-let quoted = "say \"hi\"\n\ttab \\ back"
-let greeting = "hello ${user.name}, first is ${arr[0]}"
-let literal = "costs \${price}" // escaped, not interpolated
+// --- literals span lines inside ( [ {, a trailing comma is allowed
+var report = {
+    team: data.team,
+    "content-type": "json",
+    active: [],
+    roles: {},
+    total: 0,
+}
+
+// --- for in: arrays give index, element, objects give key, value in insertion order
+for var user in users {             // var makes the loop variable mutable
+    if not user.active or user.age < minAge {
+        continue
+    } else if user.name == "stop" {
+        break                       // leaves the innermost loop
+    }
+    report.active = report.active + [user.name]
+    for _, role in user.roles {     // _ discards the index
+        if role not in report.roles {
+            report.roles[role] = 0
+        }
+        report.roles[role] = report.roles[role] + 1
+    }
+    user = null                     // only the loop variable changes
+}
+
+// --- for range: [start..end], end excluded, bounds evaluated once
+for n range [0..retries] {
+    fs.write("${outDir}run.log", "attempt ${n}\n")  // write appends
+    total = total + n               // plain assignment, no += operators
+}
 
 // --- operators, lowest to highest: or, and, not, in, compare, + -, * / %, unary -, postfix
-let sum = 1 + 2 * 3             // 7
-let grouped = (1 + 2) * 3       // 9
-let rest = 10 % 3               // 1
-let half = 7 / 2                // 3.5, float division
-let joined = "ab" + "cd"        // string + string
-let merged = arr + arr2         // array + array, a new array
-let cmp = count >= 3 and not (i == 1)
-let either = false or bool1
-let has = 2 in arr              // any element == value
-let missing = "x" not in obj    // key does not exist
-let sub = "ell" in "hello"      // substring
-let alias = true && 1 < 2 || !bool1
+let ratio = total / 2               // float division, 1.5
+let ready = total >= 3 && !(ratio == 1)
+let admin = "admin" in report.roles or "x" in ["a", "b"]
+let greeting = "team ${report.team} in ${city}, total ${total}"
+let literal = "costs \${price}"     // escaped, not interpolated
 
-// --- access
-let first = arr[0]
-let name = user.name            // member access on objects
-let ctype = user["content-type"]
-let deep = arr3[4][1]["2"]
-let key = "name"
-let byKey = user[key]           // the index must be a string for objects
-
-// --- input: the predeclared, immutable output of the previous step
-let items = input.items
-
-// --- nested assignment on var values, values are copied on assignment
-var state = {count: 0, items: [{name: "a"}]}
-state.count = state.count + 1
-state["count"] = 2
-state.items[0].name = "b"
-
-// --- if / else if / else, conditions use truthiness
-if true {
-    // do something
-}
-
-// multi condition if statement
-if bool1 and 1 < 2 and count > 2 {
-    // do something
-}
-
-if count > 10 {
-    total = 10
-} else if count > 2 {
-    total = count
-} else {
-    total = 0
+// --- blocks open a scope, a nested let shadows the parent binding
+if ready {
+    let total = "shadowed"
+    last = total                    // null can take any kind
 }
 
 // an object literal cannot start a header, wrap it in ( )
-if ("name" in {name: 1}) {
+if ("team" in {team: 1}) {
+    ak.debug(greeting)
+} else {
+    ak.debug(literal)
 }
 
-// --- for in: arrays and objects
-for var i in arr3 {             // shadows the outer i, var makes it mutable
-    if i == 2 {
-        break
-    } else if i == "1" {
-        continue
-    } else {
-        i = null                // only the loop variable changes
-    }
-}
-
-for idx, item in arr {          // index, element, immutable
-    total = total + idx
-}
-
-for k, v in obj {               // key, value in insertion order
-    let pair = "${k}=${v}"
-}
-
-for _, v in arr2 {              // _ discards the index
-    last = v
-}
-
-// --- for range: [start..end], end excluded
-for var i range [0..10] {
-    // do something with i
-}
-
-for n range [0..count] {
-    total = total + n
-}
-
-// --- blocks open a new scope, a nested let or var shadows the parent binding
-if total > 0 {
-    let total = "shadowed"      // the outer total is untouched after the block
-    var inner = 1
-    inner = inner + 1
-}
+// --- files: overwrite replaces, json and yaml keep key order
+report.total = total
+fs.overwrite("${outDir}summary.txt", "${greeting}\n")
+fs.writeJSON("${outDir}report.json", report)
+fs.writeYAML("${outDir}report.yaml", report)
+let saved = fs.readJSON("${outDir}report.json") == report
 
 // --- step output: return ends the script, exit is an alias
-return {total: total, greeting: greeting}
+return {
+    team: report.team,
+    active: report.active,
+    roles: report.roles,
+    total: total,
+    ready: ready,
+    admin: admin,
+    last: last,
+    saved: saved,
+    previous: previous,
+}

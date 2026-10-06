@@ -2,8 +2,10 @@ package fs
 
 import (
 	"errors"
+	"fmt"
 	iofs "io/fs"
 	"os"
+	"sync"
 
 	"github.com/siper92/akha/lang/eval"
 	"github.com/siper92/akha/lang/module"
@@ -11,146 +13,142 @@ import (
 )
 
 const (
-	Name   = "fs"
-	Read   = "read"
-	Write  = "write"
-	Exists = "exists"
+	Name      = "fs"
+	Read      = "read"
+	Write     = "write"
+	Overwrite = "overwrite"
+	Exists    = "exists"
+	ReadJSON  = "readJSON"
+	WriteJSON = "writeJSON"
+	ReadYAML  = "readYAML"
+	WriteYAML = "writeYAML"
+
+	filePerm = 0o644
+	dirPerm  = 0o755
+	maxDepth = 512
 )
 
-type Files interface {
-	read(args ...module.IValue) (module.IValue, error)
-	write(args ...module.IValue) (module.IValue, error)
-	exists(args ...module.IValue) (module.IValue, error)
+var (
+	ErrRoot   = errors.New("fs root unavailable")
+	ErrPath   = errors.New("invalid path")
+	ErrDecode = errors.New("decode failed")
+	ErrEncode = errors.New("encode failed")
+	ErrDepth  = errors.New("nesting too deep")
+)
+
+type Storage interface {
+	ReadFile(name string) ([]byte, error)
+	OpenFile(name string, flag int, perm os.FileMode) (*os.File, error)
+	Stat(name string) (iofs.FileInfo, error)
+	MkdirAll(name string, perm os.FileMode) error
+}
+
+type FS interface {
+	Read(args ...module.IValue) (module.IValue, error)
+	Write(args ...module.IValue) (module.IValue, error)
+	Overwrite(args ...module.IValue) (module.IValue, error)
+	Exists(args ...module.IValue) (module.IValue, error)
+	ReadJSON(args ...module.IValue) (module.IValue, error)
+	WriteJSON(args ...module.IValue) (module.IValue, error)
+	ReadYAML(args ...module.IValue) (module.IValue, error)
+	WriteYAML(args ...module.IValue) (module.IValue, error)
 }
 
 var (
-	_ Files          = (*files)(nil)
+	_ Storage        = (*os.Root)(nil)
+	_ FS             = (*files)(nil)
 	_ module.IModule = (*files)(nil)
 )
 
 type files struct {
-	root string
+	*module.Module
+	store func() (Storage, error)
+	codec eval.Codec
 }
+
+type op func(s Storage, p string) (module.IValue, error)
 
 func New(root string) (module.IModule, error) {
-	return &files{root: root}, nil
+	if root == "" {
+		return nil, fmt.Errorf("%w: empty root", ErrRoot)
+	}
+
+	return newFiles(sync.OnceValues(func() (Storage, error) {
+		r, err := os.OpenRoot(root)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrRoot, err)
+		}
+		return r, nil
+	}))
 }
 
-func (f *files) read(args ...module.IValue) (module.IValue, error) {
-	root, err := os.OpenRoot(f.root)
-	if err != nil {
-		return nil, err
+func NewWithStorage(store Storage) (module.IModule, error) {
+	if store == nil {
+		return nil, fmt.Errorf("%w: nil storage", ErrRoot)
 	}
-	defer root.Close()
 
-	b, err := root.ReadFile(str(args[0]))
-	if err != nil {
-		return nil, err
-	}
-	return eval.String(b), nil
+	return newFiles(func() (Storage, error) { return store, nil })
 }
 
-func (f *files) write(args ...module.IValue) (module.IValue, error) {
-	root, err := os.OpenRoot(f.root)
-	if err != nil {
-		return nil, err
-	}
-	defer root.Close()
+func newFiles(store func() (Storage, error)) (module.IModule, error) {
+	f := &files{store: store, codec: eval.NewCodec()}
 
-	fileName := str(args[0])
-	val := str(args[1])
-	if fileName == "" {
-		return nil, errors.New("file name cannot be empty")
+	pathParam := module.Param{Name: "path", Type: types.String{}}
+	content := module.Param{Name: "content", Type: types.String{}}
+	data := module.Param{Name: "data", Type: types.Any{}}
+
+	defs := []struct {
+		name   string
+		params []module.Param
+		impl   module.Impl
+	}{
+		{Read, []module.Param{pathParam}, f.Read},
+		{Write, []module.Param{pathParam, content}, f.Write},
+		{Overwrite, []module.Param{pathParam, content}, f.Overwrite},
+		{Exists, []module.Param{pathParam}, f.Exists},
+		{ReadJSON, []module.Param{pathParam}, f.ReadJSON},
+		{WriteJSON, []module.Param{pathParam, data}, f.WriteJSON},
+		{ReadYAML, []module.Param{pathParam}, f.ReadYAML},
+		{WriteYAML, []module.Param{pathParam, data}, f.WriteYAML},
 	}
 
-	if _, err = root.Stat(fileName); err == nil {
-		fR, err := root.OpenFile(fileName, os.O_APPEND|os.O_WRONLY, 0o644)
+	funcs := make([]module.IModuleFunc, 0, len(defs))
+	for _, d := range defs {
+		fn, err := module.NewFunc(d.name, d.params, nil, d.impl)
 		if err != nil {
 			return nil, err
 		}
-		defer fR.Close()
-
-		if _, err = fR.Write([]byte(val)); err != nil {
-			return nil, err
-		}
-	} else {
-		if err = root.WriteFile(fileName, []byte(val), 0o644); err != nil {
-			return nil, err
-		}
+		funcs = append(funcs, fn)
 	}
 
-	return eval.Null{}, nil
-}
-
-func (f *files) exists(args ...module.IValue) (module.IValue, error) {
-	root, err := os.OpenRoot(f.root)
+	m, err := module.NewModule(Name, funcs...)
 	if err != nil {
 		return nil, err
 	}
-	defer root.Close()
+	f.Module = m
 
-	_, err = root.Stat(str(args[0]))
-	switch {
-	case err == nil:
-		return eval.Bool(true), nil
-	case errors.Is(err, iofs.ErrNotExist):
-		return eval.Bool(false), nil
-	default:
+	return f, nil
+}
+
+func (f *files) do(name string, args []module.IValue, want int, fn op) (module.IValue, error) {
+	if len(args) != want {
+		return nil, fmt.Errorf("%s: %w, want %d, got %d", name, module.ErrArity, want, len(args))
+	}
+
+	p, err := clean(args[0])
+	if err != nil {
+		return nil, fmt.Errorf("%s %s: %w", name, args[0], err)
+	}
+
+	s, err := f.store()
+	if err != nil {
 		return nil, err
 	}
-}
 
-func (f *files) Name() string {
-	return Name
-}
+	out, err := fn(s, p)
+	if err != nil {
+		return nil, fmt.Errorf("%s %s: %w", name, args[0], err)
+	}
 
-func (f *files) Func(name string) (module.IModuleFunc, bool) {
-	switch name {
-	case Read:
-		funcDed, err := module.NewFunc(Read, []module.Param{
-			{Name: "path", Type: types.String{}},
-		}, nil, f.read)
-		if err != nil {
-			return nil, false
-		}
-		return funcDed, true
-	case Write:
-		funcDed, err := module.NewFunc(Write, []module.Param{
-			{Name: "path", Type: types.String{}},
-			{Name: "content", Type: types.String{}},
-		}, nil, f.write)
-		if err != nil {
-			return nil, false
-		}
-		return funcDed, true
-	case Exists:
-		funcDed, err := module.NewFunc(Exists, []module.Param{
-			{Name: "path", Type: types.String{}},
-		}, nil, f.exists)
-		if err != nil {
-			return nil, false
-		}
-		return funcDed, true
-	default:
-		return nil, false
-	}
-}
-
-func (f *files) Funcs() []module.IModuleFunc {
-	var funcs []module.IModuleFunc
-	if f, ok := f.Func(Read); ok {
-		funcs = append(funcs, f)
-	}
-	if f, ok := f.Func(Write); ok {
-		funcs = append(funcs, f)
-	}
-	if f, ok := f.Func(Exists); ok {
-		funcs = append(funcs, f)
-	}
-	return funcs
-}
-
-func str(v module.IValue) string {
-	s, _ := v.(eval.String)
-	return string(s)
+	return out, nil
 }

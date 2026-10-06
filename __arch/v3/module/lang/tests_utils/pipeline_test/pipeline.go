@@ -2,12 +2,15 @@ package pipeline_test
 
 import (
 	"errors"
+	"log/slog"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/siper92/akha/lang/check"
 	"github.com/siper92/akha/lang/eval"
 	"github.com/siper92/akha/lang/module"
+	"github.com/siper92/akha/lang/module/std"
 	"github.com/siper92/akha/lang/parser"
 	"github.com/siper92/akha/lang/runner"
 	"github.com/siper92/akha/lang/tests_utils"
@@ -64,6 +67,24 @@ func ValidateRun(t *testing.T, c tests_utils.Case[string, string], input eval.Va
 // @test_only
 func ValidateRunModules(t *testing.T, c tests_utils.Case[string, string], modules module.IRegistry) {
 	ValidateRunAsTest(t, c, eval.Options{MaxStmts: 10_000, MaxIterations: 1_000, Modules: modules}, nil)
+}
+
+// ValidateRunFS copies the testdata dir into a temp root and runs the case on the std modules.
+// @test_only
+func ValidateRunFS(t *testing.T, c tests_utils.Case[string, string], testdata string) {
+	t.Helper()
+
+	root := t.TempDir()
+	if err := os.CopyFS(root, os.DirFS(testdata)); err != nil {
+		t.Fatalf("copy testdata: %v", err)
+	}
+
+	reg, err := std.New(root, slog.New(slog.DiscardHandler))
+	if err != nil {
+		t.Fatalf("modules: %v", err)
+	}
+
+	ValidateRunModules(t, c, reg)
 }
 
 func ValidateRunAsTest(t *testing.T, c tests_utils.Case[string, string], opts eval.Options, input eval.Value) {
