@@ -57,9 +57,28 @@ func (f *files) write(args ...module.IValue) (module.IValue, error) {
 	}
 	defer root.Close()
 
-	if err := root.WriteFile(str(args[0]), []byte(str(args[1])), 0o644); err != nil {
-		return nil, err
+	fileName := str(args[0])
+	val := str(args[1])
+	if fileName == "" {
+		return nil, errors.New("file name cannot be empty")
 	}
+
+	if _, err = root.Stat(fileName); err == nil {
+		fR, err := root.OpenFile(fileName, os.O_APPEND|os.O_WRONLY, 0o644)
+		if err != nil {
+			return nil, err
+		}
+		defer fR.Close()
+
+		if _, err = fR.Write([]byte(val)); err != nil {
+			return nil, err
+		}
+	} else {
+		if err = root.WriteFile(fileName, []byte(val), 0o644); err != nil {
+			return nil, err
+		}
+	}
+
 	return eval.Null{}, nil
 }
 
