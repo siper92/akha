@@ -2,187 +2,128 @@ package eval
 
 import (
 	"errors"
-	"fmt"
 
-	"github.com/siper92/akha/lang/token"
+	"github.com/siper92/akha/lang/lexer"
 )
 
-var (
-	ErrOpType  = errors.New("operator type")
-	ErrDivZero = errors.New("division by zero")
-)
+var _ Operators = (*operators)(nil)
 
-var opLits = map[token.Kind]string{
-	token.PLUS:    "+",
-	token.MINUS:   "-",
-	token.STAR:    "*",
-	token.SLASH:   "/",
-	token.PERCENT: "%",
-	token.EQ:      "==",
-	token.NEQ:     "!=",
-	token.LT:      "<",
-	token.LTE:     "<=",
-	token.GT:      ">",
-	token.GTE:     ">=",
-	token.AND:     "and",
-	token.OR:      "or",
-	token.NOT:     "not",
+type operators struct{}
+
+var verbs = map[lexer.Kind]string{
+	lexer.Plus:    "add",
+	lexer.Minus:   "subtract",
+	lexer.Star:    "multiply",
+	lexer.Slash:   "divide",
+	lexer.Percent: "modulo",
+	lexer.Lt:      "compare",
+	lexer.LtEq:    "compare",
+	lexer.Gt:      "compare",
+	lexer.GtEq:    "compare",
+	lexer.In:      "check membership of",
+	lexer.NotIn:   "check membership of",
 }
 
-func Binary(op token.Kind, x, y Value) (Value, error) {
+func NewOperators() Operators {
+	return &operators{}
+}
+
+func (o *operators) Binary(op lexer.Kind, l, r Value) (Value, error) {
 	switch op {
-	case token.EQ:
-		return Bool(Equal(x, y)), nil
-	case token.NEQ:
-		return Bool(!Equal(x, y)), nil
-	case token.AND, token.OR:
-		a, aok := AsBool(x)
-		b, bok := AsBool(y)
-		if !aok || !bok {
-			return nil, binaryErr(op, x, y)
+	case lexer.Eq:
+		return Bool(l.Equal(r)), nil
+	case lexer.NotEq:
+		return Bool(!l.Equal(r)), nil
+	case lexer.Lt, lexer.LtEq, lexer.Gt, lexer.GtEq:
+		return o.compare(op, l, r)
+	case lexer.In, lexer.NotIn:
+		c, ok := r.(Container)
+		if !ok {
+			return nil, mismatch(op, l, r)
 		}
-		if op == token.AND {
-			return Bool(a && b), nil
+		has, err := c.Contains(l)
+		if err != nil {
+			return nil, wrap(op, l, r, err)
 		}
-		return Bool(a || b), nil
-	case token.PLUS:
-		if a, ok := AsString(x); ok {
-			b, ok := AsString(y)
-			if !ok {
-				return nil, binaryErr(op, x, y)
-			}
-			return Str(a + b), nil
+		return Bool(has == (op == lexer.In)), nil
+	default:
+		v, err := o.arith(op, l, r)
+		if err != nil {
+			return nil, wrap(op, l, r, err)
 		}
-		return arith(op, x, y)
-	case token.MINUS, token.STAR, token.SLASH, token.PERCENT:
-		return arith(op, x, y)
-	case token.LT, token.LTE, token.GT, token.GTE:
-		return compare(op, x, y)
+
+		return v, nil
 	}
-	return nil, fmt.Errorf("%w: unknown operator %s", ErrOpType, op)
 }
 
-func Unary(op token.Kind, x Value) (Value, error) {
+func (o *operators) arith(op lexer.Kind, l, r Value) (Value, error) {
 	switch op {
-	case token.MINUS:
-		if i, ok := AsInt(x); ok {
-			return Int(-i), nil
+	case lexer.Plus:
+		if x, ok := l.(Adder); ok {
+			return x.Add(r)
 		}
-	case token.NOT:
-		if b, ok := AsBool(x); ok {
-			return Bool(!b), nil
+	case lexer.Minus:
+		if x, ok := l.(OperationMinus); ok {
+			return x.Minus(r)
+		}
+	case lexer.Star:
+		if x, ok := l.(OperationMul); ok {
+			return x.Mul(r)
+		}
+	case lexer.Slash:
+		if x, ok := l.(OperationDiv); ok {
+			return x.Div(r)
+		}
+	case lexer.Percent:
+		if x, ok := l.(OperationMod); ok {
+			return x.Mod(r)
 		}
 	default:
-		return nil, fmt.Errorf("%w: unknown operator %s", ErrOpType, op)
+		return nil, newError(CodeInternal, "unknown operator %s", op)
 	}
-	return nil, fmt.Errorf("%w: %s on %s", ErrOpType, opLit(op), TypeOf(x))
+	return nil, errKindMismatch
 }
 
-func Equal(x, y Value) bool {
-	if TypeOf(x) != TypeOf(y) {
-		return false
+func (o *operators) compare(op lexer.Kind, l, r Value) (Value, error) {
+	c, ok := l.(Comparer)
+	if !ok || l.Kind() != r.Kind() {
+		return nil, newError(CodeOrdering, "cannot compare %s and %s", l.Kind(), r.Kind())
 	}
-	switch a := x.(type) {
-	case ListValue:
-		b := y.(ListValue)
-		if len(a) != len(b) {
-			return false
-		}
-		for i := range a {
-			if !Equal(a[i], b[i]) {
-				return false
-			}
-		}
-		return true
-	case nil, NoneValue:
-		return true
-	}
-	return x == y
-}
-
-func arith(op token.Kind, x, y Value) (Value, error) {
-	a, aok := AsInt(x)
-	b, bok := AsInt(y)
-	if !aok || !bok {
-		return nil, binaryErr(op, x, y)
+	n, err := c.Compare(r)
+	if err != nil {
+		return nil, wrap(op, l, r, err)
 	}
 	switch op {
-	case token.PLUS:
-		return Int(a + b), nil
-	case token.MINUS:
-		return Int(a - b), nil
-	case token.STAR:
-		return Int(a * b), nil
-	case token.SLASH:
-		if b == 0 {
-			return nil, ErrDivZero
-		}
-		return Int(a / b), nil
-	case token.PERCENT:
-		if b == 0 {
-			return nil, ErrDivZero
-		}
-		return Int(a % b), nil
+	case lexer.Lt:
+		return Bool(n < 0), nil
+	case lexer.LtEq:
+		return Bool(n <= 0), nil
+	case lexer.Gt:
+		return Bool(n > 0), nil
 	}
-	return nil, binaryErr(op, x, y)
+	return Bool(n >= 0), nil
 }
 
-func compare(op token.Kind, x, y Value) (Value, error) {
-	var c int
-	switch a := x.(type) {
-	case IntValue:
-		b, ok := AsInt(y)
-		if !ok {
-			return nil, binaryErr(op, x, y)
-		}
-		c = cmpInt(int64(a), b)
-	case StringValue:
-		b, ok := AsString(y)
-		if !ok {
-			return nil, binaryErr(op, x, y)
-		}
-		c = cmpString(string(a), b)
-	default:
-		return nil, binaryErr(op, x, y)
-	}
+func (o *operators) Unary(op lexer.Kind, x Value) (Value, error) {
 	switch op {
-	case token.LT:
-		return Bool(c < 0), nil
-	case token.LTE:
-		return Bool(c <= 0), nil
-	case token.GT:
-		return Bool(c > 0), nil
+	case lexer.Not:
+		return Bool(!x.Truth()), nil
+	case lexer.Minus:
+		if n, ok := x.(Negator); ok {
+			return n.Neg()
+		}
+		return nil, newError(CodeKindMismatch, "cannot negate %s", x.Kind())
 	}
-	return Bool(c >= 0), nil
+	return nil, newError(CodeInternal, "unknown unary operator %s", op)
 }
 
-func cmpInt(a, b int64) int {
-	switch {
-	case a < b:
-		return -1
-	case a > b:
-		return 1
+func wrap(op lexer.Kind, l, r Value, err error) error {
+	if errors.Is(err, errKindMismatch) {
+		return mismatch(op, l, r)
 	}
-	return 0
+	return err
 }
 
-func cmpString(a, b string) int {
-	switch {
-	case a < b:
-		return -1
-	case a > b:
-		return 1
-	}
-	return 0
-}
-
-func binaryErr(op token.Kind, x, y Value) error {
-	return fmt.Errorf("%w: %s on %s and %s", ErrOpType, opLit(op), TypeOf(x), TypeOf(y))
-}
-
-func opLit(op token.Kind) string {
-	if lit, ok := opLits[op]; ok {
-		return lit
-	}
-	return op.String()
+func mismatch(op lexer.Kind, l, r Value) error {
+	return newError(CodeKindMismatch, "cannot %s %s and %s", verbs[op], l.Kind(), r.Kind())
 }

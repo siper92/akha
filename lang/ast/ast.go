@@ -1,9 +1,22 @@
 package ast
 
-import "github.com/siper92/akha/lang/token"
+import (
+	"fmt"
+
+	"github.com/siper92/akha/lang/lexer"
+)
+
+type Pos struct {
+	Line int
+}
+
+func (p Pos) Position() Pos {
+	return p
+}
 
 type Node interface {
-	Pos() token.Pos
+	fmt.Stringer
+	Position() Pos
 }
 
 type Stmt interface {
@@ -21,160 +34,213 @@ type Script struct {
 }
 
 type Block struct {
+	Pos
 	Stmts []Stmt
-	P     token.Pos
 }
 
-type CallStmt struct {
-	Call *Call
-}
-
-type Let struct {
+type LetStmt struct {
+	Pos
 	Name  string
 	Value Expr
-	P     token.Pos
 }
 
-type Assign struct {
+type VarStmt struct {
+	Pos
 	Name  string
 	Value Expr
-	P     token.Pos
 }
 
-type If struct {
+type AssignStmt struct {
+	Pos
+	Target Expr
+	Value  Expr
+}
+
+type ExprStmt struct {
+	Pos
+	X Expr
+}
+
+type IfStmt struct {
+	Pos
 	Cond Expr
 	Then *Block
-	Else Stmt
-	P    token.Pos
+	Else Node
 }
 
-type For struct {
-	Var  string
-	Iter Expr
-	Body *Block
-	P    token.Pos
+type ForInStmt struct {
+	Pos
+	Mutable bool
+	Key     string
+	Value   string
+	Iter    Expr
+	Body    *Block
 }
 
-type While struct {
-	Cond Expr
-	Body *Block
-	P    token.Pos
+type ForRangeStmt struct {
+	Pos
+	Mutable bool
+	Name    string
+	Start   Expr
+	End     Expr
+	Body    *Block
 }
 
-type Break struct {
-	P token.Pos
+type BreakStmt struct {
+	Pos
 }
 
-type Continue struct {
-	P token.Pos
+type ContinueStmt struct {
+	Pos
 }
 
-type Call struct {
-	Target Selector
-	Args   []Expr
-	Kwargs []Kwarg
-	P      token.Pos
-}
-
-type Selector struct {
-	Module string
-	Name   string
-	P      token.Pos
-}
-
-type Kwarg struct {
-	Name  string
+type ReturnStmt struct {
+	Pos
+	Exit  bool
 	Value Expr
-	P     token.Pos
 }
 
 type Ident struct {
+	Pos
 	Name string
-	P    token.Pos
 }
 
-type Literal struct {
-	Kind  token.Kind
+type NumberLit struct {
+	Pos
+	Value float64
+	Raw   string
+}
+
+type StringLit struct {
+	Pos
 	Value string
-	P     token.Pos
 }
 
-type Spread struct {
-	Module string
-	P      token.Pos
+type TemplatePart struct {
+	Text string
+	Expr Expr
 }
 
-type Binary struct {
-	Op token.Kind
+type TemplateLit struct {
+	Pos
+	Parts []TemplatePart
+}
+
+type BoolLit struct {
+	Pos
+	Value bool
+}
+
+type NullLit struct {
+	Pos
+}
+
+type ArrayLit struct {
+	Pos
+	Elems []Expr
+}
+
+type Entry struct {
+	Pos
+	Key   string
+	Value Expr
+}
+
+type ObjectLit struct {
+	Pos
+	Entries []Entry
+}
+
+type UnaryExpr struct {
+	Pos
+	Op lexer.Kind
 	X  Expr
-	Y  Expr
-	P  token.Pos
 }
 
-type Unary struct {
-	Op token.Kind
-	X  Expr
-	P  token.Pos
+type BinaryExpr struct {
+	Pos
+	Op    lexer.Kind
+	Left  Expr
+	Right Expr
+}
+
+type MemberExpr struct {
+	Pos
+	X    Expr
+	Name string
+}
+
+type IndexExpr struct {
+	Pos
+	X     Expr
+	Index Expr
+}
+
+type Kwarg struct {
+	Pos
+	Name  string
+	Value Expr
+}
+
+type CallExpr struct {
+	Pos
+	Fn     Expr
+	Args   []Expr
+	Kwargs []Kwarg
 }
 
 var (
-	_ Node = (*Script)(nil)
 	_ Node = (*Block)(nil)
-	_ Node = (*Selector)(nil)
-	_ Node = (*Kwarg)(nil)
-	_ Stmt = (*CallStmt)(nil)
-	_ Stmt = (*Let)(nil)
-	_ Stmt = (*Assign)(nil)
-	_ Stmt = (*If)(nil)
-	_ Stmt = (*For)(nil)
-	_ Stmt = (*While)(nil)
-	_ Stmt = (*Break)(nil)
-	_ Stmt = (*Continue)(nil)
-	_ Expr = (*Call)(nil)
+
+	_ Stmt = (*LetStmt)(nil)
+	_ Stmt = (*VarStmt)(nil)
+	_ Stmt = (*AssignStmt)(nil)
+	_ Stmt = (*ExprStmt)(nil)
+	_ Stmt = (*IfStmt)(nil)
+	_ Stmt = (*ForInStmt)(nil)
+	_ Stmt = (*ForRangeStmt)(nil)
+	_ Stmt = (*BreakStmt)(nil)
+	_ Stmt = (*ContinueStmt)(nil)
+	_ Stmt = (*ReturnStmt)(nil)
+
 	_ Expr = (*Ident)(nil)
-	_ Expr = (*Literal)(nil)
-	_ Expr = (*Spread)(nil)
-	_ Expr = (*Binary)(nil)
-	_ Expr = (*Unary)(nil)
+	_ Expr = (*NumberLit)(nil)
+	_ Expr = (*StringLit)(nil)
+	_ Expr = (*TemplateLit)(nil)
+	_ Expr = (*BoolLit)(nil)
+	_ Expr = (*NullLit)(nil)
+	_ Expr = (*ArrayLit)(nil)
+	_ Expr = (*ObjectLit)(nil)
+	_ Expr = (*UnaryExpr)(nil)
+	_ Expr = (*BinaryExpr)(nil)
+	_ Expr = (*MemberExpr)(nil)
+	_ Expr = (*IndexExpr)(nil)
+	_ Expr = (*CallExpr)(nil)
+	_ Expr = (*Kwarg)(nil)
 )
 
-func (s *Script) Pos() token.Pos {
-	if len(s.Stmts) == 0 {
-		return token.Pos{}
-	}
-	return s.Stmts[0].Pos()
-}
+func (*LetStmt) stmt()      {}
+func (*VarStmt) stmt()      {}
+func (*AssignStmt) stmt()   {}
+func (*ExprStmt) stmt()     {}
+func (*IfStmt) stmt()       {}
+func (*ForInStmt) stmt()    {}
+func (*ForRangeStmt) stmt() {}
+func (*BreakStmt) stmt()    {}
+func (*ContinueStmt) stmt() {}
+func (*ReturnStmt) stmt()   {}
 
-func (b *Block) Pos() token.Pos    { return b.P }
-func (c *CallStmt) Pos() token.Pos { return c.Call.P }
-func (l *Let) Pos() token.Pos      { return l.P }
-func (a *Assign) Pos() token.Pos   { return a.P }
-func (i *If) Pos() token.Pos       { return i.P }
-func (f *For) Pos() token.Pos      { return f.P }
-func (w *While) Pos() token.Pos    { return w.P }
-func (b *Break) Pos() token.Pos    { return b.P }
-func (c *Continue) Pos() token.Pos { return c.P }
-func (c *Call) Pos() token.Pos     { return c.P }
-func (s *Selector) Pos() token.Pos { return s.P }
-func (k *Kwarg) Pos() token.Pos    { return k.P }
-func (i *Ident) Pos() token.Pos    { return i.P }
-func (l *Literal) Pos() token.Pos  { return l.P }
-func (s *Spread) Pos() token.Pos   { return s.P }
-func (b *Binary) Pos() token.Pos   { return b.P }
-func (u *Unary) Pos() token.Pos    { return u.P }
-
-func (*CallStmt) stmt() {}
-func (*Let) stmt()      {}
-func (*Assign) stmt()   {}
-func (*If) stmt()       {}
-func (*For) stmt()      {}
-func (*While) stmt()    {}
-func (*Break) stmt()    {}
-func (*Continue) stmt() {}
-
-func (*Call) expr()    {}
-func (*Ident) expr()   {}
-func (*Literal) expr() {}
-func (*Spread) expr()  {}
-func (*Binary) expr()  {}
-func (*Unary) expr()   {}
+func (*Ident) expr()       {}
+func (*NumberLit) expr()   {}
+func (*StringLit) expr()   {}
+func (*TemplateLit) expr() {}
+func (*BoolLit) expr()     {}
+func (*NullLit) expr()     {}
+func (*ArrayLit) expr()    {}
+func (*ObjectLit) expr()   {}
+func (*UnaryExpr) expr()   {}
+func (*BinaryExpr) expr()  {}
+func (*MemberExpr) expr()  {}
+func (*IndexExpr) expr()   {}
+func (*CallExpr) expr()    {}
+func (*Kwarg) expr()       {}

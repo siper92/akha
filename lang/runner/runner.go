@@ -2,24 +2,44 @@ package runner
 
 import (
 	"context"
+	"errors"
 
 	"github.com/siper92/akha/lang/check"
+	"github.com/siper92/akha/lang/eval"
+	"github.com/siper92/akha/lang/lexer"
+	"github.com/siper92/akha/lang/module/std"
+	"github.com/siper92/akha/lang/parser"
 )
 
-type Options struct {
-	RunID    string
-	Root     string
-	CacheDir string
-}
-
-type Result struct {
-	ExitCode    int
-	Diagnostics []check.Diagnostic
-	LogPath     string
-	DebugPath   string
-}
-
 type Runner interface {
-	Check(ctx context.Context, src string) ([]check.Diagnostic, error)
-	Run(ctx context.Context, src string, opts Options) (Result, error)
+	Run(ctx context.Context, src string, input eval.Value) (eval.Value, error)
+}
+
+var _ Runner = (*runner)(nil)
+
+type runner struct {
+	opts eval.Options
+}
+
+func New(opts eval.Options) Runner {
+	if opts.Modules == nil {
+		opts.Modules = std.Default()
+	}
+	return &runner{opts: opts}
+}
+
+func (r *runner) Run(ctx context.Context, src string, input eval.Value) (eval.Value, error) {
+	script, err := parser.New("", src).Parse()
+	if err != nil {
+		if le, ok := errors.AsType[*lexer.Error](err); ok {
+			le.File = r.opts.File
+		}
+		return nil, err
+	}
+
+	if err := check.New(r.opts.File).Check(ctx, script); err != nil {
+		return nil, err
+	}
+
+	return eval.New(r.opts).Run(ctx, script, input)
 }

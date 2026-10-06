@@ -1,0 +1,15 @@
+name: pipeline
+version: 2
+defaults: &defaults
+  retries: 3
+  timeout: 1.5
+steps:
+  - id: fetch
+    opts: *defaults
+    tags: [net, io]
+  - id: store
+    enabled: false
+    note: null
+    script: |
+      line one
+      line two

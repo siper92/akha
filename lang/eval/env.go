@@ -1,55 +1,60 @@
 package eval
 
-import (
-	"errors"
-	"fmt"
-)
-
-var (
-	ErrUndefined  = errors.New("undefined variable")
-	ErrRedeclared = errors.New("variable already declared")
-)
-
-type env struct {
-	parent Env
-	vars   map[string]Value
-}
-
 var _ Env = (*env)(nil)
 
-func NewEnv(parent Env) Env {
-	return &env{parent: parent, vars: map[string]Value{}}
+type env struct {
+	parent *env
+	names  map[string]*Binding
 }
 
-func (e *env) Lookup(name string) (Value, bool) {
-	if v, ok := e.vars[name]; ok {
-		return v, true
-	}
-	if e.parent != nil {
-		return e.parent.Lookup(name)
-	}
-	return nil, false
+func NewEnv() Env {
+	return &env{names: map[string]*Binding{}}
 }
 
-func (e *env) Define(name string, v Value) error {
-	if _, ok := e.vars[name]; ok {
-		return fmt.Errorf("%w: %s", ErrRedeclared, name)
-	}
-	e.vars[name] = v
-	return nil
-}
-
-func (e *env) Assign(name string, v Value) error {
-	if _, ok := e.vars[name]; ok {
-		e.vars[name] = v
+func (e *env) Parent() Env {
+	if e.parent == nil {
 		return nil
 	}
-	if e.parent != nil {
-		return e.parent.Assign(name, v)
-	}
-	return fmt.Errorf("%w: %s", ErrUndefined, name)
+	return e.parent
 }
 
 func (e *env) Child() Env {
-	return NewEnv(e)
+	return &env{parent: e, names: map[string]*Binding{}}
+}
+
+func (e *env) Declare(name string, v Value, mutable bool) error {
+	if name == "_" {
+		return nil
+	}
+
+	if _, ok := e.names[name]; ok {
+		return newError(CodeRedeclared, "%s is already declared in this block", name)
+	}
+
+	e.names[name] = &Binding{Value: v, Mutable: mutable}
+	return nil
+}
+
+func (e *env) Lookup(name string) (*Binding, bool) {
+	for s := e; s != nil; s = s.parent {
+		if b, ok := s.names[name]; ok {
+			return b, true
+		}
+	}
+
+	return nil, false
+}
+
+func (e *env) Assign(name string, v Value) error {
+	b, ok := e.Lookup(name)
+	if !ok {
+		return newError(CodeUndeclared, "%s is not declared", name)
+	}
+
+	if !b.Mutable {
+		return newError(CodeImmutable, "cannot assign to %s", name)
+	}
+	b.Value = v
+
+	return nil
 }
