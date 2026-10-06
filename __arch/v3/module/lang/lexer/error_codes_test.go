@@ -48,11 +48,6 @@ func TestErrorCodesModuleParse(t *testing.T) {
 			Input: "fs.read()",
 			Err:   errors.New("1:8: error[arity]: wrong number of arguments for fs.read, want 1, got 0"),
 		},
-		{
-			Name:  "arg_kind",
-			Input: "ak.log(1)",
-			Err:   errors.New("1:7: error[arg-kind]: argument msg of ak.log must be a string"),
-		},
 	}
 
 	for _, c := range cases {

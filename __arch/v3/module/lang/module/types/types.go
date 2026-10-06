@@ -6,9 +6,23 @@ import (
 	"github.com/siper92/akha/lang/module"
 )
 
-var _ module.IType = String{}
+var (
+	_ module.IType = String{}
+	_ module.IType = Any{}
+)
 
 type String struct{}
+
+type Any struct{}
+
+func (Any) Name() string { return "value" }
+
+func (Any) Accepts(ast.Expr) bool { return true }
+
+func (Any) Valid(v module.IValue) bool {
+	_, ok := v.(eval.Value)
+	return ok
+}
 
 func (String) Name() string { return "string" }
 

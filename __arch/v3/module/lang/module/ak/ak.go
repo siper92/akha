@@ -17,7 +17,6 @@ const (
 )
 
 type Module interface {
-	Import(args ...module.IValue) (module.IValue, error)
 	Setup(args ...module.IValue) (module.IValue, error)
 	Log(args ...module.IValue) (module.IValue, error)
 	Debug(args ...module.IValue) (module.IValue, error)
@@ -36,80 +35,67 @@ func New(logger *slog.Logger) (module.IModule, error) {
 	return &akModule{logger: logger}, nil
 }
 
-func (a akModule) Import(args ...module.IValue) (module.IValue, error) {
-	//TODO implement me
-	panic("implement me")
+func (a *akModule) Setup(_ ...module.IValue) (module.IValue, error) {
+	return eval.Null{}, nil
 }
 
-func (a akModule) Setup(args ...module.IValue) (module.IValue, error) {
-	//TODO implement me
-	panic("implement me")
+func (a *akModule) Log(args ...module.IValue) (module.IValue, error) {
+	a.logger.Info(msg(args[0]))
+	return eval.Null{}, nil
 }
 
-func (a akModule) Log(args ...module.IValue) (module.IValue, error) {
-	//TODO implement me
-	panic("implement me")
+func (a *akModule) Debug(args ...module.IValue) (module.IValue, error) {
+	a.logger.Debug(msg(args[0]))
+	return eval.Null{}, nil
 }
 
-func (a akModule) Debug(args ...module.IValue) (module.IValue, error) {
-	//TODO implement me
-	panic("implement me")
+func msg(v module.IValue) string {
+	if s, ok := v.(eval.String); ok {
+		return string(s)
+	}
+	return v.String()
 }
 
-func (a akModule) Name() string {
+func (a *akModule) Name() string {
 	return Name
 }
 
-func (a akModule) Func(name string) (module.IModuleFunc, bool) {
+func (a *akModule) Func(name string) (module.IModuleFunc, bool) {
+	var (
+		f   module.IModuleFunc
+		err error
+	)
+
 	switch name {
 	case Import:
-		funcDed, err := module.NewFunc(Import, []module.Param{
-			{Name: "name", Type: types.String{}},
-		}, nil, a.Import)
-		if err != nil {
-			return nil, false
-		}
-
-		return funcDed, true
+		f, err = module.NewLoader(Import, module.Param{Name: "name", Type: types.String{}})
 	case Setup:
-		funcDed, err := module.NewFunc(Setup, nil, []module.Param{
+		f, err = module.NewFunc(Setup, nil, []module.Param{
 			{Name: "log", Type: types.String{}, Default: eval.String("")},
 			{Name: "debug", Type: types.String{}, Default: eval.String("")},
 		}, a.Setup)
-		if err != nil {
-			return nil, false
-		}
-		return funcDed, true
 	case Log:
-		funcDed, err := module.NewFunc(Log, []module.Param{{Name: "msg", Type: types.String{}}}, nil, a.Log)
-		if err != nil {
-			return nil, false
-		}
-		return funcDed, true
+		f, err = module.NewFunc(Log, []module.Param{{Name: "msg", Type: types.Any{}}}, nil, a.Log)
 	case Debug:
-		funcDed, err := module.NewFunc(Debug, []module.Param{{Name: "msg", Type: types.String{}}}, nil, a.Debug)
-		if err != nil {
-			return nil, false
-		}
-		return funcDed, true
+		f, err = module.NewFunc(Debug, []module.Param{{Name: "msg", Type: types.Any{}}}, nil, a.Debug)
 	default:
 		return nil, false
 	}
+
+	if err != nil {
+		return nil, false
+	}
+
+	return f, true
 }
 
-func (a akModule) Funcs() []module.IModuleFunc {
+func (a *akModule) Funcs() []module.IModuleFunc {
 	var funcs []module.IModuleFunc
-	if f, ok := a.Func(Import); ok {
-		funcs = append(funcs, f)
+	for _, name := range []string{Import, Setup, Log, Debug} {
+		if f, ok := a.Func(name); ok {
+			funcs = append(funcs, f)
+		}
 	}
-	if f, ok := a.Func(Setup); ok {
-		funcs = append(funcs, f)
-	}
-	if f, ok := a.Func(Log); ok {
-		funcs = append(funcs, f)
-	}
-	if f, ok := a.Func(Debug); ok {
-		funcs = append(funcs, f)
-	}
+
 	return funcs
 }

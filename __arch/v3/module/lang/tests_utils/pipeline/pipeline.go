@@ -7,6 +7,7 @@ import (
 
 	"github.com/siper92/akha/lang/check"
 	"github.com/siper92/akha/lang/eval"
+	"github.com/siper92/akha/lang/module"
 	"github.com/siper92/akha/lang/parser"
 	"github.com/siper92/akha/lang/runner"
 	"github.com/siper92/akha/lang/tests_utils"
@@ -56,9 +57,19 @@ func ValidateCheck(t *testing.T, c tests_utils.Case[string, struct{}]) {
 }
 
 func ValidateRun(t *testing.T, c tests_utils.Case[string, string], input eval.Value) {
+	ValidateRunAsTest(t, c, eval.Options{MaxStmts: 10_000, MaxIterations: 1_000}, input)
+}
+
+// ValidateRunModules runs the given test case with the provided module registry.
+// @test_only
+func ValidateRunModules(t *testing.T, c tests_utils.Case[string, string], modules module.IRegistry) {
+	ValidateRunAsTest(t, c, eval.Options{MaxStmts: 10_000, MaxIterations: 1_000, Modules: modules}, nil)
+}
+
+func ValidateRunAsTest(t *testing.T, c tests_utils.Case[string, string], opts eval.Options, input eval.Value) {
 	t.Helper()
 
-	out, err := runner.New(eval.Options{MaxStmts: 10_000, MaxIterations: 1_000}).Run(t.Context(), c.Input, input)
+	out, err := runner.New(opts).Run(t.Context(), c.Input, input)
 	if c.Err != nil {
 		if err == nil || !strings.Contains(err.Error(), c.Err.Error()) {
 			t.Fatalf("expected error: %v, got: %v", c.Err, err)

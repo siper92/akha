@@ -3,12 +3,10 @@ package module_test
 import (
 	"errors"
 	"log/slog"
-	"strings"
 	"testing"
 
 	"github.com/siper92/akha/lang/eval"
 	"github.com/siper92/akha/lang/module/std"
-	"github.com/siper92/akha/lang/runner"
 	"github.com/siper92/akha/lang/tests_utils"
 	"github.com/siper92/akha/lang/tests_utils/pipeline"
 )
@@ -93,20 +91,7 @@ func TestModuleRun(t *testing.T) {
 				t.Fatalf("modules: %v", err)
 			}
 
-			out, err := runner.New(eval.Options{Modules: reg}).Run(t.Context(), c.Input, nil)
-			if c.Err != nil {
-				if err == nil || !strings.Contains(err.Error(), c.Err.Error()) {
-					t.Fatalf("expected error: %v, got: %v", c.Err, err)
-				}
-				return
-			}
-
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
-			if got := out.String(); got != c.Expected {
-				t.Errorf("expected: %s, got: %s", c.Expected, got)
-			}
+			pipeline.ValidateRunAsTest(t, c, eval.Options{Modules: reg}, nil)
 		})
 	}
 }
