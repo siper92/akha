@@ -14,7 +14,7 @@ import (
 	"github.com/siper92/akha/lang/module/std"
 	"github.com/siper92/akha/lang/runner"
 	"github.com/siper92/akha/lang/tests_utils"
-	"github.com/siper92/akha/lang/tests_utils/pipeline"
+	"github.com/siper92/akha/lang/tests_utils/pipeline_test"
 )
 
 func TestAkFuncs(t *testing.T) {
@@ -75,7 +75,7 @@ func TestAkSignatures(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			pipeline.ValidateParse(t, c)
+			pipeline_test.ValidateParse(t, c)
 		})
 	}
 }
@@ -96,7 +96,7 @@ func TestAkImport(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			pipeline.ValidateCheck(t, c)
+			pipeline_test.ValidateCheck(t, c)
 		})
 	}
 }

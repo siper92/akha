@@ -7,7 +7,7 @@ import (
 
 	"github.com/siper92/akha/lang/eval"
 	"github.com/siper92/akha/lang/tests_utils"
-	"github.com/siper92/akha/lang/tests_utils/pipeline"
+	"github.com/siper92/akha/lang/tests_utils/pipeline_test"
 )
 
 func TestEvalModulo(t *testing.T) {
@@ -37,7 +37,7 @@ func TestEvalModulo(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			pipeline.ValidateRun(t, c, nil)
+			pipeline_test.ValidateRun(t, c, nil)
 		})
 	}
 }
@@ -73,7 +73,7 @@ func TestEvalLoops(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			pipeline.ValidateRun(t, c, nil)
+			pipeline_test.ValidateRun(t, c, nil)
 		})
 	}
 }
@@ -122,7 +122,7 @@ return totalRes`,
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			pipeline.ValidateRun(t, c, nil)
+			pipeline_test.ValidateRun(t, c, nil)
 		})
 	}
 }
@@ -175,7 +175,7 @@ func TestEvalErrors(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			pipeline.ValidateRun(t, c, nil)
+			pipeline_test.ValidateRun(t, c, nil)
 		})
 	}
 }
@@ -195,5 +195,5 @@ func TestEvalSpecDef(t *testing.T) {
 		Input:    string(src),
 		Expected: `{"total":9,"greeting":"hello ann, first is 1"}`,
 	}
-	pipeline.ValidateRun(t, c, input)
+	pipeline_test.ValidateRun(t, c, input)
 }

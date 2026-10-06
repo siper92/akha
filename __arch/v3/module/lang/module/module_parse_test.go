@@ -8,7 +8,7 @@ import (
 	"github.com/siper92/akha/lang/eval"
 	"github.com/siper92/akha/lang/module/std"
 	"github.com/siper92/akha/lang/tests_utils"
-	"github.com/siper92/akha/lang/tests_utils/pipeline"
+	"github.com/siper92/akha/lang/tests_utils/pipeline_test"
 )
 
 func TestModuleParse(t *testing.T) {
@@ -34,7 +34,7 @@ func TestModuleParse(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			pipeline.ValidateParse(t, c)
+			pipeline_test.ValidateParse(t, c)
 		})
 	}
 }
@@ -64,7 +64,7 @@ func TestModuleImport(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			pipeline.ValidateCheck(t, c)
+			pipeline_test.ValidateCheck(t, c)
 		})
 	}
 }
@@ -91,7 +91,7 @@ func TestModuleRun(t *testing.T) {
 				t.Fatalf("modules: %v", err)
 			}
 
-			pipeline.ValidateRunAsTest(t, c, eval.Options{Modules: reg}, nil)
+			pipeline_test.ValidateRunAsTest(t, c, eval.Options{Modules: reg}, nil)
 		})
 	}
 }

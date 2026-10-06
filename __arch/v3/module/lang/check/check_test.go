@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/siper92/akha/lang/tests_utils"
-	"github.com/siper92/akha/lang/tests_utils/pipeline"
+	"github.com/siper92/akha/lang/tests_utils/pipeline_test"
 )
 
 func TestCheckScopes(t *testing.T) {
@@ -34,7 +34,7 @@ func TestCheckScopes(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			pipeline.ValidateCheck(t, c)
+			pipeline_test.ValidateCheck(t, c)
 		})
 	}
 }
@@ -65,7 +65,7 @@ func TestCheckAssign(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			pipeline.ValidateCheck(t, c)
+			pipeline_test.ValidateCheck(t, c)
 		})
 	}
 }
@@ -118,7 +118,7 @@ func TestCheckErrors(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			pipeline.ValidateCheck(t, c)
+			pipeline_test.ValidateCheck(t, c)
 		})
 	}
 }
@@ -144,7 +144,7 @@ func TestCheckKnownValues(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			pipeline.ValidateCheck(t, c)
+			pipeline_test.ValidateCheck(t, c)
 		})
 	}
 }

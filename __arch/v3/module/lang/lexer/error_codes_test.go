@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/siper92/akha/lang/tests_utils"
-	"github.com/siper92/akha/lang/tests_utils/pipeline"
+	"github.com/siper92/akha/lang/tests_utils/pipeline_test"
 )
 
 func TestErrorCodesKwargs(t *testing.T) {
@@ -30,7 +30,7 @@ func TestErrorCodesKwargs(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			pipeline.ValidateParse(t, c)
+			pipeline_test.ValidateParse(t, c)
 		})
 	}
 }
@@ -52,7 +52,7 @@ func TestErrorCodesModuleParse(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			pipeline.ValidateParse(t, c)
+			pipeline_test.ValidateParse(t, c)
 		})
 	}
 }
@@ -89,7 +89,7 @@ func TestErrorCodesModuleCheck(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			pipeline.ValidateCheck(t, c)
+			pipeline_test.ValidateCheck(t, c)
 		})
 	}
 }
