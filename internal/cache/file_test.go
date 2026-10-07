@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/siper92/akha/internal/tu"
+	"github.com/siper92/akha/lang/tests_utils"
 )
 
 type putIn struct {
@@ -22,7 +22,7 @@ func TestFileCache(t *testing.T) {
 	ctx := context.Background()
 
 	// --- put then get
-	cases := []tu.Case[putIn, string]{
+	cases := []tests_utils.Case[putIn, string]{
 		{
 			Name:     "no_expiry_is_kept",
 			Input:    putIn{key: "a", val: "1", ttl: NoExpiry},
@@ -45,7 +45,7 @@ func TestFileCache(t *testing.T) {
 		},
 	}
 
-	fn := func(in putIn) (string, error) {
+	tests_utils.Run(tests_utils.New(t), cases, func(in putIn) (string, error) {
 		if err := c.Put(ctx, in.key, []byte(in.val), in.ttl); err != nil {
 			return "", err
 		}
@@ -54,8 +54,7 @@ func TestFileCache(t *testing.T) {
 			return "", err
 		}
 		return string(b), nil
-	}
-	tu.Run(tu.New(t), cases, fn, nil)
+	}, nil)
 }
 
 func TestFileCacheDelAndPurge(t *testing.T) {

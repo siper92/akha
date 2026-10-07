@@ -37,7 +37,7 @@ func (r *runner) Run(ctx context.Context, src string, input eval.Value) (eval.Va
 		return nil, err
 	}
 
-	if err := check.New(r.opts.File).Check(ctx, script); err != nil {
+	if err = check.New(r.opts.File).Check(ctx, script); err != nil {
 		return nil, err
 	}
 

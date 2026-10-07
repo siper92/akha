@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/siper92/akha/internal/tu"
+	"github.com/siper92/akha/lang/tests_utils"
 )
 
 func writeYAML(t *testing.T, name, content string) string {
@@ -31,7 +31,7 @@ root: "/tmp/r"
 	minimal := writeYAML(t, "min.yaml", `worker_access_token: "tok"`)
 
 	// --- explicit values and defaults
-	tu.Run(tu.New(t), []tu.Case[string, Worker]{
+	tests_utils.Run(tests_utils.New(t), []tests_utils.Case[string, Worker]{
 		{
 			Name:     "all_fields",
 			Input:    full,
@@ -67,7 +67,7 @@ jwt:
 	minimal := writeYAML(t, "min.yaml", `access_tokens: ["a"]`)
 
 	// --- explicit values and defaults
-	cases := []tu.Case[string, Backend]{
+	cases := []tests_utils.Case[string, Backend]{
 		{
 			Name:  "all_fields",
 			Input: full,
@@ -92,5 +92,5 @@ jwt:
 			Err:   ErrRead,
 		},
 	}
-	tu.Run(tu.New(t), cases, LoadBackend, nil)
+	tests_utils.Run(tests_utils.New(t), cases, LoadBackend, nil)
 }

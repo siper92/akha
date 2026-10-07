@@ -53,6 +53,7 @@ func (c *fileCache) Put(ctx context.Context, key string, val []byte, ttl time.Du
 	if ttl != NoExpiry {
 		e.ExpiresAt = time.Now().Add(ttl)
 	}
+
 	b, err := json.Marshal(e)
 	if err != nil {
 		return err

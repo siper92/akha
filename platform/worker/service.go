@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/siper92/akha/lang/eval"
 	"github.com/siper92/akha/lang/runner"
 	"github.com/siper92/akha/platform/worker/client"
 )
@@ -48,11 +49,12 @@ func (s *service) Stop(ctx context.Context) error {
 	return nil
 }
 
-func (s *service) Run(ctx context.Context, src string, opts runner.Options) (runner.Result, error) {
+func (s *service) Run(ctx context.Context, src string, nput eval.Value) (eval.Value, error) {
 	if s.token == "" {
-		return runner.Result{ExitCode: runner.ExitRuntime}, ErrNotStarted
+		return nil, ErrNotStarted
 	}
-	return s.run.Run(ctx, src, opts)
+
+	return s.run.Run(ctx, src, nput)
 }
 
 func (s *service) authenticate(ctx context.Context) (string, error) {
@@ -61,17 +63,21 @@ func (s *service) authenticate(ctx context.Context) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("%w: %w", ErrAuth, err)
 		}
+
 		ok, err := s.be.Validate(ctx, token)
 		if err != nil {
 			return "", fmt.Errorf("%w: %w", ErrAuth, err)
 		}
+
 		if ok {
 			return token, nil
 		}
+
 		s.log.Warn("cached token rejected, logging in again")
 		if err := s.ts.Invalidate(ctx); err != nil {
 			return "", fmt.Errorf("%w: %w", ErrAuth, err)
 		}
 	}
+
 	return "", fmt.Errorf("%w: token rejected", ErrAuth)
 }

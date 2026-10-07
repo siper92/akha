@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/siper92/akha/internal/tu"
+	"github.com/siper92/akha/lang/tests_utils"
 	"github.com/siper92/akha/platform/sdk/db-sdk"
 )
 
@@ -63,7 +63,7 @@ func TestRegister(t *testing.T) {
 	ctx := WithAddr(context.Background(), "127.0.0.1:1")
 
 	// --- access token lookup
-	cases := []tu.Case[string, Tier]{
+	cases := []tests_utils.Case[string, Tier]{
 		{
 			Name:     "known_token_issues_worker_jwt",
 			Input:    goodToken,
@@ -99,7 +99,7 @@ func TestRegister(t *testing.T) {
 		}
 		return c.Tier, nil
 	}
-	tu.Run(tu.New(t), cases, fn, nil)
+	tests_utils.Run(tests_utils.New(t), cases, fn, nil)
 
 	if n := f.count(t, "SELECT count(*) FROM login_log"); n != 3 {
 		t.Fatalf("login_log rows: want 3, got %d", n)
@@ -148,7 +148,7 @@ func TestVerify(t *testing.T) {
 	tampered := parts[0] + "." + parts[1] + "x." + parts[2]
 
 	// --- token states
-	cases := []tu.Case[string, string]{
+	cases := []tests_utils.Case[string, string]{
 		{
 			Name:     "issued_token_is_valid",
 			Input:    token,
@@ -179,7 +179,7 @@ func TestVerify(t *testing.T) {
 		c, err := f.authn.Verify(ctx, tok)
 		return c.Subject, err
 	}
-	tu.Run(tu.New(t), cases, fn, nil)
+	tests_utils.Run(tests_utils.New(t), cases, fn, nil)
 
 	if _, err := NewKeyring(keys, time.Minute).Verify(ctx, expired); err != ErrExpiredToken {
 		t.Fatalf("expired: want %v, got %v", ErrExpiredToken, err)
@@ -219,14 +219,14 @@ func TestKeysRoundTrip(t *testing.T) {
 
 func TestHashToken(t *testing.T) {
 	// --- hashing is stable and distinct
-	cases := []tu.Case[string, bool]{
+	cases := []tests_utils.Case[string, bool]{
 		{
 			Name:     "same_input_same_hash",
 			Input:    "a",
 			Expected: true,
 		},
 	}
-	tu.Run(tu.New(t), cases, func(s string) (bool, error) {
+	tests_utils.Run(tests_utils.New(t), cases, func(s string) (bool, error) {
 		return HashToken(s) == HashToken(s) &&
 			HashToken(s) != HashToken(s+"x") &&
 			len(HashToken(s)) == 64, nil

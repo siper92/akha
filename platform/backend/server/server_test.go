@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/siper92/akha/lang/tests_utils"
 	auth2 "github.com/siper92/akha/platform/backend/auth"
 	"github.com/siper92/akha/platform/sdk/db-sdk"
 	proto_sdk2 "github.com/siper92/akha/platform/sdk/proto-sdk"
@@ -16,8 +17,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
-
-	"github.com/siper92/akha/internal/tu"
 )
 
 const accessToken = "akha_test_token"
@@ -68,7 +67,7 @@ func TestLogin(t *testing.T) {
 	ctx := context.Background()
 
 	// --- login outcomes as grpc codes
-	cases := []tu.Case[string, codes.Code]{
+	cases := []tests_utils.Case[string, codes.Code]{
 		{
 			Name:     "known_access_token",
 			Input:    accessToken,
@@ -91,7 +90,7 @@ func TestLogin(t *testing.T) {
 		}
 		return codes.OK, nil
 	}
-	tu.Run(tu.New(t), cases, fn, nil)
+	tests_utils.Run(tests_utils.New(t), cases, fn, nil)
 }
 
 func TestValidateToken(t *testing.T) {
@@ -103,7 +102,7 @@ func TestValidateToken(t *testing.T) {
 	}
 
 	// --- validation results
-	cases := []tu.Case[string, bool]{
+	cases := []tests_utils.Case[string, bool]{
 		{
 			Name:     "issued_token",
 			Input:    resp.GetToken(),
@@ -127,12 +126,12 @@ func TestValidateToken(t *testing.T) {
 		}
 		return r.GetValid(), nil
 	}
-	tu.Run(tu.New(t), cases, fn, nil)
+	tests_utils.Run(tests_utils.New(t), cases, fn, nil)
 }
 
 func TestBearer(t *testing.T) {
 	// --- header parsing
-	cases := []tu.Case[string, string]{
+	cases := []tests_utils.Case[string, string]{
 		{
 			Name:     "bearer_lower",
 			Input:    "bearer abc",
@@ -161,5 +160,5 @@ func TestBearer(t *testing.T) {
 		}
 		return bearer(ctx), nil
 	}
-	tu.Run(tu.New(t), cases, fn, nil)
+	tests_utils.Run(tests_utils.New(t), cases, fn, nil)
 }

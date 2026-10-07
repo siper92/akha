@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/siper92/akha/lang/tests_utils"
 	"github.com/siper92/akha/platform/backend/auth"
 	"github.com/siper92/akha/platform/backend/server"
 	"github.com/siper92/akha/platform/sdk/db-sdk"
@@ -20,7 +21,6 @@ import (
 	"google.golang.org/grpc/test/bufconn"
 
 	"github.com/siper92/akha/internal/cache"
-	"github.com/siper92/akha/internal/tu"
 	"github.com/siper92/akha/lang/runner"
 )
 
@@ -95,7 +95,7 @@ func TestStart(t *testing.T) {
 	e := startBackend(t)
 
 	// --- login with the static access token
-	cases := []tu.Case[string, bool]{
+	cases := []tests_utils.Case[string, bool]{
 		{
 			Name:     "known_access_token",
 			Input:    accessToken,
@@ -114,7 +114,7 @@ func TestStart(t *testing.T) {
 		}
 		return true, w.Stop(context.Background())
 	}
-	tu.Run(tu.New(t), cases, fn, nil)
+	tests_utils.Run(tests_utils.New(t), cases, fn, nil)
 }
 
 func TestRunIntegration(t *testing.T) {
