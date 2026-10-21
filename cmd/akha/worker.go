@@ -118,6 +118,7 @@ func runWorkerRun(cmd *cobra.Command, args []string) error {
 		Root:     p.cfg.Root,
 		CacheDir: p.cfg.CacheDir,
 	})
+
 	printDiagnostics(args[0], res.Diagnostics)
 	if res.LogPath != "" {
 		fmt.Fprintln(cmd.OutOrStdout(), "log:", res.LogPath)
