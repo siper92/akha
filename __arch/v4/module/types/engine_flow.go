@@ -2,24 +2,35 @@ package types
 
 type FlowStep interface {
 	ID() string
-	Process(data DataUnit) (DataUnit, error)
+	Process() error
 }
 
 type Flow interface {
-	Load(src string) error
-	Process(step string) error // process step by UD
+	Init(steps ...FlowStep) error
+	Process(step string) error // process step by ID
 	Exec() error               // process steps in order defined for the flow
 }
 
-type GenerateUnit interface {
-	DataUnit
+type LoadDataStep interface {
+	FlowStep
 }
 
-type GenerateFlow interface {
-	Flow
-	transform(data DataUnit) (DataUnit, error)
-	check() error
-	rate() (int, error)
-	regen() error
-	run() (out DataUnit, err error)
+type TransformDataStep interface {
+	FlowStep
+}
+
+type CheckStep interface {
+	FlowStep
+}
+
+type EvaluateStep interface {
+	FlowStep
+}
+
+type RegenerateStep interface {
+	FlowStep
+}
+
+type RunStep interface {
+	FlowStep
 }

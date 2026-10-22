@@ -1,0 +1,14 @@
+version: "2"
+sql:
+  - engine: "sqlite"
+    schema: "_defs/db/schema"
+    queries: "_defs/db/queries"
+    gen:
+      go:
+        package: "db_sdk"
+        out: "internal/sdk/db-sdk"
+        emit_json_tags: true
+        emit_interface: true
+        emit_empty_slices: true
+        emit_pointers_for_null_types: true
+        emit_result_struct_pointers: false
