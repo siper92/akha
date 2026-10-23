@@ -13,6 +13,8 @@ const (
 	Planning   TaskStatus = "planning"
 	Running    TaskStatus = "running"
 	RunningSub TaskStatus = "running_sub"
+	Done       TaskStatus = TaskStatus(state_machine.Done)
+	Failed     TaskStatus = TaskStatus(state_machine.Failed)
 )
 
 type TaskPlan interface {
