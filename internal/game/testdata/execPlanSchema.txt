@@ -1,0 +1,4 @@
+readGame  - ok: parse | follow: readGame
+parse     - ok: readCSV
+readCSV   - ok: buildJSON
+buildJSON - ok: END

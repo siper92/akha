@@ -1,0 +1,13 @@
+game_type,playerID,score,difficulty
+chess,p1,10,7
+chess,p3,8,7
+quest,p2,6,4
+quest,p5,9,4
+raid,p4,7,9
+raid,p6,5,9
+race,p3,12,3
+race,p1,11,3
+puzzle,p5,4,6
+puzzle,p4,8,6
+arena,p2,9,10
+arena,p6,3,10

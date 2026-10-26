@@ -1,0 +1,50 @@
+[
+  {
+    "gameType": "chess",
+    "players": [
+      {"name": "Aria", "race": "human", "score": 10},
+      {"name": "Lysa", "race": "elf", "score": 8}
+    ],
+    "difficulty": "7"
+  },
+  {
+    "gameType": "quest",
+    "players": [
+      {"name": "Thorn", "race": "orc", "score": 6},
+      {"name": "Bram", "race": "human", "score": 9}
+    ],
+    "difficulty": "4"
+  },
+  {
+    "gameType": "raid",
+    "players": [
+      {"name": "Zeek", "race": "alien", "score": 7},
+      {"name": "Grok", "race": "orc", "score": 5}
+    ],
+    "difficulty": "9"
+  },
+  {
+    "gameType": "race",
+    "players": [
+      {"name": "Lysa", "race": "elf", "score": 12},
+      {"name": "Aria", "race": "human", "score": 11}
+    ],
+    "difficulty": "3"
+  },
+  {
+    "gameType": "puzzle",
+    "players": [
+      {"name": "Bram", "race": "human", "score": 4},
+      {"name": "Zeek", "race": "alien", "score": 8}
+    ],
+    "difficulty": "6"
+  },
+  {
+    "gameType": "arena",
+    "players": [
+      {"name": "Thorn", "race": "orc", "score": 9},
+      {"name": "Grok", "race": "orc", "score": 3}
+    ],
+    "difficulty": "10"
+  }
+]
