@@ -6,3 +6,4 @@ _env
 __arch
 __local
 *.ai.md
+.aws/

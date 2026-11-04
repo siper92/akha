@@ -17,3 +17,4 @@ __local
 
 *.ai.md
 task.*.md
+.aws/
