@@ -4,8 +4,9 @@ plan the steps to achieve the task
 - split in sections/stories 
  - collections of "tasks" with an overarching goal
  - break down the task into smaller steps
- 
+
 for software packages use @software_flow_to_build
+
 follow this outline to define the package and its components
  - don't actually write the code, just add answers to the outline/API of the package
  - and define a task step with 
@@ -35,6 +36,6 @@ definition: <task definition>
 
 # @rate
 - is the plan split into clear sections that don't overlap
-- are the task in the story unique and properly ordered
+- are the tasks in the story unique and properly ordered
 - is the plan relevant to the task
   - are the steps clear and make sense in the context of the task

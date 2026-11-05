@@ -1,0 +1,10 @@
+set shell := ["bash", "-cu"]
+
+default:
+    @just --list
+
+### container
+
+[group('task')]
+dev:
+    go run main.go task task_file1.md
