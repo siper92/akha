@@ -55,7 +55,6 @@ type Step interface {
 }
 
 type FlowGraph interface {
-	Current() Step
 	On(step Step) (Step, error)
 }
 

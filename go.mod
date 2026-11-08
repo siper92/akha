@@ -9,6 +9,7 @@ require (
 	go.yaml.in/yaml/v3 v3.0.4
 	google.golang.org/grpc v1.84.0
 	google.golang.org/protobuf v1.36.12
+	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.39.0
 )
 
