@@ -1,0 +1,66 @@
+create_site:
+  desc@: build a data representation website on steps
+steps:
+  clarify:
+    build_resources:
+      tech_stack: clarify libraries and languages
+      info_sources:
+        list: information and data sources other extra resources
+        resolve: choose the default content to use lorem ipsum
+    unknowns:
+      desc@: think for unknowns based on the task
+      list: unknowns based on teh task
+      resolve: the unknowns with AI by giving default answers an assumptions
+  plan:
+    desc@: create a plan for the site implementation based on these steps
+    design:
+      outline:
+        idea: the idea, inspiration and focus sections
+        design_schema: color schema, fonts, size, layout, spacing, etc.
+      components:
+        desc@: only these parts can be used later to build the UI so think about them carefully
+        list: ui components, icons, sections
+    pages:
+      desc@: pages list
+        - what purpose each page serves
+        - what the page contains - not many details
+        - no content at this point
+        - what part of the data story each page tells
+      define_routes:
+        desc@: define the route tree for the site
+      define_page_structure:
+        desc@: define the structure of each page and what components are used
+        define_navigation:
+          desc@: describe the menu and navigation for the site
+        define_page_layout:
+          define_page_components:
+            list: list of components used in each page
+    data:
+      desc@: data schema, data sources and how they are used in the site
+      define_data_schema:
+        desc@: define the data schema and how it is used in the site
+        interface_design:
+          desc@: add main interfaces used in the site
+          suggest@: interfaces represent actions and big parts of the site
+        define_data_types: define the data types used in the site and which interfaces they implement
+      data_sources:
+        suggest@: use sqllite for database and MD files for static content
+          - use custom MD data parser for static content
+        define_storage:
+          desc@: describe how data will be stored
+          permanent: data storage (database, file system, etc.)
+          cache: cache layer (in-memory, CDN, etc.) if any
+    api:
+      desc@: API endpoints and used in the site`
+      define_api:
+        list: list of API endpoints and their purpose
+  task:
+    desc@: break the plan section in to small tasks
+    create_task_stories:
+      desc@: define the large tasks and stories for the plan implementation
+      create_tasks:
+        desc@: define the individual task units that will be the work for the implementation
+  implement:
+    desc@: implement the task and update there status
+    implement_tasks:
+      desc@: retrieve individual tasks and execute them

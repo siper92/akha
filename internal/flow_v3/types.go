@@ -43,20 +43,6 @@ type AIAdapter interface {
 
 // ####################################
 
-type NamedEntity interface {
-	Name() string
-}
-
-type Task interface {
-	NamedEntity
-	Run() error
-}
-
-type StepGraph interface {
-	Root() Step
-	Next(step Step) StepGraph
-}
-
 type SourceProvider interface {
 	FileSystemAdapter() FileSystemAdapter
 	DBAdapter() DBAdapter
@@ -64,14 +50,17 @@ type SourceProvider interface {
 }
 
 type Step interface {
-	NamedEntity
+	Name() string
+	Retry() int
+}
+
+type FlowGraph interface {
+	Current() Step
+	On(step Step) (Step, error)
+}
+
+type Flow[T any] interface {
+	Graph() FlowGraph
+	Data() T
 	Execute() error
-}
-
-type Plan interface {
-	Graph() StepGraph
-}
-
-type Flow interface {
-	Execute(plan Plan, steps []Step) error
 }
