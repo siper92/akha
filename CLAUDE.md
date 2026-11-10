@@ -10,30 +10,12 @@ akha: a platform for AI workflows, similar to n8n and temporal, written in Go
 tech stack: go 1.27, cobra, viper, grpc, sqlite, log/slog
 generate: sqlc, protobuf, graphql (deferred)
 
-## structure
+# current work
 
-- `cmd/akha/` - cobra root, `backend` and `worker` sub commands
-- `internal/config/` - viper loading, typed structs for `config.yaml` and `config.be.yaml`
-- `internal/cache/` - `Cache` interface, file impl under `_env/.cache/*`
-- `internal/tu/` - test utils, `tu.Case`, `tu.Run`
-- `lang/token/` - token kinds and positions
-- `lang/lexer/` - rune based lexer
-- `lang/ast/` - nodes
-- `lang/parser/` - recursive descent parser
-- `lang/check/` - static checks (Ak.Allow, arity, kwargs)
-- `lang/eval/` - values, registry, evaluator
-- `lang/module/ak/` - `Ak` namespace
-- `lang/module/fs/` - `FS` namespace, sandboxed root
-- `lang/runner/` - lex, parse, check, eval from a source string
-- `platform/backend` - token issuer, verifier, access token store, login log
-- `platform/backend` - gRPC server, interceptors
-- `platform/worker` - gRPC client, login, token cache
-- `platform/worker` - worker service, embedded mode
-- `_defs/` - proto, sqlc and graphql definitions
-- `platform/sdk` - generated code only
-- `docker/` - backend and worker images, compose file, container configs, sample scripts
-- `.claude/skills/` - project skills, see `ak-lang-feature`
-- `__arch/v1/` - spec, plan, questions and run log for the current version
+flow data processing mechanics, state machines, that change state and pass services around
+version: [flow_v3](internal/flow_v3)
+ - flow and step process
+ - rules and layout in [internal/flow_v3/CLAUDE.md](internal/flow_v3/CLAUDE.md)
 
 ## language
 

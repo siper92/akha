@@ -1,0 +1,19 @@
+graph:
+  clarify:
+    done: plan
+    error:
+      next: clarify
+      retry: 2
+  plan:
+    done: task
+    error:
+      next: plan
+      retry: 2
+  task:
+    done: implement
+  implement:
+    task_done: implement
+    done: finish
+    error:
+      next: implement
+      retry: 2

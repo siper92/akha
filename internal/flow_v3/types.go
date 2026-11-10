@@ -49,17 +49,34 @@ type SourceProvider interface {
 	AIAdapter() AIAdapter
 }
 
-type Step interface {
-	Name() string
+type Transition string
+type StepName string
+
+type ServiceProvide interface {
+	ServiceProvide() ServiceProvide
+}
+
+type DataServiceProvide[D any] interface {
+	ServiceProvide
+	Data() D
+	SetData(d D)
+	Update(fn func(d D) D)
+}
+
+type Step[S ServiceProvide] interface {
+	Name() StepName
 	Retry() int
+	On(t Transition) (StepName, error)
+	process(ctx context.Context, d S) (Transition, error)
 }
 
-type FlowGraph interface {
-	On(step Step) (Step, error)
-}
+type StepExec[D any] func(ctx context.Context, s DataServiceProvide[D]) (Transition, error)
 
-type Flow[T any] interface {
-	Graph() FlowGraph
-	Data() T
-	Execute() error
+type Flow[S ServiceProvide] interface {
+	Init(steps ...Step[S]) error
+	Execute(ctx context.Context, s S) error // run process then move
+	//
+	current() Step[S]
+	process(ctx context.Context, s S) (Transition, error)
+	move(transition Transition) error
 }
