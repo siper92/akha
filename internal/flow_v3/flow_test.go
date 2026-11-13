@@ -39,12 +39,17 @@ func TestStepDefToTransitionMap(t *testing.T) {
 }
 
 func TestNexStepUnmarshalYAML(t *testing.T) {
-	machineFlow, err := NewMachineFlow(def, map[StepName]StepExec{
-		"clarify": func(ctx context.Context, d any) (Transition, any, error) {
-			return DoneTransition, nil, nil
+	machineFlow, err := NewMachineFlow(def, map[StepName]StepExec[map[string]string]{
+		"clarify": func(ctx context.Context, d DataServiceProvide[map[string]string]) (Transition, error) {
+			d.SetData(map[string]string{"clarify": "some data"})
+			return DoneTransition, nil
 		},
-		"plan": func(ctx context.Context, d any) (Transition, any, error) {
-			return FinishTransition, nil, nil
+		"plan": func(ctx context.Context, d DataServiceProvide[map[string]string]) (Transition, error) {
+			d.Update(func(data map[string]string) map[string]string {
+				data["plan"] = "some data"
+				return data
+			})
+			return FinishTransition, nil
 		},
 	})
 	if err != nil {
@@ -55,11 +60,19 @@ func TestNexStepUnmarshalYAML(t *testing.T) {
 		t.Errorf("expected machineFlow to be non-nil")
 	}
 
-	process, err := machineFlow.process()
+	ctx := context.Background()
+	dataProvide := NewStepData(map[string]string{})
+
+	process, err := machineFlow.process(ctx, dataProvide)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	} else if process != DoneTransition {
 		t.Errorf("expected process to return 'done', got '%s'", process)
+	}
+
+	dataCheck := dataProvide.Data()
+	if dataCheck["clarify"] != "some data" {
+		t.Errorf("expected data to contain 'clarify' key with value 'some data', got '%s'", dataCheck["clarify"])
 	}
 
 	machineFlow.move(process)
@@ -67,11 +80,16 @@ func TestNexStepUnmarshalYAML(t *testing.T) {
 		t.Errorf("expected current step to be 'plan', got '%s'", machineFlow.current().Name())
 	}
 
-	process, err = machineFlow.process()
+	process, err = machineFlow.process(ctx, dataProvide)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	} else if process != FinishTransition {
 		t.Errorf("expected process to return 'finish', got '%s'", process)
+	}
+
+	dataCheck = dataProvide.Data()
+	if dataCheck["plan"] != "some data" {
+		t.Errorf("expected data to contain 'plan' key with value 'some data', got '%s'", dataCheck["plan"])
 	}
 
 	if process == FinishTransition {
