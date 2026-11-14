@@ -1,0 +1,42 @@
+#!/bin/bash
+set -euo pipefail
+exec > >(tee -a /var/log/site-bootstrap.log) 2>&1
+
+echo "bootstrap start $(date -u +%FT%TZ) artifact=${zip_hash}"
+
+if ! command -v unzip >/dev/null 2>&1; then
+  dnf install -y unzip
+fi
+
+mkdir -p /opt/site
+aws s3 cp "s3://${bucket}/${key}" /tmp/site.zip --region "${region}"
+unzip -o /tmp/site.zip -d /opt/site
+rm -f /tmp/site.zip
+
+id site >/dev/null 2>&1 || useradd --system --no-create-home --shell /sbin/nologin site
+chown -R site:site /opt/site
+chmod +x /opt/site/site
+
+cat >/etc/systemd/system/site.service <<'UNIT'
+[Unit]
+Description=site
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=site
+WorkingDirectory=/opt/site
+ExecStart=/opt/site/site serve
+Environment=SITE_ADDR=:80
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+systemctl daemon-reload
+systemctl enable --now site.service
+
+echo "bootstrap done $(date -u +%FT%TZ)"

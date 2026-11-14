@@ -1,0 +1,244 @@
+/* tokens */
+:root {
+  --bg: #0E141B;
+  --surface: #151E28;
+  --border: #233140;
+  --text: #E4EAF0;
+  --muted: #8A9AAB;
+  --primary: #2EC4B6;
+  --accent: #FF9F1C;
+  --code-bg: #1B2632;
+
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 64px;
+  --s9: 96px;
+
+  --gutter: 16px;
+  --font-head: "Space Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* base */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  font-size: 17px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #0E141B;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-weight: 400;
+  line-height: 1.7;
+  overflow-wrap: break-word;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+/* header */
+.site-header,
+.site-footer {
+  background: var(--surface);
+}
+
+.site-header {
+  border-bottom: 1px solid var(--border);
+}
+
+.inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+.site-header .inner {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s4);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  color: var(--text);
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.brand img {
+  display: block;
+  width: 28px;
+  height: 28px;
+}
+
+/* nav */
+nav {
+  display: flex;
+  align-items: center;
+  gap: var(--s5);
+}
+
+nav a {
+  display: inline-block;
+  padding: var(--s2) 0;
+  color: var(--muted);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+}
+
+nav a:hover {
+  color: var(--text);
+}
+
+nav a.active {
+  color: var(--text);
+  border-bottom-color: var(--primary);
+}
+
+/* main */
+main {
+  flex: 1;
+  padding: var(--s8) var(--gutter) var(--s9);
+}
+
+/* prose */
+.prose {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.prose h1,
+.prose h2,
+.prose h3 {
+  font-family: var(--font-head);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: var(--s8) 0 var(--s4);
+}
+
+.prose h1 { font-size: 2.44rem; }
+.prose h2 { font-size: 1.56rem; }
+.prose h3 { font-size: 1.25rem; }
+
+.prose p,
+.prose ul,
+.prose ol,
+.prose blockquote,
+.prose pre {
+  margin: 0 0 var(--s5);
+}
+
+.prose strong {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.prose em { font-style: italic; }
+
+.prose ul,
+.prose ol { padding-left: var(--s6); }
+
+.prose li { margin-bottom: var(--s2); }
+
+.prose blockquote {
+  padding: var(--s4) var(--s5);
+  background: var(--surface);
+  border-left: 3px solid var(--accent);
+  color: var(--text);
+}
+
+.prose blockquote > :last-child { margin-bottom: 0; }
+
+.prose hr {
+  margin: var(--s8) 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--code-bg);
+  padding: 2px var(--s2);
+  border-radius: 4px;
+}
+
+.prose pre {
+  background: var(--code-bg);
+  padding: var(--s4);
+  border-radius: 4px;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+
+.prose pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+/* hero */
+.prose > h1:first-child {
+  margin-top: 0;
+  margin-bottom: var(--s3);
+  font-size: 2.2rem;
+}
+
+.prose > h1:first-child + h2 {
+  margin-top: 0;
+  margin-bottom: var(--s8);
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* footer */
+.site-footer {
+  border-top: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+
+.site-footer .inner {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--s2) var(--s4);
+  padding-top: var(--s5);
+  padding-bottom: var(--s5);
+}
+
+.muted { color: var(--muted); }
+
+/* desktop */
+@media (min-width: 768px) {
+  :root { --gutter: 24px; }
+  .prose > h1:first-child { font-size: 3.05rem; }
+}

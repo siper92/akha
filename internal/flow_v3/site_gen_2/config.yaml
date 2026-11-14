@@ -1,0 +1,6 @@
+addr: ":8080"
+md_dir: "md"
+template: "web/templates/layout.html"
+static_dir: "web/static"
+index_page: "world"
+site_name: "Akha Collective"

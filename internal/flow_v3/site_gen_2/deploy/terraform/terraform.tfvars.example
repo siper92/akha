@@ -1,0 +1,6 @@
+region        = "eu-central-1"
+project       = "site-gen-2"
+instance_type = "t4g.micro"
+dist_dir      = "../../dist"
+ssh_cidr      = ""
+key_name      = ""
