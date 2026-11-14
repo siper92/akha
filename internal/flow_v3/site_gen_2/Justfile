@@ -1,0 +1,70 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+bin := "bin/site"
+dist := "dist"
+tf := "deploy/terraform"
+addr := ":8080"
+
+default:
+    @just --list
+
+# --- go
+
+tidy:
+    go mod tidy
+
+fmt:
+    gofmt -w .
+
+lint:
+    go vet ./...
+    test -z "$(gofmt -l .)"
+
+build:
+    go build -o {{bin}} .
+
+run addr=addr: build
+    ./{{bin}} serve --addr {{addr}}
+
+health url="http://localhost:8080":
+    curl -fsS {{url}}/healthz
+
+# --- dist
+
+dist:
+    rm -rf {{dist}}
+    mkdir -p {{dist}}
+    GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o {{dist}}/site .
+    cp -R md web config.yaml {{dist}}/
+
+clean:
+    rm -rf bin {{dist}} {{tf}}/.build
+
+# --- terraform
+
+tf-init:
+    terraform -chdir={{tf}} init
+
+tf-fmt:
+    terraform -chdir={{tf}} fmt
+
+tf-validate:
+    terraform -chdir={{tf}} validate
+
+tf-plan: dist
+    terraform -chdir={{tf}} plan
+
+deploy: dist
+    terraform -chdir={{tf}} apply
+
+destroy:
+    terraform -chdir={{tf}} destroy
+
+url:
+    terraform -chdir={{tf}} output -raw url
+
+remote-health:
+    curl -fsS "$(terraform -chdir={{tf}} output -raw url)/healthz"
+
+ssm:
+    aws ssm start-session --target "$(terraform -chdir={{tf}} output -raw instance_id)"
