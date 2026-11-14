@@ -63,8 +63,21 @@ destroy:
 url:
     terraform -chdir={{tf}} output -raw url
 
+id:
+    @terraform -chdir={{tf}} output -raw instance_id
+
+ssh:
+    ssh "$(terraform -chdir={{tf}} output -raw instance_id)"
+
 remote-health:
     curl -fsS "$(terraform -chdir={{tf}} output -raw url)/healthz"
+
+http-health:
+    curl -fsS "http://$(terraform -chdir={{tf}} output -raw public_ip)/healthz"
+
+dns:
+    terraform -chdir={{tf}} output hostnames
+    terraform -chdir={{tf}} output public_ip
 
 ssm:
     aws ssm start-session --target "$(terraform -chdir={{tf}} output -raw instance_id)"

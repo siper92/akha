@@ -1,13 +1,14 @@
 # deploy
 
-Terraform for one t4g.micro running the site behind port 80.
+Terraform for one t4g.micro running the site on ports 80 and 443 behind an elastic ip.
+
+One-time setup (role, vpc, elastic ip, dns, https) is in `../docs/amazon_setup.md`.
 
 ## prerequisites
 
 - terraform >= 1.6
 - go toolchain
-- aws credentials with rights for ec2, s3, iam, ssm
-- optional: session-manager-plugin for the aws cli
+- aws credentials with rights for ec2, s3, iam, ssm, route 53
 
 ## build dist
 
@@ -33,22 +34,20 @@ terraform apply
 
 ```
 curl "$(terraform output -raw url)/healthz"
+curl -I "$(terraform output -raw url)"
 ```
 
 - expect 200 ok
+- with `domain` set the url is `https://<domain>`, otherwise `http://<ip>`
 - bootstrap takes about a minute after apply
+- the first https request issues the certificate, dns must point at the elastic ip
 - log on the instance: /var/log/site-bootstrap.log
-
-## ssm session
-
-```
-aws ssm start-session --target "$(terraform output -raw instance_id)" --region eu-central-1
-```
 
 ## redeploy
 
 - rebuild dist, then run `terraform apply`
 - a changed zip hash replaces the instance
+- the elastic ip and the cached certs (s3 `certs/`) are reused
 
 ## destroy
 
@@ -57,3 +56,4 @@ terraform destroy
 ```
 
 - the bucket is emptied automatically (force_destroy)
+- a terraform-created elastic ip is released, a pre-allocated one (`eip_allocation_id`) is kept

@@ -1,9 +1,17 @@
 output "public_ip" {
-  value = aws_instance.site.public_ip
+  value = local.eip_public_ip
 }
 
 output "url" {
-  value = "http://${aws_instance.site.public_ip}"
+  value = local.tls_on ? "https://${var.domain}" : "http://${local.eip_public_ip}"
+}
+
+output "eip_allocation_id" {
+  value = local.eip_allocation_id
+}
+
+output "hostnames" {
+  value = local.hostnames
 }
 
 output "instance_id" {

@@ -17,6 +17,11 @@ id site >/dev/null 2>&1 || useradd --system --no-create-home --shell /sbin/nolog
 chown -R site:site /opt/site
 chmod +x /opt/site/site
 
+mkdir -p /var/lib/site/certs
+aws s3 sync "s3://${bucket}/certs/" /var/lib/site/certs --region "${region}" || true
+chown -R site:site /var/lib/site
+chmod 700 /var/lib/site/certs
+
 cat >/etc/systemd/system/site.service <<'UNIT'
 [Unit]
 Description=site
@@ -28,6 +33,10 @@ User=site
 WorkingDirectory=/opt/site
 ExecStart=/opt/site/site serve
 Environment=SITE_ADDR=:80
+Environment=SITE_HTTPS_ADDR=:443
+Environment=SITE_TLS_DOMAINS=${tls_domains}
+Environment=SITE_TLS_EMAIL=${tls_email}
+Environment=SITE_TLS_CACHE_DIR=/var/lib/site/certs
 AmbientCapabilities=CAP_NET_BIND_SERVICE
 Restart=always
 RestartSec=2
@@ -36,7 +45,29 @@ RestartSec=2
 WantedBy=multi-user.target
 UNIT
 
+cat >/etc/systemd/system/site-certs-sync.service <<'UNIT'
+[Unit]
+Description=site certs backup
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/aws s3 sync /var/lib/site/certs "s3://${bucket}/certs/" --region ${region}
+UNIT
+
+cat >/etc/systemd/system/site-certs-sync.timer <<'UNIT'
+[Unit]
+Description=site certs backup timer
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1h
+
+[Install]
+WantedBy=timers.target
+UNIT
+
 systemctl daemon-reload
 systemctl enable --now site.service
+systemctl enable --now site-certs-sync.timer
 
 echo "bootstrap done $(date -u +%FT%TZ)"

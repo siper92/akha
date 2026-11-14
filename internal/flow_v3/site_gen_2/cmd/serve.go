@@ -59,6 +59,10 @@ func runServe(cmd *cobra.Command, _ []string) error {
 	log.Info("pages loaded", "count", len(store.Pages()))
 
 	engine := server.New(cfg, store)
+	if domains := cfg.Domains(); len(domains) > 0 {
+		log.Info("listening tls", "domains", domains, "https_addr", cfg.HTTPSAddr, "addr", cfg.Addr)
+		return server.RunTLS(ctx, engine, cfg)
+	}
 	log.Info("listening", "addr", cfg.Addr)
 	return server.Run(ctx, engine, cfg.Addr)
 }

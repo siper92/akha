@@ -14,6 +14,22 @@ data "aws_iam_policy_document" "artifact_read" {
     actions   = ["s3:GetObject"]
     resources = ["${aws_s3_bucket.artifact.arn}/${aws_s3_object.artifact.key}"]
   }
+
+  statement {
+    actions   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
+    resources = ["${aws_s3_bucket.artifact.arn}/certs/*"]
+  }
+
+  statement {
+    actions   = ["s3:ListBucket"]
+    resources = [aws_s3_bucket.artifact.arn]
+
+    condition {
+      test     = "StringLike"
+      variable = "s3:prefix"
+      values   = ["certs/*", "certs/"]
+    }
+  }
 }
 
 resource "aws_iam_role" "site" {

@@ -27,3 +27,43 @@ variable "key_name" {
   type    = string
   default = ""
 }
+
+variable "domain" {
+  type    = string
+  default = ""
+}
+
+variable "zone_name" {
+  type    = string
+  default = ""
+}
+
+variable "www" {
+  type    = bool
+  default = true
+}
+
+variable "acme_email" {
+  type    = string
+  default = ""
+}
+
+variable "eip_allocation_id" {
+  type    = string
+  default = ""
+}
+
+variable "vpc_id" {
+  type    = string
+  default = ""
+}
+
+variable "subnet_id" {
+  type    = string
+  default = ""
+}
+
+variable "assume_role_arn" {
+  type    = string
+  default = ""
+}

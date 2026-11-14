@@ -31,9 +31,12 @@ func initConfig() {
 		viper.SetConfigName("config")
 		viper.SetConfigType("yaml")
 	}
+
+	// set the SITE_ prefix for environment variables
 	viper.SetEnvPrefix("SITE")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 	viper.AutomaticEnv()
+
 	if err := viper.ReadInConfig(); err != nil {
 		if cfgFile != "" {
 			fmt.Fprintln(os.Stderr, "config:", err)
