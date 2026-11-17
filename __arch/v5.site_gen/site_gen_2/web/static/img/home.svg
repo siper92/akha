@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#021627"/>
+      <stop offset="1" stop-color="#04345c"/>
+    </linearGradient>
+    <linearGradient id="door" x1="0" y1="90" x2="0" y2="520" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#bad3e4"/>
+      <stop offset="0.35" stop-color="#5aa6e0"/>
+      <stop offset="1" stop-color="#1e77bd"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="600" cy="320" r="340" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1e77bd" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#1e77bd" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="600" cy="320" r="340" fill="url(#glow)"/>
+  <g fill="none" stroke-width="2.5" stroke-linecap="round">
+    <path d="M0 300C180 270 340 380 520 360" stroke="#3fb5a3" stroke-opacity="0.55"/>
+    <path d="M0 340C190 310 340 410 520 385" stroke="#bad3e4" stroke-opacity="0.4"/>
+    <path d="M0 380C200 350 350 440 525 410" stroke="#10564f" stroke-opacity="0.9"/>
+    <path d="M0 420C210 390 360 470 528 435" stroke="#3fb5a3" stroke-opacity="0.5"/>
+    <path d="M0 460C220 430 370 500 530 460" stroke="#bad3e4" stroke-opacity="0.35"/>
+    <path d="M0 500C230 470 380 530 535 485" stroke="#10564f" stroke-opacity="0.8"/>
+    <path d="M0 250C170 220 330 340 515 335" stroke="#bad3e4" stroke-opacity="0.3"/>
+    <path d="M1200 300C1020 270 860 380 680 360" stroke="#3fb5a3" stroke-opacity="0.55"/>
+    <path d="M1200 360C1010 330 860 430 676 400" stroke="#bad3e4" stroke-opacity="0.4"/>
+    <path d="M1200 420C1000 390 850 470 672 435" stroke="#10564f" stroke-opacity="0.9"/>
+    <path d="M1200 480C990 450 840 515 668 470" stroke="#3fb5a3" stroke-opacity="0.5"/>
+  </g>
+  <path d="M470 560V300C470 190 530 110 600 110C670 110 730 190 730 300V560Z" fill="none" stroke="#1e77bd" stroke-opacity="0.5" stroke-width="3"/>
+  <path d="M500 560V305C500 215 548 140 600 140C652 140 700 215 700 305V560Z" fill="url(#door)"/>
+  <path d="M535 560V310C535 245 565 190 600 190C635 190 665 245 665 310V560Z" fill="#bad3e4" opacity="0.35"/>
+  <g fill="#021627">
+    <circle cx="600" cy="418" r="13"/>
+    <path d="M580 560C580 515 586 450 600 440C614 450 620 515 620 560Z"/>
+  </g>
+  <rect x="0" y="560" width="1200" height="70" fill="#021627" opacity="0.7"/>
+  <g fill="#bad3e4">
+    <circle cx="250" cy="150" r="3" opacity="0.7"/>
+    <circle cx="930" cy="170" r="3" opacity="0.7"/>
+    <circle cx="1040" cy="90" r="2.5" opacity="0.5"/>
+    <circle cx="140" cy="80" r="2.5" opacity="0.5"/>
+  </g>
+</svg>

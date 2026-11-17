@@ -1,9 +1,10 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
 bin := "bin/site"
+out := "deploy/static"
 dist := "dist"
 tf := "deploy/terraform"
-addr := ":8080"
+port := "8080"
 
 default:
     @just --list
@@ -23,22 +24,23 @@ lint:
 build:
     go build -o {{bin}} .
 
-run addr=addr: build
-    ./{{bin}} serve --addr {{addr}}
+# build the static site into deploy/static
+site base_url="": build
+    ./{{bin}} --out {{out}} {{ if base_url != "" { "--base-url " + base_url } else { "" } }}
 
-health url="http://localhost:8080":
-    curl -fsS {{url}}/healthz
+# serve deploy/static locally to preview the build
+preview port=port: site
+    python3 -m http.server {{port}} -d {{out}}
 
 # --- dist
 
-dist:
+dist: site
     rm -rf {{dist}}
     mkdir -p {{dist}}
-    GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o {{dist}}/site .
-    cp -R md web config.yaml {{dist}}/
+    cp -R {{out}}/. {{dist}}/
 
 clean:
-    rm -rf bin {{dist}} {{tf}}/.build
+    rm -rf bin {{out}} {{dist}} {{tf}}/.build
 
 # --- terraform
 
@@ -68,12 +70,6 @@ id:
 
 ssh:
     ssh "$(terraform -chdir={{tf}} output -raw instance_id)"
-
-remote-health:
-    curl -fsS "$(terraform -chdir={{tf}} output -raw url)/healthz"
-
-http-health:
-    curl -fsS "http://$(terraform -chdir={{tf}} output -raw public_ip)/healthz"
 
 dns:
     terraform -chdir={{tf}} output hostnames

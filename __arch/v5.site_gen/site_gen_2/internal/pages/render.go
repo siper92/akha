@@ -7,32 +7,39 @@ import (
 	"html/template"
 	"strings"
 	"time"
-	"unicode"
-	"unicode/utf8"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 )
 
+type RenderOptions struct {
+	Template string
+	SiteName string
+	BaseURL  string
+	Assets   string
+	Lang     string
+	Nav      []NavItem
+}
+
 type templateRenderer struct {
-	tmpl     *template.Template
-	md       goldmark.Markdown
-	siteName string
-	nav      []NavItem
+	tmpl *template.Template
+	md   goldmark.Markdown
+	opts RenderOptions
+	year int
 }
 
 var _ Renderer = (*templateRenderer)(nil)
 
-func NewRenderer(tmplPath, siteName string, nav []NavItem) (Renderer, error) {
-	t, err := template.ParseFiles(tmplPath)
+func NewRenderer(opts RenderOptions) (Renderer, error) {
+	t, err := template.ParseFiles(opts.Template)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrTemplate, err)
 	}
 	return &templateRenderer{
-		tmpl:     t,
-		md:       goldmark.New(goldmark.WithExtensions(extension.GFM)),
-		siteName: siteName,
-		nav:      nav,
+		tmpl: t,
+		md:   goldmark.New(goldmark.WithExtensions(extension.GFM)),
+		opts: opts,
+		year: time.Now().Year(),
 	}, nil
 }
 
@@ -44,52 +51,63 @@ func (r *templateRenderer) Render(ctx context.Context, d Doc) (Page, error) {
 	if err := r.md.Convert(d.Body, &body); err != nil {
 		return Page{}, fmt.Errorf("%w: %s: %v", ErrRender, d.Slug, err)
 	}
-	title := titleOf(d)
-	nav := make([]NavItem, len(r.nav))
-	for i, item := range r.nav {
+
+	nav := make([]NavItem, len(r.opts.Nav))
+	for i, item := range r.opts.Nav {
 		item.Active = item.Path == d.Path
 		nav[i] = item
 	}
+
+	img := r.assetURL(d.Meta.Image)
+	alt := d.Meta.ImageAlt
+	if alt == "" {
+		alt = d.Meta.Title
+	}
+	ogType := "article"
+	if d.Index {
+		ogType = "website"
+	}
+
 	view := View{
-		Title:    title,
-		Slug:     d.Slug,
-		Path:     d.Path,
-		Content:  template.HTML(body.String()),
-		Nav:      nav,
-		SiteName: r.siteName,
-		Year:     time.Now().Year(),
+		Lang:        r.opts.Lang,
+		SiteName:    r.opts.SiteName,
+		Assets:      r.opts.Assets,
+		Title:       d.Meta.Title,
+		Subtitle:    d.Meta.Subtitle,
+		Description: d.Meta.Description,
+		Keywords:    strings.Join(d.Meta.Keywords, ", "),
+		Author:      d.Meta.Author,
+		Canonical:   r.absURL(d.Path),
+		Image:       img,
+		ImageAbs:    r.absURL(img),
+		ImageAlt:    alt,
+		OGType:      ogType,
+		Slug:        d.Slug,
+		Path:        d.Path,
+		Content:     template.HTML(body.String()),
+		Nav:         nav,
+		Year:        r.year,
 	}
 	var out bytes.Buffer
 	if err := r.tmpl.Execute(&out, view); err != nil {
 		return Page{}, fmt.Errorf("%w: %s: %v", ErrRender, d.Slug, err)
 	}
-	return Page{Slug: d.Slug, Path: d.Path, Title: title, HTML: out.Bytes()}, nil
+	return Page{Slug: d.Slug, Path: d.Path, File: d.File, Meta: d.Meta, HTML: out.Bytes()}, nil
 }
 
-func titleOf(d Doc) string {
-	for _, line := range strings.Split(string(d.Body), "\n") {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "# ") {
-			if t := strings.TrimSpace(line[2:]); t != "" {
-				return t
-			}
-		}
+func (r *templateRenderer) assetURL(p string) string {
+	if p == "" || strings.HasPrefix(p, "/") || strings.HasPrefix(p, "http://") || strings.HasPrefix(p, "https://") {
+		return p
 	}
-	return d.Slug
+	return r.opts.Assets + "/" + p
 }
 
-func NavFrom(docs []Doc) []NavItem {
-	items := make([]NavItem, 0, len(docs))
-	for _, d := range docs {
-		items = append(items, NavItem{Label: label(d.Slug), Path: d.Path})
+func (r *templateRenderer) absURL(p string) string {
+	if p == "" || r.opts.BaseURL == "" {
+		return ""
 	}
-	return items
-}
-
-func label(slug string) string {
-	r, size := utf8.DecodeRuneInString(slug)
-	if r == utf8.RuneError {
-		return slug
+	if strings.HasPrefix(p, "http://") || strings.HasPrefix(p, "https://") {
+		return p
 	}
-	return string(unicode.ToUpper(r)) + slug[size:]
+	return r.opts.BaseURL + p
 }

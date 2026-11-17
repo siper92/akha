@@ -1,41 +1,39 @@
 # site_gen_2
 
-A small static site. A go server merges markdown pages into one html template on boot and serves them from memory. Terraform deploys it to one aws graviton instance with https.
+A small static site generator. One go command merges the markdown pages in `web/md` into the html template and writes a plain static site to `deploy/static`, ready for nginx.
 
 ## layout
 
-- `md/` - one markdown file per page, `world.md` is served at `/`, `home.md` at `/home`
-- `web/templates/layout.html` - the page template, the markdown goes into `.Content`
-- `web/static/` - css and the logo
-- `cmd/`, `internal/` - the go server (gin, cobra, viper, goldmark)
-- `config.yaml` - server config, every key can be overridden with a `SITE_` env var
+- `web/md/` - one markdown file per page with yaml front matter (title, description, nav, order, image, keywords)
+  - `world.md` is written to `index.html` (`/`), every other page to `<slug>/index.html` (`/<slug>/`)
+  - `<page>_outline.md` files are story outlines, they are not built
+- `web/templates/layout.html` - the page template, meta and og tags come from the front matter
+- `web/static/` - css, js and images, copied to `deploy/static/assets/` (`.md` files are skipped)
+- `web/static/design.md` - design and style doc, colors, themes, components, image specs
+- `main.go`, `internal/` - the generator (cobra, viper, goldmark, yaml)
+- `config.yaml` - build config, every key can be overridden with a `SITE_` env var
 - `deploy/terraform/` - aws infrastructure
-- `docs/` - guides, start with `docs/amazon_setup.md`
-- `steps/` - the plan the site was built from
 - `Justfile` - all commands
 
-## run locally
+## build
 
-- `just tidy` - first run only, creates `go.sum`
-- `just run` - serves on `http://localhost:8080`
-- `just health` - checks `/healthz`
+- `just site` - builds `deploy/static`
+- `just site https://example.com` - also writes canonical urls, `og:url`, `og:image` and `sitemap.xml`
+- `just preview` - builds and serves `deploy/static` on `http://localhost:8080`
+
+## nginx
+
+```nginx
+server {
+    root /usr/share/nginx/html;
+    index index.html;
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
+```
 
 ## deploy
 
-One-time setup (aws account, terraform role, vpc, elastic ip, dns, https) lives in `docs/amazon_setup.md`. After that:
-
-- `cp deploy/terraform/terraform.tfvars.example deploy/terraform/terraform.tfvars` and edit it
-- `just tf-init`
-- `just tf-plan` - builds `dist/` and shows the plan
-- `just deploy` - builds `dist/` and applies
-- `just url` and `just remote-health`
-- redeploy - edit `md/` or `web/`, then `just deploy`
-- `just destroy` - removes everything, including the bucket
-
-## useful commands
-
-- `just` - list all recipes
-- `just dns` - hostnames and public ip
-- `just http-health` - check `/healthz` over http on the ip
-- `just remote-health` - check the deployed site
-- `just clean` - remove build output
+- `just dist` - copies `deploy/static` into `dist/`
+- `just deploy` - builds `dist/` and applies terraform

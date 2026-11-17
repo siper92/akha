@@ -11,67 +11,56 @@ import (
 var ErrInvalidConfig = errors.New("invalid config")
 
 type Config struct {
-	Addr      string `mapstructure:"addr"`
-	MDDir     string `mapstructure:"md_dir"`
-	Template  string `mapstructure:"template"`
-	StaticDir string `mapstructure:"static_dir"`
-	IndexPage string `mapstructure:"index_page"`
-	SiteName  string `mapstructure:"site_name"`
-
-	TLSDomains  string `mapstructure:"tls_domains"`
-	TLSEmail    string `mapstructure:"tls_email"`
-	TLSCacheDir string `mapstructure:"tls_cache_dir"`
-	HTTPSAddr   string `mapstructure:"https_addr"`
-}
-
-func (c Config) Domains() []string {
-	var out []string
-	for _, d := range strings.Split(c.TLSDomains, ",") {
-		d = strings.TrimSpace(d)
-		if d != "" {
-			out = append(out, d)
-		}
-	}
-	return out
+	MDDir      string `mapstructure:"md_dir"`
+	Template   string `mapstructure:"template"`
+	StaticDir  string `mapstructure:"static_dir"`
+	OutDir     string `mapstructure:"out_dir"`
+	AssetsPath string `mapstructure:"assets_path"`
+	IndexPage  string `mapstructure:"index_page"`
+	SiteName   string `mapstructure:"site_name"`
+	BaseURL    string `mapstructure:"base_url"`
+	Lang       string `mapstructure:"lang"`
+	Clean      bool   `mapstructure:"clean"`
 }
 
 func Load(v *viper.Viper) (Config, error) {
-	v.SetDefault("addr", ":8080")
-	v.SetDefault("md_dir", "md")
+	v.SetDefault("md_dir", "web/md")
 	v.SetDefault("template", "web/templates/layout.html")
 	v.SetDefault("static_dir", "web/static")
+	v.SetDefault("out_dir", "deploy/static")
+	v.SetDefault("assets_path", "/assets")
 	v.SetDefault("index_page", "world")
 	v.SetDefault("site_name", "Akha Collective")
-	v.SetDefault("tls_domains", "")
-	v.SetDefault("tls_email", "")
-	v.SetDefault("tls_cache_dir", "/var/lib/site/certs")
-	v.SetDefault("https_addr", ":443")
+	v.SetDefault("base_url", "")
+	v.SetDefault("lang", "en")
+	v.SetDefault("clean", true)
 
 	var cfg Config
 	if err := v.Unmarshal(&cfg); err != nil {
 		return Config{}, fmt.Errorf("%w: %v", ErrInvalidConfig, err)
 	}
+	cfg.BaseURL = strings.TrimRight(cfg.BaseURL, "/")
+	cfg.AssetsPath = "/" + strings.Trim(cfg.AssetsPath, "/")
 
 	fields := []struct{ name, val string }{
-		{"addr", cfg.Addr},
 		{"md_dir", cfg.MDDir},
 		{"template", cfg.Template},
 		{"static_dir", cfg.StaticDir},
+		{"out_dir", cfg.OutDir},
 		{"index_page", cfg.IndexPage},
 		{"site_name", cfg.SiteName},
+		{"lang", cfg.Lang},
 	}
 	for _, f := range fields {
 		if f.val == "" {
 			return Config{}, fmt.Errorf("%w: %s is empty", ErrInvalidConfig, f.name)
 		}
 	}
-	if len(cfg.Domains()) > 0 {
-		if cfg.TLSCacheDir == "" {
-			return Config{}, fmt.Errorf("%w: tls_cache_dir is empty", ErrInvalidConfig)
-		}
-		if cfg.HTTPSAddr == "" {
-			return Config{}, fmt.Errorf("%w: https_addr is empty", ErrInvalidConfig)
-		}
+	if cfg.AssetsPath == "/" {
+		return Config{}, fmt.Errorf("%w: assets_path must not be the root", ErrInvalidConfig)
+	}
+	if cfg.BaseURL != "" && !strings.HasPrefix(cfg.BaseURL, "http://") && !strings.HasPrefix(cfg.BaseURL, "https://") {
+		return Config{}, fmt.Errorf("%w: base_url must start with http:// or https://", ErrInvalidConfig)
 	}
 	return cfg, nil
 }

@@ -1,3 +1,14 @@
+---
+title: The Tek
+subtitle: A world shared by people and machines
+description: A harbor city where machines keep the tides of daily life, and the tek, a virtual space spread across millions of machines, waits one door away.
+nav: World
+order: 1
+image: img/world.svg
+image_alt: A harbor skyline dissolving into layered rings of light, the portals of the tek
+keywords: [tek, akha, machines, upload, collective, virtual space]
+author: Akha Collective
+---
 # The Tek
 ## A world shared by people and machines
 
@@ -9,7 +20,7 @@ A person may choose to upload their mind into the tek. They arrive first at leve
 
 The largest entities live on the big servers, in halls where the air is kept cold and the fans never stop. They are collectives of millions, slow to speak and careful when they do. A visitor describes them as weather rather than as persons: a presence that gathers, answers a question the way a river answers a stone, and moves on. Villages petition them about floods, harvests and old disputes, and the replies arrive in plain, patient sentences.
 
-Most people never go up at all, and nobody calls that a failing. They plant beans, repair radios, argue about football, and send greetings to relatives who have climbed three levels and now answer as a chorus. For the curious, there is a [place to hear one person's account](/home) of the first step.
+Most people never go up at all, and nobody calls that a failing. They plant beans, repair radios, argue about football, and send greetings to relatives who have climbed three levels and now answer as a chorus. For the curious, there is a [place to hear one person's account](/home/) of the first step.
 
 ---
 

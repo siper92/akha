@@ -1,3 +1,14 @@
+---
+title: The First Door
+subtitle: One person, and the day she stopped being only one
+description: Mira uploads into the tek, keeps her blue cup and her mother's coat, and learns at level two what it means to share a mind with eleven strangers.
+nav: First Door
+order: 2
+image: img/home.svg
+image_alt: A single figure at a glowing doorway, with soft waves of other minds gathering at its edge
+keywords: [tek, upload, level one, merging, identity, mira]
+author: Akha Collective
+---
 # The First Door
 ## One person, and the day she stopped being only one
 
