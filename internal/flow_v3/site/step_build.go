@@ -103,10 +103,12 @@ func askStep(
 			return flow.UnknownTransition, fmt.Errorf("%s: %w", name, ErrMissingData)
 		}
 
-		prompt, err := buildPrompt(input, def)
+		d, err := def()
 		if err != nil {
-			return flow.UnknownTransition, fmt.Errorf("%s: %w", name, err)
+			return "", fmt.Errorf("load step def: %w", err)
 		}
+
+		prompt := getAiPrompt(input, d)
 
 		answer, err := a.Ask(ctx, prompt)
 		if err != nil {
@@ -127,15 +129,6 @@ func implementStep(_ context.Context, s SiteService) (flow.Transition, error) {
 	}
 
 	return flow.DoneTransition, nil
-}
-
-func buildPrompt(input string, def func() (*parse.MDFlowStep, error)) (string, error) {
-	d, err := def()
-	if err != nil {
-		return "", fmt.Errorf("load step def: %w", err)
-	}
-
-	return getAiPrompt(input, d), nil
 }
 
 func getAiPrompt(input string, d *parse.MDFlowStep) string {
