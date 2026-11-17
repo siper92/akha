@@ -9,23 +9,27 @@
   --grotto-light: #5aa6e0;
   --blue-green-light: #3fb5a3;
   --grotto-dark: #17629c;
+  --leaf: #2e8b6a;
+  --leaf-light: #7fd1a8;
 
-  --bg: #021627;
-  --bg-gradient: radial-gradient(1200px 600px at 80% -10%, rgba(30,119,189,0.22), transparent 60%), radial-gradient(900px 500px at -10% 20%, rgba(16,86,79,0.35), transparent 60%);
-  --surface: #052a49;
-  --surface-2: #04345c;
-  --border: #0f4a75;
-  --text: #eaf2f8;
-  --muted: #9fbdd3;
-  --heading: #bad3e4;
-  --primary: #1e77bd;
-  --primary-text: #5aa6e0;
-  --accent: #3fb5a3;
+  --bg: #021a22;
+  --bg-gradient: radial-gradient(1200px 600px at 85% -10%, rgba(30,119,189,0.20), transparent 60%), radial-gradient(900px 600px at -10% 15%, rgba(46,139,106,0.30), transparent 60%), radial-gradient(800px 500px at 50% 110%, rgba(16,86,79,0.35), transparent 60%);
+  --surface: #06302f;
+  --surface-2: #0a3b3a;
+  --border: #145a52;
+  --text: #e8f4f0;
+  --muted: #9cc4b8;
+  --heading: #c4e6d8;
+  --primary: #1f8f78;
+  --primary-text: #6fd0b4;
+  --accent: #7fd1a8;
   --accent-fill: #10564f;
-  --code-bg: #031f36;
-  --glass: rgba(5,42,73,0.72);
-  --shadow: 0 10px 30px rgba(0,0,0,0.35);
-  --brand-gradient: linear-gradient(135deg, #04345c 0%, #10564f 50%, #1e77bd 100%);
+  --code-bg: #04262a;
+  --glass: rgba(4,38,40,0.74);
+  --shadow: 0 10px 30px rgba(0,0,0,0.40);
+  --brand-gradient: linear-gradient(135deg, #04345c 0%, #10564f 45%, #2e8b6a 75%, #1e77bd 100%);
+  --rule: linear-gradient(90deg, var(--accent), transparent);
+  --h1-gradient: linear-gradient(120deg, #c4e6d8 0%, #7fd1a8 50%, #5aa6e0 100%);
 
   --font-head: "Space Grotesk", system-ui, sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
@@ -59,40 +63,42 @@
 }
 
 :root[data-theme="light"] {
-  --bg: #f5f9fc;
-  --bg-gradient: radial-gradient(1200px 600px at 80% -10%, rgba(30,119,189,0.12), transparent 60%), radial-gradient(900px 500px at -10% 20%, rgba(16,86,79,0.10), transparent 60%);
+  --bg: #f3f8f4;
+  --bg-gradient: radial-gradient(1200px 600px at 85% -10%, rgba(46,139,106,0.14), transparent 60%), radial-gradient(900px 600px at -10% 15%, rgba(16,86,79,0.10), transparent 60%), radial-gradient(800px 500px at 50% 110%, rgba(30,119,189,0.06), transparent 60%);
   --surface: #ffffff;
-  --surface-2: #e8f1f8;
-  --border: #bad3e4;
-  --text: #08243d;
-  --muted: #3d5a73;
-  --heading: #04345c;
-  --primary: #1e77bd;
-  --primary-text: #17629c;
+  --surface-2: #e3f0e8;
+  --border: #b9d8c6;
+  --text: #0c2a24;
+  --muted: #3f6157;
+  --heading: #0d4a3f;
+  --primary: #1a7a5e;
+  --primary-text: #146a52;
   --accent: #10564f;
   --accent-fill: #10564f;
-  --code-bg: #e8f1f8;
-  --glass: rgba(255,255,255,0.78);
-  --shadow: 0 10px 30px rgba(4,52,92,0.12);
+  --code-bg: #e3f0e8;
+  --glass: rgba(243,248,244,0.82);
+  --shadow: 0 10px 30px rgba(16,86,79,0.12);
+  --h1-gradient: linear-gradient(120deg, #04345c 0%, #10564f 55%, #1a7a5e 100%);
 }
 
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) {
-    --bg: #f5f9fc;
-    --bg-gradient: radial-gradient(1200px 600px at 80% -10%, rgba(30,119,189,0.12), transparent 60%), radial-gradient(900px 500px at -10% 20%, rgba(16,86,79,0.10), transparent 60%);
+    --bg: #f3f8f4;
+    --bg-gradient: radial-gradient(1200px 600px at 85% -10%, rgba(46,139,106,0.14), transparent 60%), radial-gradient(900px 600px at -10% 15%, rgba(16,86,79,0.10), transparent 60%), radial-gradient(800px 500px at 50% 110%, rgba(30,119,189,0.06), transparent 60%);
     --surface: #ffffff;
-    --surface-2: #e8f1f8;
-    --border: #bad3e4;
-    --text: #08243d;
-    --muted: #3d5a73;
-    --heading: #04345c;
-    --primary: #1e77bd;
-    --primary-text: #17629c;
+    --surface-2: #e3f0e8;
+    --border: #b9d8c6;
+    --text: #0c2a24;
+    --muted: #3f6157;
+    --heading: #0d4a3f;
+    --primary: #1a7a5e;
+    --primary-text: #146a52;
     --accent: #10564f;
     --accent-fill: #10564f;
-    --code-bg: #e8f1f8;
-    --glass: rgba(255,255,255,0.78);
-    --shadow: 0 10px 30px rgba(4,52,92,0.12);
+    --code-bg: #e3f0e8;
+    --glass: rgba(243,248,244,0.82);
+    --shadow: 0 10px 30px rgba(16,86,79,0.12);
+    --h1-gradient: linear-gradient(120deg, #04345c 0%, #10564f 55%, #1a7a5e 100%);
   }
 }
 
@@ -294,8 +300,8 @@ nav a.active {
 
 /* hero */
 .page-hero {
-  max-width: var(--container);
-  margin: 0 0 var(--s6);
+  max-width: 600px;
+  margin: 0 auto var(--s6);
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -306,7 +312,7 @@ nav a.active {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 1200 / 630;
+  aspect-ratio: 600 / 315;
 }
 
 /* prose */
@@ -314,6 +320,42 @@ nav a.active {
   max-width: var(--measure);
   margin: 0 auto;
   overflow-wrap: break-word;
+  text-align: justify;
+  text-justify: inter-word;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose li,
+.prose blockquote {
+  text-align: left;
+  -webkit-hyphens: manual;
+  hyphens: manual;
+}
+
+.prose > h2:not(h1 + h2)::after {
+  content: "";
+  display: block;
+  width: 72px;
+  height: 2px;
+  margin-top: var(--s2);
+  border-radius: 2px;
+  background: var(--rule);
+}
+
+.prose ul {
+  padding-left: 1.2em;
+}
+
+.prose li::marker {
+  color: var(--accent);
+}
+
+.prose li + li {
+  margin-top: var(--s1);
 }
 
 .prose h1,
@@ -340,9 +382,20 @@ nav a.active {
   font-size: var(--fs-h3);
 }
 
+.prose h1 {
+  background: var(--h1-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 .prose h1 + h2 {
   margin-top: calc(var(--s3) * -0.5);
+  margin-bottom: var(--s6);
+  padding-bottom: var(--s4);
+  border-bottom: 1px solid var(--border);
   color: var(--muted);
+  font-size: var(--fs-h3);
   font-weight: 400;
 }
 
@@ -374,11 +427,15 @@ nav a.active {
 }
 
 .prose blockquote {
-  margin: var(--s5) 0;
-  padding: var(--s3) var(--s4);
+  margin: var(--s6) 0;
+  padding: var(--s4) var(--s5);
   background: var(--surface);
   border-left: 3px solid var(--accent);
   border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  box-shadow: var(--shadow);
+  color: var(--heading);
+  font-family: var(--font-head);
+  font-size: 1.1rem;
 }
 
 .prose blockquote > :last-child {

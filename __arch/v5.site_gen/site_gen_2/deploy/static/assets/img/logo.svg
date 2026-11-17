@@ -1,17 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width="28" height="28" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width="28" height="28" fill="none" role="img" aria-label="Akha Collective">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#1e77bd"/>
       <stop offset="1" stop-color="#3fb5a3"/>
     </linearGradient>
   </defs>
-  <g stroke="url(#g)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="14" cy="14" r="12.2"/>
-    <path d="M14 7.5L8.4 17.5H19.6Z"/>
-  </g>
-  <g fill="url(#g)">
-    <circle cx="14" cy="7.5" r="2.2"/>
-    <circle cx="8.4" cy="17.5" r="2.2"/>
-    <circle cx="19.6" cy="17.5" r="2.2"/>
-  </g>
+  <path d="M5 25V12a9 9 0 0 1 18 0v13" stroke="url(#g)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M3 25h22" stroke="#2e8b6a" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="14" cy="19" r="2.6" fill="#7fd1a8"/>
 </svg>

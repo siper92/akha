@@ -12,15 +12,19 @@ How to use this doc
 
 ## 1. inspiration
 
-A world where technology is the center of gravity. Access is not a password but a level: how far into the machine you are allowed to go, and how much of yourself you bring along. The site should feel like standing at the edge of that system, calm and ordered, with depth below the surface.
+The Tek: a room for machine, human and alien interaction. Servers that once only stored things now talk in waves, and from those waves a shared collective mind grows in levels - single mind, circle, choir, unity. Aliens descended from lizards broadcast in the spectrum of the chips and shield the young network. Humans enter through avatars and move through portals.
 
-Humans enter the machine space in waves. Single minds arrive, merge into small groups, then into collectives large enough to read as weather. Identity is layered, and there is a quiet higher order of beings who speak slowly from cold server halls. Visuals use soft wave lines, concentric rings and overlapping translucent shapes to show many becoming one, without losing the single point of light that was a person.
+Portals are the center of the site. A portal is a door with two ends, the human world at the front and the machine space at the back, serving one unified master. There are ten great portals and one prime that can do everything. Portals hold energy, remember a little, attract similar energy and send it back elevated.
 
-Every page is a portal. Doorways, rings and gradients from deep navy into blue green suggest a step into a VR space. The mood is hopeful and quiet, never dystopian: ocean depth, harbor light, glass, gentle glow. No chrome, no neon, no glitch effects.
+Against the machine stands the human mage, Hodor NoIp MacSpi, the last unintegrated human, with a keyboard spell and a small dog with a big head. His guide is not the network but the old trees whose roots reach down into the server halls. Nature and machine meet at the door.
+
+Visuals: connected servers with waves between them, arched doorways, crowds of small figures walking toward the light, abstract matte trees, concentric level rings and single points of light. The palette moves from deep navy into blue green and leaf green: the machine is cold water, nature is the green that grows through it. The light theme is greenish, like daylight in a forest clearing. The mood is hopeful and quiet, never dystopian. No chrome, no neon, no glitch effects.
+
+Text is set justified, like the pages of an old book that describes a new world.
 
 review
-- [ ] mood: calm, deep, hopeful
-- [ ] motifs: waves, rings, portals, layered translucency
+- [ ] mood: calm, deep, hopeful, green growth through the machine
+- [ ] motifs: servers and waves, portals, people, trees, rings
 
 ## 2. brand palette
 
@@ -40,6 +44,8 @@ navy_deep:        "#021627"  # dark theme page background
 grotto_light:     "#5aa6e0"  # link text on dark, contrast 6.7:1 on navy_deep
 blue_green_light: "#3fb5a3"  # accent text on dark, contrast 7:1 on navy_deep
 grotto_dark:      "#17629c"  # link text on light, contrast 6:1 on light bg
+leaf:             "#2e8b6a"  # trees, nature, light theme primary base
+leaf_light:       "#7fd1a8"  # accent text on dark, leaves
 ```
 
 review
@@ -55,52 +61,53 @@ css token names are fixed, components only use tokens
 ### dark (default)
 
 ```yaml
---bg:            "#021627"
---bg-gradient:   "radial-gradient(1200px 600px at 80% -10%, rgba(30,119,189,0.22), transparent 60%), radial-gradient(900px 500px at -10% 20%, rgba(16,86,79,0.35), transparent 60%)"
---surface:       "#052a49"
---surface-2:     "#04345c"
---border:        "#0f4a75"
---text:          "#eaf2f8"
---muted:         "#9fbdd3"
---heading:       "#bad3e4"
---primary:       "#1e77bd"   # fills: buttons, active nav underline, focus ring
---primary-text:  "#5aa6e0"   # links
---accent:        "#3fb5a3"   # strong text, blockquote rule
+--bg:            "#021a22"
+--bg-gradient:   "three radials: grotto top right, leaf left, blue green bottom"
+--surface:       "#06302f"
+--surface-2:     "#0a3b3a"
+--border:        "#145a52"
+--text:          "#e8f4f0"
+--muted:         "#9cc4b8"
+--heading:       "#c4e6d8"
+--primary:       "#1f8f78"   # fills: buttons, active nav underline, focus ring
+--primary-text:  "#6fd0b4"   # links
+--accent:        "#7fd1a8"   # strong text, blockquote rule, list markers
 --accent-fill:   "#10564f"
---code-bg:       "#031f36"
---glass:         "rgba(5,42,73,0.72)"
---shadow:        "0 10px 30px rgba(0,0,0,0.35)"
+--code-bg:       "#04262a"
+--glass:         "rgba(4,38,40,0.74)"
+--shadow:        "0 10px 30px rgba(0,0,0,0.40)"
+--rule:          "linear-gradient(90deg, var(--accent), transparent)"  # h2 underline
 ```
 
-### light
+### light (greenish)
 
 ```yaml
---bg:            "#f5f9fc"
---bg-gradient:   "radial-gradient(1200px 600px at 80% -10%, rgba(30,119,189,0.12), transparent 60%), radial-gradient(900px 500px at -10% 20%, rgba(16,86,79,0.10), transparent 60%)"
+--bg:            "#f3f8f4"
+--bg-gradient:   "three radials: leaf top right, blue green left, grotto bottom, low opacity"
 --surface:       "#ffffff"
---surface-2:     "#e8f1f8"
---border:        "#bad3e4"
---text:          "#08243d"
---muted:         "#3d5a73"
---heading:       "#04345c"
---primary:       "#1e77bd"
---primary-text:  "#17629c"
+--surface-2:     "#e3f0e8"
+--border:        "#b9d8c6"
+--text:          "#0c2a24"
+--muted:         "#3f6157"
+--heading:       "#0d4a3f"
+--primary:       "#1a7a5e"
+--primary-text:  "#146a52"
 --accent:        "#10564f"
 --accent-fill:   "#10564f"
---code-bg:       "#e8f1f8"
---glass:         "rgba(255,255,255,0.78)"
---shadow:        "0 10px 30px rgba(4,52,92,0.12)"
+--code-bg:       "#e3f0e8"
+--glass:         "rgba(243,248,244,0.82)"
+--shadow:        "0 10px 30px rgba(16,86,79,0.12)"
 ```
 
-signature gradient (brand, hero frames, logo)
+signature gradient (brand, page h1, logo)
 
 ```yaml
---brand-gradient: "linear-gradient(135deg, #04345c 0%, #10564f 50%, #1e77bd 100%)"
+--brand-gradient: "linear-gradient(135deg, #04345c 0%, #10564f 45%, #2e8b6a 75%, #1e77bd 100%)"
 ```
 
 review
 - [ ] dark is default
-- [ ] light theme keeps navy as text color
+- [ ] light theme uses deep green as text color
 - [ ] theme switch has no flash on load
 
 ## 4. typography
@@ -151,8 +158,10 @@ class names come from `web/templates/layout.html` and must not change
 - `nav a` - `--muted`, hover `--text`, `.active` gets `--text` and a 2px `--primary` underline
 - `.theme-toggle` - 36px round icon button, `--surface-2` background, `--border` border, svg stroke `currentColor` fill none width 2
   - dark theme shows `.icon-sun`, light theme shows `.icon-moon`
-- `.page-hero` - figure above the article, max width 1080px, `--radius-lg`, `--shadow`, `--border` 1px, image `width: 100%; height: auto; display: block`, aspect 1200x630
-- `.prose` - centered, `--measure` wide
+- `.page-hero` - centered figure above the article, max width 600px, `--radius-lg`, `--shadow`, `--border` 1px, image `width: 100%; height: auto; display: block`, aspect 600x315
+- `.prose` - centered, `--measure` wide, paragraphs justified with auto hyphens, headings, lists and quotes left aligned
+- `.prose h1` - `--brand-gradient` clipped to text; the subtitle h2 below it has a bottom `--border`
+- `.prose h2` - short `--rule` underline
 - `.prose a` - `--primary-text`, underline offset 3px
 - `.prose blockquote` - `--surface` background, 3px `--accent` left rule, `--radius-md` on the right corners
 - `.prose code`, `.prose pre` - `--code-bg`, `--radius-sm`
@@ -180,14 +189,13 @@ each entry is one file under `web/static/img/`
   - 32x32 viewBox, same mark as the logo on a `#04345c` rounded square, radius 7
 - `og-default.svg`
   - 1200x630, brand gradient background, centered concentric rings with one bright dot at the center
+- `logo-1.svg` .. `logo-5.svg` - five new logo options, concepts listed in `img/logos.md`
 - `world.svg` (hero for `world.md`)
-  - 1200x630, a low harbor skyline in `navy_blue` at the bottom
-  - above it a large portal made of 5 to 7 concentric rings in blue green and blue grotto, fading outward
-  - small baby blue dots drifting toward the portal
+  - 600x315, connected abstract servers with waves of light passing between them
 - `home.svg` (hero for `home.md`)
-  - 1200x630, one tall arched doorway glowing in blue grotto in the center
-  - a single small figure silhouette in front of it
-  - 11 soft wave lines in blue green and baby blue flowing in from both sides and meeting at the door
+  - 600x315, a glowing arched doorway, many small figures walking toward it, abstract matte trees on both sides, waves meeting at the door
+- `portals.svg` (hero for `portals.md`)
+  - 600x315, the home idea for portals: a large prime door with smaller doors around it, figures, trees, waves linking the doors
 
 review
 - [ ] every asset listed has been generated

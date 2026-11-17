@@ -9,7 +9,7 @@
 {{end}}{{with .Author}}<meta name="author" content="{{.}}">
 {{end}}{{with .Canonical}}<link rel="canonical" href="{{.}}">
 {{end}}<meta name="color-scheme" content="dark light">
-<meta name="theme-color" content="#04345c">
+<meta name="theme-color" content="#0a3b3a">
 <meta property="og:site_name" content="{{.SiteName}}">
 <meta property="og:type" content="{{.OGType}}">
 <meta property="og:title" content="{{.Title}}">
@@ -48,7 +48,7 @@
 </header>
 <main id="main">
   {{with .Image}}<figure class="page-hero">
-    <img src="{{.}}" alt="{{$.ImageAlt}}" width="1200" height="630">
+    <img src="{{.}}" alt="{{$.ImageAlt}}" width="600" height="315">
   </figure>
   {{end}}<article class="prose">{{.Content}}</article>
 </main>
