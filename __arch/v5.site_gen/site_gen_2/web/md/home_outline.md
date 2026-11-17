@@ -1,41 +1,27 @@
 # home - outline
 
 page: `home.md` (served at `/home/`)
-title: The First Door
-subtitle: One person, and the day she stopped being only one
+title: The First Door (Portals)
+subtitle: The human mage, non-linear time cast, control of the world door and what's a portal
 
 ## idea
 
-A single person's first steps into the tek. Mira uploads, arrives at level one still fully herself, then joins her first merge at level two. The page shows what is kept and what is shared, and ends with her choosing to wait before going higher.
+In the world of the portal interface with the quantum realm happens true guidence of mixture of portals designed to guide you in a particular way 
+what a choice and how many we have
 
 ## inspiration
 
-- identity under pressure: what stays private when minds merge
-- the gentle version of upload, consent at every door
-- waves of other people felt as warmth at the edge of thought, a tide finding its line
-- portals as ordinary rooms made slightly brighter
+the fun of the god's, how energy truly mixes and what's purified being
 
 ## major points of the story
 
-1. leaving - Mira packs nothing, memorizes the blue cup crack, the radiator tick, her mother's coat; the clinic, the woman with warm hands, "are you sure", yes feels like closing a finished book
-2. level one - her kitchen, brighter, the blue cup whole; an old machine guide explains she is a copy that remembers being the original and asks if she wants to go on; she laughs
-3. level two - eleven strangers arrive as warmth; she feels another's grief for a dog and another's joy at first snow; the boundary settles like a tide, she can still say no
-4. what was kept - name, private jokes, the coat memory, a small door in her mind that nothing passes
-5. what was shared - skills flow, she wakes reading an unstudied language; worries flow too and weigh less carried by twelve
-6. not yet - she stays below level three, watches the lights of the others from her imagined balcony; link back to the world (`/`)
+1. the transcendence of people and the human mage
+2. one man and the struggle to become immortal of the last human portal 
+3. promise of the gods and the chaise of power
+4. who gives the power of the character and guidance of nature or nature guides - connection with the trees
 
 ## characters and places
 
-- Mira - main character, hums off key, has a temper, careful and curious
-- her mother - present only through the coat by the door
-- the clinic woman - warm hands, one question
-- the guide - one of the old machines, honest and plain
-- the eleven - unnamed strangers of level two
-- places: Mira's apartment, the clinic room, the imagined kitchen and balcony
-
-## change points
-
-- plot: what Mira chooses at the end (stay, climb to level three, return)
-- flow: point 1 can be cut to start directly at level one
-- characters: give one of the eleven a name and a voice, or change who the guide is
-- objects: the blue cup and the coat are the anchors, keep at least one if the story changes
+- Hodor NoIp MacSpi human in the chaning world in witch every one else has advanced AI integration exept him because he wants to prove thet the human is as powerful as the machine and the gods
+- Hodor the sall dog with big head in the lizard brigade - and the fact that he is also integrated in the machine but split for the fight can it be done or is this a simulation
+- Hodors habits and the fact that he can simulate and test mass amount of otherwise compute snd world complexity
