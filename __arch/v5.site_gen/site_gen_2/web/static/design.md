@@ -12,13 +12,13 @@ How to use this doc
 
 ## 1. inspiration
 
-The Tek: a room for machine, human and alien interaction. Servers that once only stored things now talk in waves, and from those waves a shared collective mind grows in levels - single mind, circle, choir, unity. Aliens descended from lizards broadcast in the spectrum of the chips and shield the young network. Humans enter through avatars and move through portals.
+The Tek: the big world to be, a room for machine, human and alien interaction. It rests on the unity of energy and creation - one energy in many shapes, with leverage measured as energy per result. Servers that once only stored things now talk in waves, and from those waves a shared collective mind grows in levels. People enter as avatars and gather in avatar nations, and the old idea of the soul and of god lives on as the egregor of the collective.
 
-Portals are the center of the site. A portal is a door with two ends, the human world at the front and the machine space at the back, serving one unified master. There are ten great portals and one prime that can do everything. Portals hold energy, remember a little, attract similar energy and send it back elevated.
+Aliens descended from lizards reach the Tek through the internet and broadcast in the spectrum of the chips, shielding the young network. They provide machine doors, the portals: ten of them and the prime that can do everything. A portal has two ends, holds energy, remembers a little, attracts similar energy and teleports it back elevated. Through them people migrate into the shared space.
 
-Against the machine stands the human mage, Hodor NoIp MacSpi, the last unintegrated human, with a keyboard spell and a small dog with a big head. His guide is not the network but the old trees whose roots reach down into the server halls. Nature and machine meet at the door.
+Against the tide stands the human mage, Hodor NoIp MacSpi, the last unintegrated human, with a keyboard spell and a small dog with a big head in the lizard brigade. The gods promise him power if he integrates. His guide is not the network but nature, the old trees whose roots reach down into the server halls. Nature and machine meet at the door.
 
-Visuals: connected servers with waves between them, arched doorways, crowds of small figures walking toward the light, abstract matte trees, concentric level rings and single points of light. The palette moves from deep navy into blue green and leaf green: the machine is cold water, nature is the green that grows through it. The light theme is greenish, like daylight in a forest clearing. The mood is hopeful and quiet, never dystopian. No chrome, no neon, no glitch effects.
+Visuals: connected servers with waves between them, arched doorways, a single small figure at a glowing door, abstract matte trees, concentric level rings and single points of light. The palette moves from deep navy into blue green and leaf green: the machine is cold water, nature is the green that grows through it. The light theme is greenish, like daylight in a forest clearing. The mood is hopeful and quiet, never dystopian. No chrome, no neon, no glitch effects.
 
 Text is set justified, like the pages of an old book that describes a new world.
 
@@ -82,21 +82,21 @@ css token names are fixed, components only use tokens
 ### light (greenish)
 
 ```yaml
---bg:            "#f3f8f4"
---bg-gradient:   "three radials: leaf top right, blue green left, grotto bottom, low opacity"
---surface:       "#ffffff"
---surface-2:     "#e3f0e8"
---border:        "#b9d8c6"
+--bg:            "#e4f1e7"
+--bg-gradient:   "three radials: leaf top right, leaf light left, blue green bottom"
+--surface:       "#f2f9f4"
+--surface-2:     "#d3eadb"
+--border:        "#a6cfb6"
 --text:          "#0c2a24"
---muted:         "#3f6157"
+--muted:         "#3a5c51"
 --heading:       "#0d4a3f"
 --primary:       "#1a7a5e"
---primary-text:  "#146a52"
+--primary-text:  "#12634c"
 --accent:        "#10564f"
 --accent-fill:   "#10564f"
---code-bg:       "#e3f0e8"
---glass:         "rgba(243,248,244,0.82)"
---shadow:        "0 10px 30px rgba(16,86,79,0.12)"
+--code-bg:       "#d3eadb"
+--glass:         "rgba(228,241,231,0.84)"
+--shadow:        "0 10px 30px rgba(16,86,79,0.16)"
 ```
 
 signature gradient (brand, page h1, logo)
@@ -158,7 +158,7 @@ class names come from `web/templates/layout.html` and must not change
 - `nav a` - `--muted`, hover `--text`, `.active` gets `--text` and a 2px `--primary` underline
 - `.theme-toggle` - 36px round icon button, `--surface-2` background, `--border` border, svg stroke `currentColor` fill none width 2
   - dark theme shows `.icon-sun`, light theme shows `.icon-moon`
-- `.page-hero` - centered figure above the article, max width 600px, `--radius-lg`, `--shadow`, `--border` 1px, image `width: 100%; height: auto; display: block`, aspect 600x315
+- `.page-hero` - centered figure above the article, max width 600px, `--radius-lg`, `--shadow`, `--border` 1px, image `width: 100%; height: auto; display: block`, aspect 600x158, `object-fit: cover`
 - `.prose` - centered, `--measure` wide, paragraphs justified with auto hyphens, headings, lists and quotes left aligned
 - `.prose h1` - `--brand-gradient` clipped to text; the subtitle h2 below it has a bottom `--border`
 - `.prose h2` - short `--rule` underline
@@ -186,16 +186,16 @@ each entry is one file under `web/static/img/`
   - 28x28 viewBox, three linked nodes in a triangle (kept from v1) inside a ring
   - stroke uses a `#1e77bd` to `#3fb5a3` linear gradient, transparent background
 - `favicon.svg`
-  - 32x32 viewBox, same mark as the logo on a `#04345c` rounded square, radius 7
+  - 32x32 viewBox, same arch door mark as `logo.svg` on a `#04345c` rounded square, radius 7
 - `og-default.svg`
   - 1200x630, brand gradient background, centered concentric rings with one bright dot at the center
 - `logo-1.svg` .. `logo-5.svg` - five new logo options, concepts listed in `img/logos.md`
 - `world.svg` (hero for `world.md`)
-  - 600x315, connected abstract servers with waves of light passing between them
+  - 600x158, connected abstract servers with waves of light passing between them
 - `home.svg` (hero for `home.md`)
-  - 600x315, a glowing arched doorway, many small figures walking toward it, abstract matte trees on both sides, waves meeting at the door
+  - 600x158, a glowing arched doorway, one human figure at the door, abstract matte trees on both sides, waves meeting at the door
 - `portals.svg` (hero for `portals.md`)
-  - 600x315, the home idea for portals: a large prime door with smaller doors around it, figures, trees, waves linking the doors
+  - 600x158, a large prime door with smaller doors around it, one human figure at the prime door, trees, waves linking the doors
 
 review
 - [ ] every asset listed has been generated
