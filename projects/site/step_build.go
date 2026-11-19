@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/siper92/akha/internal/ai"
+	cache2 "github.com/siper92/akha/internal/cache"
 	flow "github.com/siper92/akha/internal/flow_v3"
 	"github.com/siper92/akha/internal/parse"
 )
@@ -30,21 +31,26 @@ type SiteData struct {
 	Tasks   string
 }
 
-type SiteService = flow.DataServiceProvide[SiteData]
-
 type asker interface {
-	Ask(ctx context.Context, prompt string) (string, error)
+	AskLv1(ctx context.Context, prompt string) (string, error)
+	AskLv2(ctx context.Context, prompt string) (string, error)
+	AskLv3(ctx context.Context, prompt string) (string, error)
 }
 
 var _ asker = (*ai.Service)(nil)
 
 type SiteFlow struct {
 	machine *flow.MachineFlow[SiteData]
-	data    *flow.StepData[SiteData]
+	data    *siteService
 }
 
-func NewSiteBuildSteps(key string) (*SiteFlow, error) {
+func NewSiteBuildSteps(key string, cacheDir string) (*SiteFlow, error) {
 	aiService, err := ai.NewAnthropic(key)
+	if err != nil {
+		return nil, err
+	}
+
+	cache, err := cache2.NewFile(cacheDir)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +86,7 @@ func NewSiteBuildSteps(key string) (*SiteFlow, error) {
 
 	return &SiteFlow{
 		machine: machine,
-		data:    flow.NewStepData(SiteData{}),
+		data:    newSiteService(SiteData{}, cache),
 	}, nil
 }
 
@@ -107,7 +113,12 @@ func askStep(
 	get func(SiteData) string,
 	set func(SiteData, string) SiteData,
 ) flow.StepExec[SiteData] {
-	return func(ctx context.Context, s SiteService) (flow.Transition, error) {
+	return func(ctx context.Context, ds flow.DataServiceProvide[SiteData]) (flow.Transition, error) {
+		s, err := asSiteService(ds)
+		if err != nil {
+			return flow.UnknownTransition, fmt.Errorf("%s: %w", name, err)
+		}
+
 		input := get(s.Data())
 		if input == "" {
 			return flow.UnknownTransition, fmt.Errorf("%s: %w", name, ErrMissingData)
@@ -120,7 +131,7 @@ func askStep(
 
 		prompt := getAiPrompt(input, d)
 
-		answer, err := a.Ask(ctx, prompt)
+		answer, err := a.AskLv2(ctx, prompt)
 		if err != nil {
 			return flow.ErrorTransition, fmt.Errorf("%s: ask: %w", name, err)
 		}
@@ -129,11 +140,17 @@ func askStep(
 			return set(d, answer)
 		})
 
+		if err = s.Cache().Put(ctx,
+			string(name), []byte(answer), cache2.NoExpiry,
+		); err != nil {
+			return flow.UnknownTransition, fmt.Errorf("%s: save response: %w", name, err)
+		}
+
 		return flow.DoneTransition, nil
 	}
 }
 
-func implementStep(_ context.Context, s SiteService) (flow.Transition, error) {
+func implementStep(_ context.Context, s flow.DataServiceProvide[SiteData]) (flow.Transition, error) {
 	if s.Data().Tasks == "" {
 		return flow.UnknownTransition, fmt.Errorf("%s: %w", ImplementStepName, ErrMissingData)
 	}

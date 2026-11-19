@@ -28,21 +28,43 @@ func NewAnthropic(apiKey string) (*Service, error) {
 	}, nil
 }
 
-func (s *Service) Ask(ctx context.Context, question string) (string, error) {
+const MaxTokenCount = 150000
+
+func (s *Service) AskLv1(ctx context.Context, question string) (string, error) {
+	return s.ask(ctx, question, anthropic.ModelClaudeHaiku4_5, MaxTokenCount)
+}
+
+func (s *Service) AskLv2(ctx context.Context, question string) (string, error) {
+	return s.ask(ctx, question, anthropic.ModelClaudeSonnet5, MaxTokenCount)
+}
+
+func (s *Service) AskLv3(ctx context.Context, question string) (string, error) {
+	return s.ask(ctx, question, anthropic.ModelClaudeOpus5, MaxTokenCount)
+}
+
+func (s *Service) ask(ctx context.Context, question string, model anthropic.Model, tokenCount int64) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	messages := append(s.history, anthropic.NewUserMessage(anthropic.NewTextBlock(question)))
 
-	message, err := s.client.Messages.New(ctx, anthropic.MessageNewParams{
-		Model:     anthropic.ModelClaudeOpus4_5,
-		MaxTokens: 180000,
+	stream := s.client.Messages.NewStreaming(ctx, anthropic.MessageNewParams{
+		Model:     model,
+		MaxTokens: tokenCount,
 		System: []anthropic.TextBlockParam{
 			{Text: "You are a helpful assistant. Answer concisely."},
 		},
 		Messages: messages,
 	})
-	if err != nil {
+
+	message := anthropic.Message{}
+	for stream.Next() {
+		if err := message.Accumulate(stream.Current()); err != nil {
+			return "", err
+		}
+	}
+
+	if err := stream.Err(); err != nil {
 		return "", err
 	}
 
@@ -53,6 +75,5 @@ func (s *Service) Ask(ctx context.Context, question string) (string, error) {
 		}
 	}
 
-	s.history = append(messages, message.ToParam())
 	return answer.String(), nil
 }

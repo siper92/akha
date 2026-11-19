@@ -1,0 +1,31 @@
+set shell := ["bash", "-cu"]
+
+default:
+    @just --list
+
+[group('up')]
+up:
+    docker start akha_platform.dev 2>/dev/null || docker run -d \
+      --name akha_platform.dev \
+      -v "{{justfile_directory()}}:/project" \
+      -w /project \
+      akha_platform.dev
+
+[group('up')]
+down:
+    docker stop akha_platform.dev 2>/dev/null || true
+
+[group('dev')]
+clear:
+    rm -rf ./sdk/*
+
+[group('dev')]
+gen: clear gen-sqlc
+
+[group('generate')]
+gen-sqlc: up
+    docker exec -i akha_platform.dev bash -c "sqlc generate"
+
+[group('clean')]
+clean:
+    rm -rf ./bin

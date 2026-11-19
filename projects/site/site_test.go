@@ -13,7 +13,7 @@ func TestSiteGen(t *testing.T) {
 
 	apiKey := viper.Get("ANTHROPIC_API_KEY").(string)
 
-	flowMachine, err := NewSiteBuildSteps(apiKey)
+	flowMachine, err := NewSiteBuildSteps(apiKey, "_env/.cache")
 	if err != nil {
 		t.Fatalf("Failed to create site build steps: %v", err)
 	}
