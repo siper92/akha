@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS flow_tasks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   story_id INTEGER NOT NULL REFERENCES flow_stories(id),
   position INTEGER NOT NULL DEFAULT 0,
+  label TEXT NOT NULL,
   content TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'executing' CHECK (status IN ('executing', 'completed', 'failed')),
   error TEXT NOT NULL DEFAULT '',

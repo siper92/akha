@@ -40,6 +40,7 @@ type FlowTask struct {
 	ID        int64     `json:"id"`
 	StoryID   int64     `json:"story_id"`
 	Position  int64     `json:"position"`
+	Label     string    `json:"label"`
 	Content   string    `json:"content"`
 	Status    string    `json:"status"`
 	Error     string    `json:"error"`

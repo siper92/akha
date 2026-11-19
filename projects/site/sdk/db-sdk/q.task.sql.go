@@ -9,6 +9,111 @@ import (
 	"context"
 )
 
+const insertFlowProject = `-- name: InsertFlowProject :one
+INSERT INTO flow_projects (design_flow) VALUES (?)
+RETURNING id
+`
+
+func (q *Queries) InsertFlowProject(ctx context.Context, designFlow string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, insertFlowProject, designFlow)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const insertFlowRun = `-- name: InsertFlowRun :one
+INSERT INTO flow_runs (project_id) VALUES (?)
+RETURNING id
+`
+
+func (q *Queries) InsertFlowRun(ctx context.Context, projectID int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, insertFlowRun, projectID)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const insertFlowStory = `-- name: InsertFlowStory :one
+INSERT INTO flow_stories (run_id, file_path) VALUES (?, ?)
+RETURNING id
+`
+
+type InsertFlowStoryParams struct {
+	RunID    int64  `json:"run_id"`
+	FilePath string `json:"file_path"`
+}
+
+func (q *Queries) InsertFlowStory(ctx context.Context, arg InsertFlowStoryParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, insertFlowStory, arg.RunID, arg.FilePath)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const insertFlowTask = `-- name: InsertFlowTask :one
+INSERT INTO flow_tasks (story_id, position, label, content) VALUES (?, ?, ?, ?)
+RETURNING id
+`
+
+type InsertFlowTaskParams struct {
+	StoryID  int64  `json:"story_id"`
+	Position int64  `json:"position"`
+	Label    string `json:"label"`
+	Content  string `json:"content"`
+}
+
+func (q *Queries) InsertFlowTask(ctx context.Context, arg InsertFlowTaskParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, insertFlowTask,
+		arg.StoryID,
+		arg.Position,
+		arg.Label,
+		arg.Content,
+	)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const listFlowTasksByStory = `-- name: ListFlowTasksByStory :many
+SELECT id, story_id, position, label, content, status, error, attempts, created_at, updated_at FROM flow_tasks
+WHERE story_id = ?
+ORDER BY position
+`
+
+func (q *Queries) ListFlowTasksByStory(ctx context.Context, storyID int64) ([]FlowTask, error) {
+	rows, err := q.db.QueryContext(ctx, listFlowTasksByStory, storyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FlowTask
+	for rows.Next() {
+		var i FlowTask
+		if err := rows.Scan(
+			&i.ID,
+			&i.StoryID,
+			&i.Position,
+			&i.Label,
+			&i.Content,
+			&i.Status,
+			&i.Error,
+			&i.Attempts,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const selectFlowStories = `-- name: SelectFlowStories :exec
 SELECT id, run_id, file_path, status, started_at, finished_at, run_time_ms FROM flow_stories
 `

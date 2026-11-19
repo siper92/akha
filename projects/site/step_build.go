@@ -2,13 +2,16 @@ package site
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
+	"path/filepath"
 
 	"github.com/siper92/akha/internal/ai"
 	cache2 "github.com/siper92/akha/internal/cache"
 	flow "github.com/siper92/akha/internal/flow_v3"
 	"github.com/siper92/akha/internal/parse"
+	"github.com/siper92/akha/projects/site/sdk/db"
 )
 
 const (
@@ -19,7 +22,8 @@ const (
 )
 
 const (
-	inputKey = "input"
+	inputKey   = "input"
+	dbFileName = "site.db"
 )
 
 var ErrMissingData = errors.New("missing step data")
@@ -29,6 +33,7 @@ type SiteData struct {
 	Clarify string
 	Plan    string
 	Tasks   string
+	StoryID int64
 }
 
 type asker interface {
@@ -42,6 +47,7 @@ var _ asker = (*ai.Service)(nil)
 type SiteFlow struct {
 	machine *flow.MachineFlow[SiteData]
 	data    *siteService
+	conn    *sql.DB
 }
 
 func NewSiteBuildSteps(key string, cacheDir string) (*SiteFlow, error) {
@@ -58,22 +64,38 @@ func NewSiteBuildSteps(key string, cacheDir string) (*SiteFlow, error) {
 	machine, err := flow.NewMachineFlow(flowDef, map[flow.StepName]flow.StepExec[SiteData]{
 		ClarifyStepName: askStep(aiService, ClarifyStepName, GetClarifyDef,
 			func(d SiteData) string { return d.Input },
-			func(d SiteData, answer string) SiteData {
+			func(ds SiteService, d SiteData, answer string) SiteData {
 				d.Clarify = answer
 				return d
 			},
 		),
 		PlanStepName: askStep(aiService, PlanStepName, GetPlanDef,
 			func(d SiteData) string { return d.Clarify },
-			func(d SiteData, answer string) SiteData {
+			func(ds SiteService, d SiteData, answer string) SiteData {
 				d.Plan = answer
 				return d
 			},
 		),
 		TaskStepName: askStep(aiService, TaskStepName, GetTaskDef,
 			func(d SiteData) string { return d.Plan },
-			func(d SiteData, answer string) SiteData {
+			func(ds SiteService, d SiteData, answer string) SiteData {
 				d.Tasks = answer
+				s, err := asSiteService(ds)
+				if err != nil {
+					return d
+				}
+
+				ctx := context.Background()
+				storyID, err := saveTasks(ctx, s, d.Tasks)
+				if err != nil {
+					return d
+				}
+
+				s.Update(func(d SiteData) SiteData {
+					d.StoryID = storyID
+					return d
+				})
+
 				return d
 			},
 		),
@@ -84,10 +106,20 @@ func NewSiteBuildSteps(key string, cacheDir string) (*SiteFlow, error) {
 		return nil, err
 	}
 
+	conn, err := db.Init(context.Background(), filepath.Join(cacheDir, dbFileName))
+	if err != nil {
+		return nil, err
+	}
+
 	return &SiteFlow{
 		machine: machine,
-		data:    newSiteService(SiteData{}, cache),
+		data:    newSiteService(SiteData{}, cache, db.NewRepository(conn)),
+		conn:    conn,
 	}, nil
+}
+
+func (s *SiteFlow) Close() error {
+	return s.conn.Close()
 }
 
 func (s *SiteFlow) Run(ctx context.Context, input string) error {
@@ -111,7 +143,7 @@ func askStep(
 	name flow.StepName,
 	def func(SiteData) (*parse.MDFlowStep, error),
 	get func(SiteData) string,
-	set func(SiteData, string) SiteData,
+	set func(SiteService, SiteData, string) SiteData,
 ) flow.StepExec[SiteData] {
 	return func(ctx context.Context, ds flow.DataServiceProvide[SiteData]) (flow.Transition, error) {
 		s, err := asSiteService(ds)
@@ -137,7 +169,7 @@ func askStep(
 		}
 
 		s.Update(func(d SiteData) SiteData {
-			return set(d, answer)
+			return set(s, d, answer)
 		})
 
 		if err = s.Cache().Put(ctx,
@@ -150,9 +182,24 @@ func askStep(
 	}
 }
 
-func implementStep(_ context.Context, s flow.DataServiceProvide[SiteData]) (flow.Transition, error) {
-	if s.Data().Tasks == "" {
+func implementStep(ctx context.Context, ds flow.DataServiceProvide[SiteData]) (flow.Transition, error) {
+	s, err := asSiteService(ds)
+	if err != nil {
+		return flow.UnknownTransition, fmt.Errorf("%s: %w", ImplementStepName, err)
+	}
+
+	d := s.Data()
+	if d.Tasks == "" || d.StoryID == 0 {
 		return flow.UnknownTransition, fmt.Errorf("%s: %w", ImplementStepName, ErrMissingData)
+	}
+
+	tasks, err := s.Tasks().ListTasks(ctx, d.StoryID)
+	if err != nil {
+		return flow.ErrorTransition, fmt.Errorf("%s: list tasks: %w", ImplementStepName, err)
+	}
+
+	for _, t := range tasks {
+		fmt.Printf("%d: %s\n", t.ID, t.Label)
 	}
 
 	return flow.DoneTransition, nil

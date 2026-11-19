@@ -28,7 +28,7 @@ func NewAnthropic(apiKey string) (*Service, error) {
 	}, nil
 }
 
-const MaxTokenCount = 150000
+const MaxTokenCount = 100000
 
 func (s *Service) AskLv1(ctx context.Context, question string) (string, error) {
 	return s.ask(ctx, question, anthropic.ModelClaudeHaiku4_5, MaxTokenCount)

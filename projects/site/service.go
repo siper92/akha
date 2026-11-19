@@ -7,6 +7,7 @@ import (
 
 	"github.com/siper92/akha/internal/cache"
 	flow "github.com/siper92/akha/internal/flow_v3"
+	"github.com/siper92/akha/projects/site/sdk/db"
 )
 
 var (
@@ -18,6 +19,7 @@ var (
 type SiteService interface {
 	flow.DataServiceProvide[SiteData]
 	Cache() cache.Cache
+	Tasks() db.TaskRepository
 }
 
 var _ SiteService = (*siteService)(nil)
@@ -25,13 +27,19 @@ var _ SiteService = (*siteService)(nil)
 type siteService struct {
 	*flow.StepData[SiteData]
 	cache cache.Cache
+	tasks db.TaskRepository
 }
 
-func newSiteService(d SiteData, cache cache.Cache) *siteService {
+func newSiteService(d SiteData, cache cache.Cache, tasks db.TaskRepository) *siteService {
 	return &siteService{
 		StepData: flow.NewStepData(d),
 		cache:    cache,
+		tasks:    tasks,
 	}
+}
+
+func (s *siteService) Tasks() db.TaskRepository {
+	return s.tasks
 }
 
 func (s *siteService) ServiceProvide() flow.ServiceProvide {

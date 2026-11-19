@@ -9,6 +9,11 @@ import (
 )
 
 type Querier interface {
+	InsertFlowProject(ctx context.Context, designFlow string) (int64, error)
+	InsertFlowRun(ctx context.Context, projectID int64) (int64, error)
+	InsertFlowStory(ctx context.Context, arg InsertFlowStoryParams) (int64, error)
+	InsertFlowTask(ctx context.Context, arg InsertFlowTaskParams) (int64, error)
+	ListFlowTasksByStory(ctx context.Context, storyID int64) ([]FlowTask, error)
 	SelectFlowStories(ctx context.Context) error
 }
 
