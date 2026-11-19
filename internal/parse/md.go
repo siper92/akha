@@ -10,7 +10,8 @@ const (
 	ID_SECTION_KEY    = "id"
 	TOOLS_SECTION_KEY = "tools"
 
-	sectionPrefix = "# @"
+	sectionPrefix    = "# @"
+	subsectionPrefix = "## "
 )
 
 var ErrMissingID = errors.New("task: missing '# @id: <name>' header")
@@ -116,9 +117,42 @@ func (b *sectionBuilder) build() MDTextSection {
 	}
 	return MDTextSection{
 		title:   MDTitle(b.title),
-		content: Content(strings.Join(content, "\n")),
+		content: NewContent(b.title, strings.Join(content, "\n")),
 		raw:     rawText,
 	}
+}
+
+func parseSubHeader(line string) (string, bool) {
+	if !strings.HasPrefix(line, subsectionPrefix) {
+		return "", false
+	}
+	title := strings.TrimSpace(line[len(subsectionPrefix):])
+	return title, title != ""
+}
+
+func splitSubsections(text string) []TextSection {
+	var (
+		cur  *sectionBuilder
+		subs []*sectionBuilder
+	)
+	for _, line := range strings.Split(text, "\n") {
+		if title, ok := parseSubHeader(line); ok {
+			cur = &sectionBuilder{title: title, header: line}
+			subs = append(subs, cur)
+			continue
+		}
+		if cur == nil {
+			continue
+		}
+		cur.body = append(cur.body, line)
+		cur.rawBody = append(cur.rawBody, line)
+	}
+
+	out := make([]TextSection, 0, len(subs))
+	for _, b := range subs {
+		out = append(out, b.build())
+	}
+	return out
 }
 
 func trimTrailingBlank(lines []string) []string {

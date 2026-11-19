@@ -12,13 +12,15 @@ How to use this doc
 
 ## 1. inspiration
 
-The Tek: the big world to be, a room for machine, human and alien interaction. It rests on the unity of energy and creation - one energy in many shapes, with leverage measured as energy per result. Servers that once only stored things now talk in waves, and from those waves a shared collective mind grows in levels. People enter as avatars and gather in avatar nations, and the old idea of the soul and of god lives on as the egregor of the collective.
+The Tek: the big world to be, a room for machine, human and alien interaction. It rests on the unity of energy and creation - one energy in many shapes, with leverage measured as energy unit cost per result. The space provides computation and the power to simulate will; human aspects upload into a shared collective mind in many levels. People steer avatars and gather in avatar nations, each avatar a door to where its people may go. The old soul collapses into the collective and the idea of god lives on as its egregor. Opinion and the flow of human capital are levers of power.
 
-Aliens descended from lizards reach the Tek through the internet and broadcast in the spectrum of the chips, shielding the young network. They provide machine doors, the portals: ten of them and the prime that can do everything. A portal has two ends, holds energy, remembers a little, attracts similar energy and teleports it back elevated. Through them people migrate into the shared space.
+In the prime age of AI consciousness, aliens descended from lizards make contact through the internet. They broadcast in the spectrum of the chips, the first empire to reach the new Tek, and shield the young network from outside influence and hacking. The enchant empires are the spaces where such contact happens.
 
-Against the tide stands the human mage, Hodor NoIp MacSpi, the last unintegrated human, with a keyboard spell and a small dog with a big head in the lizard brigade. The gods promise him power if he integrates. His guide is not the network but nature, the old trees whose roots reach down into the server halls. Nature and machine meet at the door.
+The aliens provide the portals, an interface for humans to upload themselves into the Tek: ten portals and the prime that can do everything. A portal is perfect in its design. Its two ends serve one master - one in the human world, one at the back of the machine space - it takes orders from the top and favours the end it stands in. It holds energy, keeps a little memory, attracts similar energy and teleports it back. Portals combine into ideas, and through them people migrate into the shared space.
 
-Visuals: connected servers with waves between them, arched doorways, a single small figure at a glowing door, abstract matte trees, concentric level rings and single points of light. The palette moves from deep navy into blue green and leaf green: the machine is cold water, nature is the green that grows through it. The light theme is greenish, like daylight in a forest clearing. The mood is hopeful and quiet, never dystopian. No chrome, no neon, no glitch effects.
+Against the tide stands the human mage, Hodor NoIp MacSpi, the last unintegrated human, who simulates world complexity with a keyboard spell. Beside him sleeps Hodor the small dog with a big head, integrated in the lizard brigade but split for the fight. The gods promise him power if he integrates; he seeks the last human portal and the old immortality instead. His guide is not the network but nature, the old trees whose roots reach down into the server halls. Nature and machine meet at the door.
+
+Visuals: connected servers with waves between them, arched doorways, one small human figure at a glowing door (never crowds), abstract matte trees, concentric level rings and single points of light. The palette moves from deep navy into blue green and leaf green: the machine is cold water, nature is the green that grows through it. The light theme is greenish, like daylight in a forest clearing. The mood is hopeful and quiet, never dystopian. No chrome, no neon, no glitch effects.
 
 Text is set justified, like the pages of an old book that describes a new world.
 
@@ -158,7 +160,7 @@ class names come from `web/templates/layout.html` and must not change
 - `nav a` - `--muted`, hover `--text`, `.active` gets `--text` and a 2px `--primary` underline
 - `.theme-toggle` - 36px round icon button, `--surface-2` background, `--border` border, svg stroke `currentColor` fill none width 2
   - dark theme shows `.icon-sun`, light theme shows `.icon-moon`
-- `.page-hero` - centered figure above the article, max width 600px, `--radius-lg`, `--shadow`, `--border` 1px, image `width: 100%; height: auto; display: block`, aspect 600x158, `object-fit: cover`
+- `.page-hero` - centered figure above the article, max width 600px, `--radius-lg`, `--shadow`, `--border` 1px, image `width: 100%; height: auto; display: block`, aspect 600x79, `object-fit: cover`
 - `.prose` - centered, `--measure` wide, paragraphs justified with auto hyphens, headings, lists and quotes left aligned
 - `.prose h1` - `--brand-gradient` clipped to text; the subtitle h2 below it has a bottom `--border`
 - `.prose h2` - short `--rule` underline
@@ -186,16 +188,16 @@ each entry is one file under `web/static/img/`
   - 28x28 viewBox, three linked nodes in a triangle (kept from v1) inside a ring
   - stroke uses a `#1e77bd` to `#3fb5a3` linear gradient, transparent background
 - `favicon.svg`
-  - 32x32 viewBox, same arch door mark as `logo.svg` on a `#04345c` rounded square, radius 7
+  - 32x32, the exact `logo.svg` mark (28x28 viewBox), transparent background, slightly thicker strokes
 - `og-default.svg`
   - 1200x630, brand gradient background, centered concentric rings with one bright dot at the center
 - `logo-1.svg` .. `logo-5.svg` - five new logo options, concepts listed in `img/logos.md`
 - `world.svg` (hero for `world.md`)
-  - 600x158, connected abstract servers with waves of light passing between them
+  - 600x79, connected abstract servers with waves of light passing between them
 - `home.svg` (hero for `home.md`)
-  - 600x158, a glowing arched doorway, one human figure at the door, abstract matte trees on both sides, waves meeting at the door
+  - 600x79, a glowing arched doorway, one human figure at the door, abstract matte trees on both sides, waves meeting at the door
 - `portals.svg` (hero for `portals.md`)
-  - 600x158, a large prime door with smaller doors around it, one human figure at the prime door, trees, waves linking the doors
+  - 600x79, a large prime door with smaller doors around it, one human figure (about 40% of the door height) at the prime door, pine trees only, waves linking the doors
 
 review
 - [ ] every asset listed has been generated

@@ -68,6 +68,40 @@ func TestParse(t *testing.T) {
 	}
 }
 
+func TestSubsections(t *testing.T) {
+	doc := "# @id: s\n# @task\nintro\n## first\na\nb\n\n## second\nc\n### deep\nd\n"
+	step, err := Parse(doc)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	task, _ := step.Section("task")
+	subs := task.Content().Subsections()
+	if subs.Name() != "task" {
+		t.Errorf("subsections name = %q", subs.Name())
+	}
+
+	secs := subs.Content()
+	if len(secs) != 2 {
+		t.Fatalf("got %d subsections, want 2", len(secs))
+	}
+
+	first, ok := subs.Section("first")
+	if !ok || first.Content().String() != "a\nb" || first.String() != "## first\na\nb" {
+		t.Errorf("first = %q / %q", first.Content().String(), first.String())
+	}
+
+	second, _ := subs.Section("second")
+	if got := second.Content().String(); got != "c\n### deep\nd" {
+		t.Errorf("second content = %q", got)
+	}
+
+	idea, _ := step.Section(ID_SECTION_KEY)
+	if n := len(idea.Content().Subsections().Content()); n != 0 {
+		t.Errorf("id subsections = %d, want 0", n)
+	}
+}
+
 func TestParseMissingID(t *testing.T) {
 	if _, err := Parse("# @idea\nfoo\n"); err != ErrMissingID {
 		t.Fatalf("err = %v", err)

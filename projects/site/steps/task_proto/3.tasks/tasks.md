@@ -1,18 +1,35 @@
 # @id: tasks
 # @idea
-execute the task and provide the output
 
-# @tools
-get_code_source: get the code(package)
-get_input_task: get the input task
+based on the plan create stories and steps describing how it will be implemented
+- stories are usually 3-5 per plan
+- include all the steps/task
+  - average story has 4 tasks/steps some like code design have more
 
-# @task1
-text text 1
-## test1 - section 2
-adasda asd asdadsa
+## terminology
+- story: describes a list of steps that need to happen to execute the plan
+- task: a step in the story that needs to be completed to finish the story 
+  - work that needs to be done to implement an idea
+- design flow - a way to implement certain type of content 
+  - examples: site creation, code generation, content generation
+  - read from @design_flow section
 
-# @test2
+## @design_flow
+  - package design / code generation
+    - code package API and interface design
+    - file creation and package structure
+      - short comment about the file and its purpose at top nothing else
+    - per file implementation
+        - interface design and implementation
+        - types/data structures and methods implementation
+          - use private methods for internal in methods
+  - content creation
+    - create folder and files structure 
+    - very short description of the content
 
-qwerwer werwer werwerwerwerwer wer
-qwerwer werwer werwerwerwerwer wer
-qwerwer werwerwerwerwer wer
+# @answers
+## @format
+````
+# @<task_id_label>: <task_name>
+<task_description>
+````

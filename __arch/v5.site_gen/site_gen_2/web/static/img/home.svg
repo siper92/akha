@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 158" width="600" height="158" role="img">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 79" width="600" height="79" role="img">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="600" y2="158" gradientUnits="userSpaceOnUse">
+    <linearGradient id="bg" x1="0" y1="0" x2="600" y2="79" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#021627"/>
       <stop offset="1" stop-color="#04345c"/>
     </linearGradient>
@@ -9,69 +9,77 @@
       <stop offset="0.35" stop-color="#5aa6e0"/>
       <stop offset="1" stop-color="#1e77bd"/>
     </linearGradient>
-    <radialGradient id="glow" cx="300" cy="90" r="120" gradientUnits="userSpaceOnUse">
+    <radialGradient id="glow" cx="300" cy="50" r="130" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#1e77bd" stop-opacity="0.5"/>
       <stop offset="1" stop-color="#1e77bd" stop-opacity="0"/>
     </radialGradient>
     <filter id="blur" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="3"/>
+      <feGaussianBlur stdDeviation="2"/>
     </filter>
     <g id="pine">
-      <rect x="-2" y="0" width="4" height="22"/>
-      <path d="M-16 8L0 -22L16 8Z"/>
-      <path d="M-20 22L0 -8L20 22Z"/>
+      <rect x="-1.5" y="0" width="3" height="7"/>
+      <path d="M-8 2L0 -14L8 2Z"/>
+      <path d="M-11 8L0 -7L11 8Z"/>
     </g>
-    <g id="blob">
-      <rect x="-2" y="0" width="4" height="26"/>
-      <circle cx="0" cy="-6" r="15"/>
-      <circle cx="-9" cy="6" r="9"/>
-      <circle cx="9" cy="6" r="9"/>
+    <g id="canopy">
+      <rect x="-1.5" y="0" width="3" height="8"/>
+      <circle cx="0" cy="-6" r="8"/>
+      <circle cx="-8" cy="-1" r="6.5"/>
+      <circle cx="8" cy="-1" r="6.5"/>
+      <circle cx="0" cy="0" r="6"/>
     </g>
   </defs>
-  <rect width="600" height="158" fill="url(#bg)"/>
-  <circle cx="300" cy="90" r="120" fill="url(#glow)"/>
+  <rect width="600" height="79" fill="url(#bg)"/>
+  <circle cx="300" cy="50" r="130" fill="url(#glow)"/>
   <g fill="#bad3e4">
-    <circle cx="125" cy="22" r="1.4" opacity="0.7"/>
-    <circle cx="465" cy="40" r="1.4" opacity="0.7"/>
-    <circle cx="520" cy="20" r="1.2" opacity="0.5"/>
-    <circle cx="70" cy="20" r="1.2" opacity="0.5"/>
+    <circle cx="70" cy="12" r="1" opacity="0.5"/>
+    <circle cx="130" cy="20" r="1.2" opacity="0.7"/>
+    <circle cx="230" cy="9" r="1" opacity="0.5"/>
+    <circle cx="380" cy="10" r="1" opacity="0.5"/>
+    <circle cx="470" cy="20" r="1.2" opacity="0.7"/>
+    <circle cx="530" cy="12" r="1" opacity="0.5"/>
   </g>
-  <g fill="#10564f" opacity="0.5">
-    <use href="#pine" transform="translate(30 116) scale(0.95)"/>
-    <use href="#blob" transform="translate(95 120) scale(0.8)"/>
-    <use href="#pine" transform="translate(570 116) scale(0.95)"/>
-    <use href="#blob" transform="translate(505 120) scale(0.8)"/>
+  <g fill="#10564f" opacity="0.55">
+    <use href="#pine" transform="translate(28 60)"/>
+    <use href="#canopy" transform="translate(95 60)"/>
+    <use href="#pine" transform="translate(165 60)"/>
+    <use href="#canopy" transform="translate(505 60)"/>
+    <use href="#pine" transform="translate(435 60)"/>
+    <use href="#pine" transform="translate(572 60)"/>
   </g>
-  <g fill="#2e8b6a" opacity="0.45">
-    <use href="#blob" transform="translate(55 124) scale(0.7)"/>
-    <use href="#pine" transform="translate(140 124) scale(0.65)"/>
-    <use href="#pine" transform="translate(545 124) scale(0.7)"/>
-    <use href="#blob" transform="translate(460 124) scale(0.65)"/>
+  <g fill="#2e8b6a" opacity="0.5">
+    <use href="#canopy" transform="translate(55 64) scale(0.8)"/>
+    <use href="#pine" transform="translate(130 64) scale(0.8)"/>
+    <use href="#canopy" transform="translate(205 64) scale(0.75)"/>
+    <use href="#canopy" transform="translate(545 64) scale(0.8)"/>
+    <use href="#pine" transform="translate(470 64) scale(0.8)"/>
+    <use href="#canopy" transform="translate(395 64) scale(0.75)"/>
   </g>
   <g fill="#7fd1a8" opacity="0.25">
-    <use href="#pine" transform="translate(18 128) scale(0.5)"/>
-    <use href="#blob" transform="translate(120 128) scale(0.45)"/>
-    <use href="#blob" transform="translate(582 128) scale(0.5)"/>
-    <use href="#pine" transform="translate(485 128) scale(0.45)"/>
+    <use href="#pine" transform="translate(12 67) scale(0.55)"/>
+    <use href="#canopy" transform="translate(180 67) scale(0.5)"/>
+    <use href="#pine" transform="translate(588 67) scale(0.55)"/>
+    <use href="#canopy" transform="translate(420 67) scale(0.5)"/>
+    <use href="#pine" transform="translate(240 68) scale(0.45)"/>
+    <use href="#pine" transform="translate(360 68) scale(0.45)"/>
   </g>
-  <g fill="none" stroke-linecap="round" stroke-width="1.3">
-    <path d="M0 62C90 55 170 90 256 86" stroke="#3fb5a3" stroke-opacity="0.55"/>
-    <path d="M0 76C95 69 170 102 258 96" stroke="#bad3e4" stroke-opacity="0.4"/>
-    <path d="M0 90C100 83 175 112 258 106" stroke="#10564f" stroke-opacity="0.9"/>
-    <path d="M0 104C105 97 180 120 258 116" stroke="#3fb5a3" stroke-opacity="0.5"/>
-    <path d="M0 118C110 111 185 128 258 126" stroke="#bad3e4" stroke-opacity="0.35"/>
-    <path d="M600 62C510 55 430 90 344 86" stroke="#3fb5a3" stroke-opacity="0.55"/>
-    <path d="M600 78C505 71 430 102 342 96" stroke="#bad3e4" stroke-opacity="0.4"/>
-    <path d="M600 94C500 87 425 112 342 106" stroke="#10564f" stroke-opacity="0.9"/>
-    <path d="M600 110C495 103 420 122 342 116" stroke="#3fb5a3" stroke-opacity="0.5"/>
+  <g fill="none" stroke-linecap="round" stroke-width="1">
+    <path d="M0 40C80 35 190 52 281 48" stroke="#3fb5a3" stroke-opacity="0.55"/>
+    <path d="M0 48C80 43 190 60 282 55" stroke="#bad3e4" stroke-opacity="0.4"/>
+    <path d="M0 56C80 51 190 66 283 62" stroke="#10564f" stroke-opacity="0.9"/>
+    <path d="M0 64C80 59 190 71 283 68" stroke="#3fb5a3" stroke-opacity="0.5"/>
+    <path d="M600 40C520 35 410 52 319 48" stroke="#3fb5a3" stroke-opacity="0.55"/>
+    <path d="M600 48C520 43 410 60 318 55" stroke="#bad3e4" stroke-opacity="0.4"/>
+    <path d="M600 56C520 51 410 66 317 62" stroke="#10564f" stroke-opacity="0.9"/>
+    <path d="M600 64C520 59 410 71 317 68" stroke="#3fb5a3" stroke-opacity="0.5"/>
   </g>
-  <path d="M260 140V84C260 44 278 14 300 14C322 14 340 44 340 84V140Z" fill="none" stroke="#1e77bd" stroke-opacity="0.5" stroke-width="1.5"/>
-  <path d="M268 140V86C268 52 282 24 300 24C318 24 332 52 332 86V140Z" fill="#bad3e4" opacity="0.5" filter="url(#blur)"/>
-  <path d="M268 140V86C268 52 282 24 300 24C318 24 332 52 332 86V140Z" fill="url(#door)"/>
-  <path d="M278 140V88C278 64 288 44 300 44C312 44 322 64 322 88V140Z" fill="#bad3e4" opacity="0.35"/>
-  <rect x="0" y="140" width="600" height="18" fill="#021627" opacity="0.7"/>
+  <path d="M282 72V40C282 21 290 8 300 8C310 8 318 21 318 40V72Z" fill="none" stroke="#1e77bd" stroke-opacity="0.5" stroke-width="1"/>
+  <path d="M287 72V41C287 25 293 14 300 14C307 14 313 25 313 41V72Z" fill="#bad3e4" opacity="0.5" filter="url(#blur)"/>
+  <path d="M287 72V41C287 25 293 14 300 14C307 14 313 25 313 41V72Z" fill="url(#door)"/>
+  <path d="M292 72V43C292 31 295 22 300 22C305 22 308 31 308 43V72Z" fill="#bad3e4" opacity="0.35"/>
+  <rect x="0" y="72" width="600" height="7" fill="#021627" opacity="0.7"/>
   <g fill="#021627">
-    <circle cx="300" cy="105" r="4.5"/>
-    <path d="M292 140C292 124 294 114 300 111C306 114 308 124 308 140Z"/>
+    <circle cx="300" cy="49" r="3.3"/>
+    <path d="M294.500 72C294.500 61 296 54 300 52C304 54 305.500 61 305.500 72Z"/>
   </g>
 </svg>

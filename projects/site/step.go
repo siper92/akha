@@ -27,7 +27,7 @@ func GetTaskFlow() (fs.FS, error) {
 	return task, nil
 }
 
-func GetClarifyDef() (*parse.MDFlowStep, error) {
+func GetClarifyDef(s SiteData) (*parse.MDFlowStep, error) {
 	clarify, err := fs.ReadFile(steps, "steps/task_proto/1.clarify/clarify.md")
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func GetClarifyDef() (*parse.MDFlowStep, error) {
 	return parse.Parse(string(clarify))
 }
 
-func GetPlanDef() (*parse.MDFlowStep, error) {
+func GetPlanDef(s SiteData) (*parse.MDFlowStep, error) {
 	plan, err := fs.ReadFile(steps, "steps/task_proto/2.plan/plan.md")
 	if err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func GetPlanDef() (*parse.MDFlowStep, error) {
 	return parse.Parse(string(plan))
 }
 
-func GetTaskDef() (*parse.MDFlowStep, error) {
+func GetTaskDef(s SiteData) (*parse.MDFlowStep, error) {
 	task, err := fs.ReadFile(steps, "steps/task_proto/3.tasks/tasks.md")
 	if err != nil {
 		return nil, err

@@ -5,6 +5,8 @@
 .env
 docker-compose.yaml
 
+vendor/
+
 # build and runtime output
 _env/bin/
 _env/.cache/

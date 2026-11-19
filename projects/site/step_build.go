@@ -52,18 +52,28 @@ func NewSiteBuildSteps(key string) (*SiteFlow, error) {
 	machine, err := flow.NewMachineFlow(flowDef, map[flow.StepName]flow.StepExec[SiteData]{
 		ClarifyStepName: askStep(aiService, ClarifyStepName, GetClarifyDef,
 			func(d SiteData) string { return d.Input },
-			func(d SiteData, answer string) SiteData { d.Clarify = answer; return d },
+			func(d SiteData, answer string) SiteData {
+				d.Clarify = answer
+				return d
+			},
 		),
 		PlanStepName: askStep(aiService, PlanStepName, GetPlanDef,
 			func(d SiteData) string { return d.Clarify },
-			func(d SiteData, answer string) SiteData { d.Plan = answer; return d },
+			func(d SiteData, answer string) SiteData {
+				d.Plan = answer
+				return d
+			},
 		),
 		TaskStepName: askStep(aiService, TaskStepName, GetTaskDef,
 			func(d SiteData) string { return d.Plan },
-			func(d SiteData, answer string) SiteData { d.Tasks = answer; return d },
+			func(d SiteData, answer string) SiteData {
+				d.Tasks = answer
+				return d
+			},
 		),
 		ImplementStepName: implementStep,
 	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +103,7 @@ func (s *SiteFlow) Data() SiteData {
 func askStep(
 	a asker,
 	name flow.StepName,
-	def func() (*parse.MDFlowStep, error),
+	def func(SiteData) (*parse.MDFlowStep, error),
 	get func(SiteData) string,
 	set func(SiteData, string) SiteData,
 ) flow.StepExec[SiteData] {
@@ -103,7 +113,7 @@ func askStep(
 			return flow.UnknownTransition, fmt.Errorf("%s: %w", name, ErrMissingData)
 		}
 
-		d, err := def()
+		d, err := def(s.Data())
 		if err != nil {
 			return "", fmt.Errorf("load step def: %w", err)
 		}

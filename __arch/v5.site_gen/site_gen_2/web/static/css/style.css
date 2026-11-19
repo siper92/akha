@@ -27,7 +27,9 @@
   --code-bg: #031f36;
   --glass: rgba(5,42,73,0.72);
   --shadow: 0 10px 30px rgba(0,0,0,0.35);
-  --brand-gradient: linear-gradient(135deg, #04345c 0%, #10564f 50%, #1e77bd 100%);
+  --brand-gradient: linear-gradient(135deg, #04345c 0%, #10564f 45%, #2e8b6a 75%, #1e77bd 100%);
+  --h1-gradient: linear-gradient(135deg, #bad3e4 0%, #7fd1a8 55%, #5aa6e0 100%);
+  --rule: linear-gradient(90deg, var(--accent), transparent);
 
   --font-head: "Space Grotesk", system-ui, sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
@@ -61,40 +63,42 @@
 }
 
 :root[data-theme="light"] {
-  --bg: #f5f9fc;
-  --bg-gradient: radial-gradient(1200px 600px at 80% -10%, rgba(30,119,189,0.12), transparent 60%), radial-gradient(900px 500px at -10% 20%, rgba(16,86,79,0.10), transparent 60%);
-  --surface: #ffffff;
-  --surface-2: #e8f1f8;
-  --border: #bad3e4;
-  --text: #08243d;
-  --muted: #3d5a73;
-  --heading: #04345c;
-  --primary: #1e77bd;
-  --primary-text: #17629c;
+  --bg: #e4f1e7;
+  --bg-gradient: radial-gradient(1200px 600px at 80% -10%, rgba(46,139,106,0.18), transparent 60%), radial-gradient(900px 500px at -10% 20%, rgba(127,209,168,0.22), transparent 60%), radial-gradient(900px 500px at 50% 110%, rgba(16,86,79,0.12), transparent 60%);
+  --surface: #f2f9f4;
+  --surface-2: #d3eadb;
+  --border: #a6cfb6;
+  --text: #0c2a24;
+  --muted: #3a5c51;
+  --heading: #0d4a3f;
+  --primary: #1a7a5e;
+  --primary-text: #12634c;
   --accent: #10564f;
   --accent-fill: #10564f;
-  --code-bg: #e8f1f8;
-  --glass: rgba(255,255,255,0.78);
-  --shadow: 0 10px 30px rgba(4,52,92,0.12);
+  --code-bg: #d3eadb;
+  --glass: rgba(228,241,231,0.84);
+  --shadow: 0 10px 30px rgba(16,86,79,0.16);
+  --h1-gradient: linear-gradient(135deg, #04345c 0%, #10564f 45%, #2e8b6a 100%);
 }
 
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) {
-    --bg: #f5f9fc;
-    --bg-gradient: radial-gradient(1200px 600px at 80% -10%, rgba(30,119,189,0.12), transparent 60%), radial-gradient(900px 500px at -10% 20%, rgba(16,86,79,0.10), transparent 60%);
-    --surface: #ffffff;
-    --surface-2: #e8f1f8;
-    --border: #bad3e4;
-    --text: #08243d;
-    --muted: #3d5a73;
-    --heading: #04345c;
-    --primary: #1e77bd;
-    --primary-text: #17629c;
+    --bg: #e4f1e7;
+    --bg-gradient: radial-gradient(1200px 600px at 80% -10%, rgba(46,139,106,0.18), transparent 60%), radial-gradient(900px 500px at -10% 20%, rgba(127,209,168,0.22), transparent 60%), radial-gradient(900px 500px at 50% 110%, rgba(16,86,79,0.12), transparent 60%);
+    --surface: #f2f9f4;
+    --surface-2: #d3eadb;
+    --border: #a6cfb6;
+    --text: #0c2a24;
+    --muted: #3a5c51;
+    --heading: #0d4a3f;
+    --primary: #1a7a5e;
+    --primary-text: #12634c;
     --accent: #10564f;
     --accent-fill: #10564f;
-    --code-bg: #e8f1f8;
-    --glass: rgba(255,255,255,0.78);
-    --shadow: 0 10px 30px rgba(4,52,92,0.12);
+    --code-bg: #d3eadb;
+    --glass: rgba(228,241,231,0.84);
+    --shadow: 0 10px 30px rgba(16,86,79,0.16);
+    --h1-gradient: linear-gradient(135deg, #04345c 0%, #10564f 45%, #2e8b6a 100%);
   }
 }
 
@@ -308,7 +312,7 @@ nav a.active {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 600 / 158;
+  aspect-ratio: 600 / 79;
   object-fit: cover;
 }
 

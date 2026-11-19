@@ -14,6 +14,25 @@ type FlowStep interface {
 
 type SectionContent interface {
 	String() string
+	Subsections() SubSectionContent
+}
+
+type SubSectionContent struct {
+	name    string
+	content []TextSection
+}
+
+func (s SubSectionContent) Name() string           { return s.name }
+func (s SubSectionContent) Content() []TextSection { return s.content }
+
+func (s SubSectionContent) Section(id string) (TextSection, bool) {
+	for _, sec := range s.content {
+		if sec.Title().ID() == id {
+			return sec, true
+		}
+	}
+
+	return nil, false
 }
 
 type SectionTitle interface {
@@ -41,10 +60,21 @@ func (t MDTitle) String() string {
 
 var _ SectionContent = (*Content)(nil)
 
-type Content string
+type Content struct {
+	name string
+	text string
+}
+
+func NewContent(name, text string) Content {
+	return Content{name: name, text: text}
+}
+
+func (c Content) Subsections() SubSectionContent {
+	return SubSectionContent{name: c.name, content: splitSubsections(c.text)}
+}
 
 func (c Content) String() string {
-	return string(c)
+	return c.text
 }
 
 var _ TextSection = (*MDTextSection)(nil)

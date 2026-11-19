@@ -7,3 +7,4 @@ __arch
 __local
 *.ai.md
 .aws/
+vendor/
