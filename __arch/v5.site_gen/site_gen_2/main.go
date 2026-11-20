@@ -54,6 +54,7 @@ func readConfig() error {
 	if err := viper.ReadInConfig(); err != nil && cfgFile != "" {
 		return fmt.Errorf("config: %w", err)
 	}
+
 	return nil
 }
 
@@ -105,5 +106,6 @@ func run(cmd *cobra.Command, _ []string) error {
 		log.Info("page", "path", p.Path, "file", p.File, "title", p.Meta.Title)
 	}
 	log.Info("site built", "pages", len(built), "out", cfg.OutDir)
+
 	return nil
 }

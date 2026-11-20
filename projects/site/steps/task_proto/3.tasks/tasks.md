@@ -33,4 +33,6 @@ based on the plan create stories and steps describing how it will be implemented
 # @<task_id_label>: <task_name>
 <task_description>
 ````
-where <task_id_label> is short hand of the title
+where @<task_id_label> is shorthand of the title
+
+# Important: keep the task title format: `# @<task_id_label>: <task_name>`

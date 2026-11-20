@@ -27,19 +27,22 @@ type FlowRun struct {
 }
 
 type FlowStory struct {
-	ID         int64        `json:"id"`
-	RunID      int64        `json:"run_id"`
-	FilePath   string       `json:"file_path"`
-	Status     string       `json:"status"`
-	StartedAt  time.Time    `json:"started_at"`
-	FinishedAt sql.NullTime `json:"finished_at"`
-	RunTimeMs  int64        `json:"run_time_ms"`
+	ID          int64        `json:"id"`
+	RunID       int64        `json:"run_id"`
+	FilePath    string       `json:"file_path"`
+	StoryKey    string       `json:"story_key"`
+	Description string       `json:"description"`
+	Status      string       `json:"status"`
+	StartedAt   time.Time    `json:"started_at"`
+	FinishedAt  sql.NullTime `json:"finished_at"`
+	RunTimeMs   int64        `json:"run_time_ms"`
 }
 
 type FlowTask struct {
 	ID        int64     `json:"id"`
 	StoryID   int64     `json:"story_id"`
 	Position  int64     `json:"position"`
+	TaskKey   string    `json:"task_key"`
 	Label     string    `json:"label"`
 	Content   string    `json:"content"`
 	Status    string    `json:"status"`

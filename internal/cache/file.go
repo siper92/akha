@@ -98,7 +98,9 @@ func (c *fileCache) Purge(ctx context.Context) (int, error) {
 
 func (c *fileCache) path(key string) string {
 	sum := sha256.Sum256([]byte(key))
-	return filepath.Join(c.dir, hex.EncodeToString(sum[:16])+entryExt)
+	strKey := key + "_" + hex.EncodeToString(sum[:16])
+
+	return filepath.Join(c.dir, strKey+entryExt)
 }
 
 func (c *fileCache) read(p string) (Entry, bool, error) {

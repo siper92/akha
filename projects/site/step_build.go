@@ -29,20 +29,13 @@ const (
 var ErrMissingData = errors.New("missing step data")
 
 type SiteData struct {
-	Input   string
-	Clarify string
-	Plan    string
-	Tasks   string
-	StoryID int64
+	Input    string
+	Clarify  string
+	Plan     string
+	Tasks    TaskPlan
+	TasksRaw string
+	StoryIDs []int64
 }
-
-type asker interface {
-	AskLv1(ctx context.Context, prompt string) (string, error)
-	AskLv2(ctx context.Context, prompt string) (string, error)
-	AskLv3(ctx context.Context, prompt string) (string, error)
-}
-
-var _ asker = (*ai.Service)(nil)
 
 type SiteFlow struct {
 	machine *flow.MachineFlow[SiteData]
@@ -51,10 +44,11 @@ type SiteFlow struct {
 }
 
 func NewSiteBuildSteps(key string, cacheDir string) (*SiteFlow, error) {
-	aiService, err := ai.NewAnthropic(key)
+	aiClient, err := ai.NewAnthropic(key)
 	if err != nil {
 		return nil, err
 	}
+	aiService := newAiAsker(aiClient)
 
 	cache, err := cache2.NewFile(cacheDir)
 	if err != nil {
@@ -62,39 +56,43 @@ func NewSiteBuildSteps(key string, cacheDir string) (*SiteFlow, error) {
 	}
 
 	machine, err := flow.NewMachineFlow(flowDef, map[flow.StepName]flow.StepExec[SiteData]{
-		ClarifyStepName: askStep(aiService, ClarifyStepName, GetClarifyDef,
+		ClarifyStepName: askStep(aiService, ClarifyStepName, GetClarifyDef, OutputConfig{Format: OutputText},
 			func(d SiteData) string { return d.Input },
 			func(ds SiteService, d SiteData, answer string) SiteData {
 				d.Clarify = answer
 				return d
 			},
 		),
-		PlanStepName: askStep(aiService, PlanStepName, GetPlanDef,
+		PlanStepName: askStep(aiService, PlanStepName, GetPlanDef, OutputConfig{Format: OutputText},
 			func(d SiteData) string { return d.Clarify },
 			func(ds SiteService, d SiteData, answer string) SiteData {
 				d.Plan = answer
 				return d
 			},
 		),
-		TaskStepName: askStep(aiService, TaskStepName, GetTaskDef,
+		TaskStepName: askStep(aiService, TaskStepName, GetTaskDef, tasksOutput,
 			func(d SiteData) string { return d.Plan },
 			func(ds SiteService, d SiteData, answer string) SiteData {
-				d.Tasks = answer
+				d.TasksRaw = answer
+				tasks, err := parseTasks(answer)
+				if err != nil {
+					_ = fmt.Errorf("%s: %w", TaskStepName, err)
+					return d
+				}
+				d.Tasks = tasks
+
 				s, err := asSiteService(ds)
 				if err != nil {
+					_ = fmt.Errorf("%s: %w", TaskStepName, err)
 					return d
 				}
 
-				ctx := context.Background()
-				storyID, err := saveTasks(ctx, s, d.Tasks)
+				storyIDs, err := saveTasks(context.Background(), s, tasks)
 				if err != nil {
+					_ = fmt.Errorf("%s: %w", TaskStepName, err)
 					return d
 				}
-
-				s.Update(func(d SiteData) SiteData {
-					d.StoryID = storyID
-					return d
-				})
+				d.StoryIDs = storyIDs
 
 				return d
 			},
@@ -142,6 +140,7 @@ func askStep(
 	a asker,
 	name flow.StepName,
 	def func(SiteData) (*parse.MDFlowStep, error),
+	out OutputConfig,
 	get func(SiteData) string,
 	set func(SiteService, SiteData, string) SiteData,
 ) flow.StepExec[SiteData] {
@@ -151,32 +150,48 @@ func askStep(
 			return flow.UnknownTransition, fmt.Errorf("%s: %w", name, err)
 		}
 
-		input := get(s.Data())
-		if input == "" {
-			return flow.UnknownTransition, fmt.Errorf("%s: %w", name, ErrMissingData)
+		var ok bool
+		var val []byte
+		if val, ok, err = s.Cache().Get(ctx, string(name)); err != nil {
+			return flow.UnknownTransition, fmt.Errorf("%s: save response: %w", name, err)
 		}
 
-		d, err := def(s.Data())
-		if err != nil {
-			return "", fmt.Errorf("load step def: %w", err)
-		}
+		var answer string
+		if ok {
+			if answer, err = out.Check(string(val)); err != nil {
+				return flow.ErrorTransition, fmt.Errorf("%s: cached response: %w", name, err)
+			}
+		} else {
+			input := get(s.Data())
+			if input == "" {
+				return flow.UnknownTransition, fmt.Errorf("%s: %w", name, ErrMissingData)
+			}
 
-		prompt := getAiPrompt(input, d)
+			d, err := def(s.Data())
+			if err != nil {
+				return "", fmt.Errorf("load step def: %w", err)
+			}
 
-		answer, err := a.AskLv2(ctx, prompt)
-		if err != nil {
-			return flow.ErrorTransition, fmt.Errorf("%s: ask: %w", name, err)
+			prompt := getAiPrompt(input, d)
+			answer, err = a.AskLv3(ctx, prompt, out)
+			if err != nil {
+				return flow.ErrorTransition, fmt.Errorf("%s: ask: %w", name, err)
+			}
+
+			if answer, err = out.Check(answer); err != nil {
+				return flow.ErrorTransition, fmt.Errorf("%s: %w", name, err)
+			}
+
+			if err = s.Cache().Put(ctx,
+				string(name), []byte(answer), cache2.NoExpiry,
+			); err != nil {
+				return flow.UnknownTransition, fmt.Errorf("%s: save response: %w", name, err)
+			}
 		}
 
 		s.Update(func(d SiteData) SiteData {
 			return set(s, d, answer)
 		})
-
-		if err = s.Cache().Put(ctx,
-			string(name), []byte(answer), cache2.NoExpiry,
-		); err != nil {
-			return flow.UnknownTransition, fmt.Errorf("%s: save response: %w", name, err)
-		}
 
 		return flow.DoneTransition, nil
 	}
@@ -189,17 +204,19 @@ func implementStep(ctx context.Context, ds flow.DataServiceProvide[SiteData]) (f
 	}
 
 	d := s.Data()
-	if d.Tasks == "" || d.StoryID == 0 {
+	if d.TasksRaw == "" || len(d.StoryIDs) == 0 {
 		return flow.UnknownTransition, fmt.Errorf("%s: %w", ImplementStepName, ErrMissingData)
 	}
 
-	tasks, err := s.Tasks().ListTasks(ctx, d.StoryID)
-	if err != nil {
-		return flow.ErrorTransition, fmt.Errorf("%s: list tasks: %w", ImplementStepName, err)
-	}
+	for _, storyID := range d.StoryIDs {
+		tasks, err := s.Tasks().ListTasks(ctx, storyID)
+		if err != nil {
+			return flow.ErrorTransition, fmt.Errorf("%s: list tasks: %w", ImplementStepName, err)
+		}
 
-	for _, t := range tasks {
-		fmt.Printf("%d: %s\n", t.ID, t.Label)
+		for _, t := range tasks {
+			fmt.Printf("%d: %s %s\n", t.ID, t.TaskKey, t.Label)
+		}
 	}
 
 	return flow.DoneTransition, nil

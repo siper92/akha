@@ -2,61 +2,116 @@ package site
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/siper92/akha/internal/parse"
 	"github.com/siper92/akha/projects/site/sdk/db"
 )
 
-const (
-	tasksDocID      = "tasks"
-	tasksDesignFlow = "site"
+const tasksDesignFlow = "site"
+
+const tasksSchema = `{
+    "stories": [
+        {
+            "story_id": "<story_id>",
+            "story_description": "<story_description>",
+            "tasks": [
+                {
+                "task_id": "<task_id>",
+                "task_name": "<task_name>",
+                "task_description": "<task_description>"
+                }
+            ]
+        }
+    ]
+}`
+
+var (
+	ErrNoTasks      = errors.New("no tasks in answer")
+	ErrMissingField = errors.New("missing field in answer")
 )
 
-var ErrNoTasks = errors.New("no tasks in answer")
+type TaskPlan struct {
+	Stories []TaskStory `json:"stories"`
+}
 
-func parseTasks(answer string) ([]db.Task, error) {
-	doc, err := parse.Parse("# @" + parse.ID_SECTION_KEY + ": " + tasksDocID + "\n" + answer)
-	if err != nil {
-		return nil, fmt.Errorf("parse tasks: %w", err)
+type TaskStory struct {
+	StoryID          string     `json:"story_id"`
+	StoryDescription string     `json:"story_description"`
+	Tasks            []TaskItem `json:"tasks"`
+}
+
+type TaskItem struct {
+	TaskID          string `json:"task_id"`
+	TaskName        string `json:"task_name"`
+	TaskDescription string `json:"task_description"`
+}
+
+var tasksOutput = OutputConfig{
+	Format: OutputJSON,
+	Schema: tasksSchema,
+	Validate: func(answer string) error {
+		_, err := parseTasks(answer)
+		return err
+	},
+}
+
+func parseTasks(answer string) (TaskPlan, error) {
+	var plan TaskPlan
+	dec := json.NewDecoder(strings.NewReader(trimJSONFence(answer)))
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&plan); err != nil {
+		return TaskPlan{}, fmt.Errorf("parse tasks: %w", err)
 	}
 
-	var tasks []db.Task
-	for _, sec := range doc.Content() {
-		label := sec.Title().ID()
-		if label == parse.ID_SECTION_KEY {
-			continue
+	if len(plan.Stories) == 0 {
+		return TaskPlan{}, ErrNoTasks
+	}
+
+	for _, st := range plan.Stories {
+		if st.StoryID == "" {
+			return TaskPlan{}, fmt.Errorf("%w: story_id", ErrMissingField)
 		}
 
-		tasks = append(tasks, db.Task{
-			Label:   label,
-			Content: strings.TrimSpace(sec.Content().String()),
+		if len(st.Tasks) == 0 {
+			return TaskPlan{}, fmt.Errorf("story %q: %w", st.StoryID, ErrNoTasks)
+		}
+
+		for _, t := range st.Tasks {
+			if t.TaskID == "" || t.TaskName == "" {
+				return TaskPlan{}, fmt.Errorf("story %q: %w: task_id or task_name", st.StoryID, ErrMissingField)
+			}
+		}
+	}
+
+	return plan, nil
+}
+
+func saveTasks(ctx context.Context, s SiteService, plan TaskPlan) ([]int64, error) {
+	stories := make([]db.Story, 0, len(plan.Stories))
+	for _, st := range plan.Stories {
+		tasks := make([]db.Task, 0, len(st.Tasks))
+		for _, t := range st.Tasks {
+			tasks = append(tasks, db.Task{
+				Key:     t.TaskID,
+				Label:   t.TaskName,
+				Content: t.TaskDescription,
+			})
+		}
+
+		stories = append(stories, db.Story{
+			Key:         st.StoryID,
+			Description: st.StoryDescription,
+			Tasks:       tasks,
 		})
 	}
 
-	if len(tasks) == 0 {
-		return nil, ErrNoTasks
-	}
-
-	return tasks, nil
-}
-
-func saveTasks(ctx context.Context, s SiteService, answer string) (int64, error) {
-	tasks, err := parseTasks(answer)
+	ids, err := s.Tasks().SaveStories(ctx, tasksDesignFlow, string(TaskStepName), stories)
 	if err != nil {
-		return 0, err
+		return nil, fmt.Errorf("save stories: %w", err)
 	}
 
-	storyID, err := s.Tasks().CreateStory(ctx, tasksDesignFlow, string(TaskStepName))
-	if err != nil {
-		return 0, fmt.Errorf("create story: %w", err)
-	}
-
-	if err = s.Tasks().SaveTasks(ctx, storyID, tasks); err != nil {
-		return 0, fmt.Errorf("save tasks: %w", err)
-	}
-
-	return storyID, nil
+	return ids, nil
 }

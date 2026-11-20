@@ -10,11 +10,11 @@ INSERT INTO flow_runs (project_id) VALUES (?)
 RETURNING id;
 
 -- name: InsertFlowStory :one
-INSERT INTO flow_stories (run_id, file_path) VALUES (?, ?)
+INSERT INTO flow_stories (run_id, file_path, story_key, description) VALUES (?, ?, ?, ?)
 RETURNING id;
 
 -- name: InsertFlowTask :one
-INSERT INTO flow_tasks (story_id, position, label, content) VALUES (?, ?, ?, ?)
+INSERT INTO flow_tasks (story_id, position, task_key, label, content) VALUES (?, ?, ?, ?, ?)
 RETURNING id;
 
 -- name: ListFlowTasksByStory :many

@@ -34,30 +34,39 @@ func (q *Queries) InsertFlowRun(ctx context.Context, projectID int64) (int64, er
 }
 
 const insertFlowStory = `-- name: InsertFlowStory :one
-INSERT INTO flow_stories (run_id, file_path) VALUES (?, ?)
+INSERT INTO flow_stories (run_id, file_path, story_key, description) VALUES (?, ?, ?, ?)
 RETURNING id
 `
 
 type InsertFlowStoryParams struct {
-	RunID    int64  `json:"run_id"`
-	FilePath string `json:"file_path"`
+	RunID       int64  `json:"run_id"`
+	FilePath    string `json:"file_path"`
+	StoryKey    string `json:"story_key"`
+	Description string `json:"description"`
 }
 
 func (q *Queries) InsertFlowStory(ctx context.Context, arg InsertFlowStoryParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, insertFlowStory, arg.RunID, arg.FilePath)
+	row := q.db.QueryRowContext(ctx, insertFlowStory,
+		arg.RunID,
+		arg.FilePath,
+		arg.StoryKey,
+		arg.Description,
+	)
 	var id int64
 	err := row.Scan(&id)
 	return id, err
 }
 
 const insertFlowTask = `-- name: InsertFlowTask :one
-INSERT INTO flow_tasks (story_id, position, label, content) VALUES (?, ?, ?, ?)
+INSERT INTO flow_tasks (story_id, position, task_key, label, content) VALUES (?, ?, ?, ?, ?, ?)
 RETURNING id
 `
 
 type InsertFlowTaskParams struct {
 	StoryID  int64  `json:"story_id"`
 	Position int64  `json:"position"`
+	TaskKey  string `json:"task_key"`
+	Status   string `json:"status"`
 	Label    string `json:"label"`
 	Content  string `json:"content"`
 }
@@ -66,6 +75,8 @@ func (q *Queries) InsertFlowTask(ctx context.Context, arg InsertFlowTaskParams) 
 	row := q.db.QueryRowContext(ctx, insertFlowTask,
 		arg.StoryID,
 		arg.Position,
+		arg.TaskKey,
+		arg.Status,
 		arg.Label,
 		arg.Content,
 	)
@@ -75,7 +86,7 @@ func (q *Queries) InsertFlowTask(ctx context.Context, arg InsertFlowTaskParams) 
 }
 
 const listFlowTasksByStory = `-- name: ListFlowTasksByStory :many
-SELECT id, story_id, position, label, content, status, error, attempts, created_at, updated_at FROM flow_tasks
+SELECT id, story_id, position, task_key, label, content, status, error, attempts, created_at, updated_at FROM flow_tasks
 WHERE story_id = ?
 ORDER BY position
 `
@@ -93,6 +104,7 @@ func (q *Queries) ListFlowTasksByStory(ctx context.Context, storyID int64) ([]Fl
 			&i.ID,
 			&i.StoryID,
 			&i.Position,
+			&i.TaskKey,
 			&i.Label,
 			&i.Content,
 			&i.Status,
@@ -115,7 +127,7 @@ func (q *Queries) ListFlowTasksByStory(ctx context.Context, storyID int64) ([]Fl
 }
 
 const selectFlowStories = `-- name: SelectFlowStories :exec
-SELECT id, run_id, file_path, status, started_at, finished_at, run_time_ms FROM flow_stories
+SELECT id, run_id, file_path, story_key, description, status, started_at, finished_at, run_time_ms FROM flow_stories
 `
 
 func (q *Queries) SelectFlowStories(ctx context.Context) error {
