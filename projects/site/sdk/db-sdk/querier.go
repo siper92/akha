@@ -15,6 +15,7 @@ type Querier interface {
 	InsertFlowTask(ctx context.Context, arg InsertFlowTaskParams) (int64, error)
 	ListFlowTasksByStory(ctx context.Context, storyID int64) ([]FlowTask, error)
 	SelectFlowStories(ctx context.Context) error
+	UpdateFlowTaskStatus(ctx context.Context, arg UpdateFlowTaskStatusParams) error
 }
 
 var _ Querier = (*Queries)(nil)

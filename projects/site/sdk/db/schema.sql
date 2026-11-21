@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS flow_tasks (
   task_key TEXT NOT NULL DEFAULT '',
   label TEXT NOT NULL,
   content TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'executing' CHECK (status IN ('executing', 'completed', 'failed')),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed', 'failed')),
   error TEXT NOT NULL DEFAULT '',
   attempts INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

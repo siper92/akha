@@ -14,8 +14,13 @@ INSERT INTO flow_stories (run_id, file_path, story_key, description) VALUES (?, 
 RETURNING id;
 
 -- name: InsertFlowTask :one
-INSERT INTO flow_tasks (story_id, position, task_key, label, content) VALUES (?, ?, ?, ?, ?)
+INSERT INTO flow_tasks (story_id, position, task_key, status, label, content) VALUES (?, ?, ?, ?, ?, ?)
 RETURNING id;
+
+-- name: UpdateFlowTaskStatus :exec
+UPDATE flow_tasks
+SET status = ?, attempts = ?, error = ?, updated_at = CURRENT_TIMESTAMP
+WHERE id = ?;
 
 -- name: ListFlowTasksByStory :many
 SELECT * FROM flow_tasks

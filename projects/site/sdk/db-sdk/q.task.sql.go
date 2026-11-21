@@ -58,7 +58,7 @@ func (q *Queries) InsertFlowStory(ctx context.Context, arg InsertFlowStoryParams
 }
 
 const insertFlowTask = `-- name: InsertFlowTask :one
-INSERT INTO flow_tasks (story_id, position, task_key, label, content) VALUES (?, ?, ?, ?, ?, ?)
+INSERT INTO flow_tasks (story_id, position, task_key, status, label, content) VALUES (?, ?, ?, ?, ?, ?)
 RETURNING id
 `
 
@@ -132,5 +132,28 @@ SELECT id, run_id, file_path, story_key, description, status, started_at, finish
 
 func (q *Queries) SelectFlowStories(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, selectFlowStories)
+	return err
+}
+
+const updateFlowTaskStatus = `-- name: UpdateFlowTaskStatus :exec
+UPDATE flow_tasks
+SET status = ?, attempts = ?, error = ?, updated_at = CURRENT_TIMESTAMP
+WHERE id = ?
+`
+
+type UpdateFlowTaskStatusParams struct {
+	Status   string `json:"status"`
+	Attempts int64  `json:"attempts"`
+	Error    string `json:"error"`
+	ID       int64  `json:"id"`
+}
+
+func (q *Queries) UpdateFlowTaskStatus(ctx context.Context, arg UpdateFlowTaskStatusParams) error {
+	_, err := q.db.ExecContext(ctx, updateFlowTaskStatus,
+		arg.Status,
+		arg.Attempts,
+		arg.Error,
+		arg.ID,
+	)
 	return err
 }

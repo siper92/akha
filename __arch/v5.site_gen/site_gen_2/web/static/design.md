@@ -198,6 +198,8 @@ each entry is one file under `web/static/img/`
   - 600x79, a glowing arched doorway, one human figure at the door, abstract matte trees on both sides, waves meeting at the door
 - `portals.svg` (hero for `portals.md`)
   - 600x79, a large prime door with smaller doors around it, one human figure (about 40% of the door height) at the prime door, pine trees only, waves linking the doors
+- `struggle.svg` (hero for `struggle.md`)
+  - 600x79, one human figure between a dark door and a blinding bright door, looping rings around him (the loop of loss)
 
 review
 - [ ] every asset listed has been generated

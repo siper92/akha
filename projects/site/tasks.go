@@ -98,6 +98,7 @@ func saveTasks(ctx context.Context, s SiteService, plan TaskPlan) ([]int64, erro
 				Key:     t.TaskID,
 				Label:   t.TaskName,
 				Content: t.TaskDescription,
+				Status:  db.TaskStatusPending,
 			})
 		}
 

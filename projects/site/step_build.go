@@ -12,6 +12,7 @@ import (
 	flow "github.com/siper92/akha/internal/flow_v3"
 	"github.com/siper92/akha/internal/parse"
 	"github.com/siper92/akha/projects/site/sdk/db"
+	dbsdk "github.com/siper92/akha/projects/site/sdk/db-sdk"
 )
 
 const (
@@ -22,11 +23,15 @@ const (
 )
 
 const (
-	inputKey   = "input"
-	dbFileName = "site.db"
+	inputKey             = "input"
+	dbFileName           = "site.db"
+	implementMaxAttempts = 3
 )
 
-var ErrMissingData = errors.New("missing step data")
+var (
+	ErrMissingData = errors.New("missing step data")
+	ErrTaskFailed  = errors.New("task failed")
+)
 
 type SiteData struct {
 	Input    string
@@ -97,7 +102,7 @@ func NewSiteBuildSteps(key string, cacheDir string) (*SiteFlow, error) {
 				return d
 			},
 		),
-		ImplementStepName: implementStep,
+		ImplementStepName: implementStep(aiService),
 	})
 
 	if err != nil {
@@ -182,8 +187,8 @@ func askStep(
 				return flow.ErrorTransition, fmt.Errorf("%s: %w", name, err)
 			}
 
-			if err = s.Cache().Put(ctx,
-				string(name), []byte(answer), cache2.NoExpiry,
+			if err = s.Cache().Put(
+				ctx, string(name), []byte(answer), cache2.NoExpiry,
 			); err != nil {
 				return flow.UnknownTransition, fmt.Errorf("%s: save response: %w", name, err)
 			}
@@ -197,29 +202,79 @@ func askStep(
 	}
 }
 
-func implementStep(ctx context.Context, ds flow.DataServiceProvide[SiteData]) (flow.Transition, error) {
-	s, err := asSiteService(ds)
-	if err != nil {
-		return flow.UnknownTransition, fmt.Errorf("%s: %w", ImplementStepName, err)
-	}
-
-	d := s.Data()
-	if d.TasksRaw == "" || len(d.StoryIDs) == 0 {
-		return flow.UnknownTransition, fmt.Errorf("%s: %w", ImplementStepName, ErrMissingData)
-	}
-
-	for _, storyID := range d.StoryIDs {
-		tasks, err := s.Tasks().ListTasks(ctx, storyID)
+func implementStep(a asker) flow.StepExec[SiteData] {
+	return func(ctx context.Context, ds flow.DataServiceProvide[SiteData]) (flow.Transition, error) {
+		s, err := asSiteService(ds)
 		if err != nil {
-			return flow.ErrorTransition, fmt.Errorf("%s: list tasks: %w", ImplementStepName, err)
+			return flow.UnknownTransition, fmt.Errorf("%s: %w", ImplementStepName, err)
 		}
 
-		for _, t := range tasks {
-			fmt.Printf("%d: %s %s\n", t.ID, t.TaskKey, t.Label)
+		d := s.Data()
+		if d.TasksRaw == "" || len(d.StoryIDs) == 0 {
+			return flow.UnknownTransition, fmt.Errorf("%s: %w", ImplementStepName, ErrMissingData)
+		}
+
+		for _, storyID := range d.StoryIDs {
+			tasks, err := s.Tasks().ListTasks(ctx, storyID)
+			if err != nil {
+				return flow.ErrorTransition, fmt.Errorf("%s: list tasks: %w", ImplementStepName, err)
+			}
+
+			for _, t := range tasks {
+				if db.TaskStatus(t.Status) == db.TaskStatusCompleted {
+					continue
+				}
+
+				if err = implementTask(ctx, a, s, d.Plan, t); err != nil {
+					return flow.ErrorTransition, fmt.Errorf("%s: task %q: %w", ImplementStepName, t.TaskKey, err)
+				}
+			}
+		}
+
+		return flow.DoneTransition, nil
+	}
+}
+
+func implementTask(ctx context.Context, a asker, s SiteService, plan string, t dbsdk.FlowTask) error {
+	repo := s.Tasks()
+	if err := repo.UpdateTaskStatus(ctx, t.ID, db.TaskStatusInProgress, 0, ""); err != nil {
+		return fmt.Errorf("update status: %w", err)
+	}
+
+	prompt := plan + "\n\n# task " + t.TaskKey + ": " + t.Label + "\n\n" + t.Content
+	out := OutputConfig{Format: OutputText}
+
+	var lastErr error
+	for attempt := int64(1); attempt <= implementMaxAttempts; attempt++ {
+		answer, err := a.AskLv3(ctx, prompt, out)
+		if err == nil {
+			answer, err = out.Check(answer)
+		}
+
+		if err == nil {
+			key := fmt.Sprintf("%s_%s_%d", ImplementStepName, t.TaskKey, t.ID)
+			if err = s.Cache().Put(ctx, key, []byte(answer), cache2.NoExpiry); err != nil {
+				return fmt.Errorf("save response: %w", err)
+			}
+
+			if err = repo.UpdateTaskStatus(ctx, t.ID, db.TaskStatusCompleted, attempt, ""); err != nil {
+				return fmt.Errorf("update status: %w", err)
+			}
+
+			return nil
+		}
+
+		lastErr = err
+		if err = repo.UpdateTaskStatus(ctx, t.ID, db.TaskStatusInProgress, attempt, lastErr.Error()); err != nil {
+			return fmt.Errorf("update status: %w", err)
 		}
 	}
 
-	return flow.DoneTransition, nil
+	if err := repo.UpdateTaskStatus(ctx, t.ID, db.TaskStatusFailed, implementMaxAttempts, lastErr.Error()); err != nil {
+		return fmt.Errorf("update status: %w", err)
+	}
+
+	return fmt.Errorf("%w: %w", ErrTaskFailed, lastErr)
 }
 
 func getAiPrompt(input string, d *parse.MDFlowStep) string {

@@ -19,7 +19,9 @@ func TestSiteGen(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, "input", "Create a html page with a story about data magician and a mission")
+	ctx = context.WithValue(
+		ctx, "input", "write a story about vaice, power and the unholy path to light",
+	)
 
 	err = flowMachine.Execute(ctx)
 	if err != nil {

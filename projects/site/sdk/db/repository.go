@@ -8,6 +8,15 @@ import (
 	dbsdk "github.com/siper92/akha/projects/site/sdk/db-sdk"
 )
 
+type TaskStatus string
+
+const (
+	TaskStatusPending    TaskStatus = "pending"
+	TaskStatusInProgress TaskStatus = "in_progress"
+	TaskStatusCompleted  TaskStatus = "completed"
+	TaskStatusFailed     TaskStatus = "failed"
+)
+
 type Story struct {
 	Key         string
 	Description string
@@ -18,11 +27,13 @@ type Task struct {
 	Key     string
 	Label   string
 	Content string
+	Status  TaskStatus
 }
 
 type TaskRepository interface {
 	SaveStories(ctx context.Context, designFlow, filePath string, stories []Story) ([]int64, error)
 	ListTasks(ctx context.Context, storyID int64) ([]dbsdk.FlowTask, error)
+	UpdateTaskStatus(ctx context.Context, taskID int64, status TaskStatus, attempts int64, errMsg string) error
 }
 
 var _ TaskRepository = (*Repository)(nil)
@@ -62,6 +73,7 @@ func (r *Repository) SaveStories(ctx context.Context, designFlow, filePath strin
 
 			for i, t := range st.Tasks {
 				if _, err = q.InsertFlowTask(ctx, dbsdk.InsertFlowTaskParams{
+					Status:   string(t.Status),
 					StoryID:  storyID,
 					Position: int64(i),
 					TaskKey:  t.Key,
@@ -86,6 +98,15 @@ func (r *Repository) SaveStories(ctx context.Context, designFlow, filePath strin
 
 func (r *Repository) ListTasks(ctx context.Context, storyID int64) ([]dbsdk.FlowTask, error) {
 	return r.q.ListFlowTasksByStory(ctx, storyID)
+}
+
+func (r *Repository) UpdateTaskStatus(ctx context.Context, taskID int64, status TaskStatus, attempts int64, errMsg string) error {
+	return r.q.UpdateFlowTaskStatus(ctx, dbsdk.UpdateFlowTaskStatusParams{
+		Status:   string(status),
+		Attempts: attempts,
+		Error:    errMsg,
+		ID:       taskID,
+	})
 }
 
 func (r *Repository) tx(ctx context.Context, fn func(q *dbsdk.Queries) error) error {

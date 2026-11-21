@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 79" width="600" height="79" role="img">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="600" y2="79" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#021627"/>
+      <stop offset="1" stop-color="#04345c"/>
+    </linearGradient>
+    <linearGradient id="bright" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.5" stop-color="#bad3e4"/>
+      <stop offset="1" stop-color="#5aa6e0"/>
+    </linearGradient>
+    <linearGradient id="dark" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#021627"/>
+      <stop offset="1" stop-color="#10564f"/>
+    </linearGradient>
+    <radialGradient id="glowR" cx="420" cy="40" r="170" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#bad3e4" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#bad3e4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowL" cx="180" cy="55" r="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#10564f" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#10564f" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur" x="-40%" y="-30%" width="180%" height="160%">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
+    <path id="d" d="M-20 0V-50C-20 -70 -10 -84 0 -84C10 -84 20 -70 20 -50V0Z"/>
+  </defs>
+  <rect width="600" height="79" fill="url(#bg)"/>
+  <circle cx="420" cy="40" r="170" fill="url(#glowR)"/>
+  <circle cx="180" cy="55" r="70" fill="url(#glowL)"/>
+  <g fill="#bad3e4">
+    <circle cx="40" cy="10" r="0.9" opacity="0.5"/>
+    <circle cx="95" cy="18" r="0.8" opacity="0.4"/>
+    <circle cx="560" cy="9" r="0.9" opacity="0.5"/>
+    <circle cx="250" cy="8" r="0.8" opacity="0.35"/>
+  </g>
+  <g fill="none" stroke-linecap="round" stroke-width="1">
+    <ellipse cx="300" cy="62" rx="210" ry="10" stroke="#3fb5a3" stroke-opacity="0.25"/>
+    <ellipse cx="300" cy="62" rx="165" ry="7.5" stroke="#3fb5a3" stroke-opacity="0.35"/>
+    <ellipse cx="300" cy="62" rx="120" ry="5" stroke="#3fb5a3" stroke-opacity="0.5"/>
+  </g>
+  <use href="#d" transform="translate(180 70) scale(0.7)" fill="url(#dark)" stroke="#10564f" stroke-width="1.4"/>
+  <use href="#d" transform="translate(180 70) scale(0.5)" fill="#021627" opacity="0.8"/>
+  <circle cx="180" cy="50" r="2" fill="#3fb5a3" opacity="0.6"/>
+  <use href="#d" transform="translate(420 70) scale(0.78)" fill="#ffffff" opacity="0.5" filter="url(#blur)"/>
+  <use href="#d" transform="translate(420 70) scale(0.7)" fill="url(#bright)"/>
+  <rect x="0" y="70" width="600" height="9" fill="#021627" opacity="0.6"/>
+  <g fill="none" stroke-linecap="round" stroke-width="1">
+    <path d="M0 71C100 69 180 73 300 71S480 69 600 71" stroke="#bad3e4" stroke-opacity="0.45"/>
+    <path d="M0 75C110 73 190 77 300 75S490 73 600 75" stroke="#10564f" stroke-opacity="0.9"/>
+  </g>
+  <g fill="#bad3e4" opacity="0.9">
+    <circle cx="300" cy="50" r="2.8"/>
+    <path d="M293.500 59Q293.500 53 300 53Q306.500 53 306.500 59L304.800 63H303.800L303.300 70H300.600V63.500H299.400V70H296.700L296.200 63H295.200Z"/>
+  </g>
+</svg>
