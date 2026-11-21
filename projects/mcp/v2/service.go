@@ -30,6 +30,7 @@ func (s *Service) Params() []anthropic.BetaToolUnionParam {
 		p := s.tools[name].Param()
 		out = append(out, anthropic.BetaToolUnionParam{OfTool: &p})
 	}
+
 	return out
 }
 
@@ -38,5 +39,6 @@ func (s *Service) Call(ctx context.Context, name string, input json.RawMessage) 
 	if !ok {
 		return "", fmt.Errorf("%w: %s", ErrUnknownTool, name)
 	}
+
 	return t.Call(ctx, input)
 }

@@ -39,6 +39,8 @@ func (a *ClaudeAgent) Run(ctx context.Context, prompt string) (string, error) {
 		resp, err := a.client.Beta.Messages.New(ctx, anthropic.BetaMessageNewParams{
 			Model:     a.model,
 			MaxTokens: 16000,
+			Betas:     []anthropic.AnthropicBeta{"server-side-fallback-2026-07-01"},
+			Fallbacks: anthropic.BetaFallbacksParamOfDefault(),
 			Messages:  messages,
 			Tools:     a.tools.Params(),
 		})

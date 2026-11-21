@@ -2,8 +2,6 @@ package site
 
 import (
 	"errors"
-	"fmt"
-	"time"
 
 	"github.com/siper92/akha/internal/cache"
 	flow "github.com/siper92/akha/internal/flow_v3"
@@ -57,8 +55,4 @@ func (s *siteService) Tasks() db.TaskRepository {
 
 func siteStep(fn flow.ServiceExec[SiteData, SiteService]) flow.StepExec[SiteData] {
 	return flow.WithService(fn)
-}
-
-func stepResponseName(name flow.StepName, at time.Time) string {
-	return fmt.Sprintf("%s_response_%d.md", name, at.UnixMicro())
 }
