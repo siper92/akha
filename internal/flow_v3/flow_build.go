@@ -1,6 +1,7 @@
 package flow_v3
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -65,6 +66,21 @@ func stepDefToTransitionMap(def string) (map[StepName]map[Transition]nexStep, er
 	return g.edges, nil
 }
 
+type Steps[D any] map[StepName]StepExec[D]
+
+type ServiceExec[D any, S DataServiceProvide[D]] func(ctx context.Context, s S) (Transition, error)
+
+func WithService[D any, S DataServiceProvide[D]](fn ServiceExec[D, S]) StepExec[D] {
+	return func(ctx context.Context, ds DataServiceProvide[D]) (Transition, error) {
+		s, ok := ds.ServiceProvide().(S)
+		if !ok {
+			return UnknownTransition, fmt.Errorf("%w: %T", ErrServiceType, ds.ServiceProvide())
+		}
+
+		return fn(ctx, s)
+	}
+}
+
 func NewMachineFlow[D any](def string, execs map[StepName]StepExec[D]) (*MachineFlow[D], error) {
 	g, err := parseGraph(def)
 	if err != nil {
@@ -78,11 +94,7 @@ func NewMachineFlow[D any](def string, execs map[StepName]StepExec[D]) (*Machine
 			return nil, fmt.Errorf("%w: %s", ErrNoStepExec, name)
 		}
 
-		steps = append(steps, &MachineStep[D]{
-			name:        name,
-			transitions: g.edges[name],
-			exec:        exec,
-		})
+		steps = append(steps, newMachineStep(name, g.edges[name], exec))
 	}
 
 	m := &MachineFlow[D]{}

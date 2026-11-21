@@ -28,6 +28,7 @@ var (
 	ErrNoActiveStep      = errors.New("no active step")
 	ErrRetriesExhausted  = errors.New("retries exhausted")
 	ErrInvalidGraph      = errors.New("invalid graph")
+	ErrServiceType       = errors.New("unexpected service type")
 )
 
 var _ DataServiceProvide[any] = (*StepData[any])(nil)
@@ -72,6 +73,10 @@ type MachineStep[D any] struct {
 	name        StepName
 	transitions map[Transition]nexStep
 	exec        StepExec[D]
+}
+
+func newMachineStep[D any](name StepName, transitions map[Transition]nexStep, exec StepExec[D]) *MachineStep[D] {
+	return &MachineStep[D]{name: name, transitions: transitions, exec: exec}
 }
 
 func (m *MachineStep[D]) process(ctx context.Context, s DataServiceProvide[D]) (Transition, error) {

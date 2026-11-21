@@ -58,10 +58,12 @@ func (c *fileCache) Put(ctx context.Context, key string, val []byte, ttl time.Du
 	if err != nil {
 		return err
 	}
+
 	tmp := c.path(key) + ".tmp"
 	if err := os.WriteFile(tmp, b, 0o600); err != nil {
 		return err
 	}
+
 	return os.Rename(tmp, c.path(key))
 }
 
