@@ -56,7 +56,7 @@ func GetTaskDef(s SiteData) (*parse.MDFlowStep, error) {
 	return parse.Parse(string(task))
 }
 
-func NewSiteBuildSteps(key string, cacheDir string) (*SiteFlow, error) {
+func NewSiteFlow(key string, cacheDir string) (*SiteFlow, error) {
 	aiClient, err := ai.NewAnthropic(key)
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func NewSiteBuildSteps(key string, cacheDir string) (*SiteFlow, error) {
 		return nil, err
 	}
 
-	f, err := NewSiteFlow(Providers{
+	f, err := newSiteFlow(Providers{
 		AI:    newAiAsker(aiClient),
 		Cache: fileCache,
 		Tasks: db.NewRepository(conn),
@@ -84,7 +84,7 @@ func NewSiteBuildSteps(key string, cacheDir string) (*SiteFlow, error) {
 	return f, nil
 }
 
-func NewSiteFlow(p Providers, closer io.Closer) (*SiteFlow, error) {
+func newSiteFlow(p Providers, closer io.Closer) (*SiteFlow, error) {
 	machine, err := flow.NewMachineFlow(site.FlowDef, siteSteps())
 	if err != nil {
 		return nil, err

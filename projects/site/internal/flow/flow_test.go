@@ -1,10 +1,9 @@
-package site
+package flow
 
 import (
 	"context"
 	"testing"
 
-	"github.com/siper92/akha/projects/site/internal/flow"
 	"github.com/spf13/viper"
 )
 
@@ -14,7 +13,7 @@ func TestSiteGen(t *testing.T) {
 
 	apiKey := viper.Get("ANTHROPIC_API_KEY").(string)
 
-	flowMachine, err := flow.NewSiteBuildSteps(apiKey, "_env/.cache")
+	flowMachine, err := NewSiteFlow(apiKey, "_env/.cache")
 	if err != nil {
 		t.Fatalf("Failed to create site build steps: %v", err)
 	}
