@@ -1,11 +1,11 @@
-package site
+package flow
 
 import (
 	"errors"
 
 	"github.com/siper92/akha/internal/cache"
 	flow "github.com/siper92/akha/internal/flow_v3"
-	"github.com/siper92/akha/projects/site/sdk/db"
+	"github.com/siper92/akha/projects/site/internal/db"
 )
 
 var (

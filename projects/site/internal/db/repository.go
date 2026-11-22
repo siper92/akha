@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	dbsdk "github.com/siper92/akha/projects/site/sdk/db-sdk"
+	dbsdk "github.com/siper92/akha/projects/site/internal/sdk/db-sdk"
 )
 
 type TaskStatus string

@@ -1,4 +1,4 @@
-package site
+package flow
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/siper92/akha/projects/site/sdk/db"
+	"github.com/siper92/akha/projects/site/internal/db"
 )
 
 const tasksDesignFlow = "site"

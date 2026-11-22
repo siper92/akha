@@ -1,8 +1,8 @@
 version: "2"
 sql:
   - engine: "sqlite"
-    queries: "site/sdk/db/q.*.sql"
-    schema: "site/sdk/db/schema.sql"
+    queries: "site/_defs/db/q.*.sql"
+    schema: "site/_defs/db/schema.sql"
     gen:
       go:
         package: "db_sdk"
