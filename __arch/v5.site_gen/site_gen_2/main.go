@@ -78,13 +78,18 @@ func run(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("list docs: %w", err)
 	}
 
+	texts, err := pages.LoadTexts(ctx, cfg.Texts)
+	if err != nil {
+		return err
+	}
+
 	rend, err := pages.NewRenderer(pages.RenderOptions{
 		Template: cfg.Template,
-		SiteName: cfg.SiteName,
+		Texts:    texts,
 		BaseURL:  cfg.BaseURL,
 		Assets:   cfg.AssetsPath,
 		Lang:     cfg.Lang,
-		Nav:      pages.NavFrom(docs),
+		Nav:      pages.NavFrom(docs, texts.Menu),
 	})
 	if err != nil {
 		return err

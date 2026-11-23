@@ -1,0 +1,8 @@
+site_name: "Akha Collective"
+slogan: "energy will mix any each way but always find path to the unity of the whole"
+menu:
+  - label: World
+    page: world
+  - label: Portals
+  - label: Home
+    page: home

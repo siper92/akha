@@ -108,10 +108,62 @@ func label(slug string) string {
 	return string(unicode.ToUpper(r)) + slug[size:]
 }
 
-func NavFrom(docs []Doc) []NavItem {
-	items := make([]NavItem, 0, len(docs))
+func NavFrom(docs []Doc, menu []MenuEntry) []NavItem {
+	if len(menu) == 0 {
+		items := make([]NavItem, 0, len(docs))
+		for _, d := range docs {
+			items = append(items, NavItem{Label: d.Meta.Nav, Path: d.Path})
+		}
+		return items
+	}
+
+	bySlug := make(map[string]Doc, len(docs))
 	for _, d := range docs {
-		items = append(items, NavItem{Label: d.Meta.Nav, Path: d.Path})
+		bySlug[d.Slug] = d
+	}
+	used := make(map[string]bool)
+	for _, m := range menu {
+		if m.Page != "" {
+			used[m.Page] = true
+		}
+		for _, p := range m.Pages {
+			used[p] = true
+		}
+	}
+
+	items := make([]NavItem, 0, len(menu))
+	for _, m := range menu {
+		if m.Page != "" {
+			d, ok := bySlug[m.Page]
+			if !ok {
+				continue
+			}
+			lbl := m.Label
+			if lbl == "" {
+				lbl = d.Meta.Nav
+			}
+			items = append(items, NavItem{Label: lbl, Path: d.Path})
+			continue
+		}
+
+		var kids []NavItem
+		if len(m.Pages) > 0 {
+			for _, p := range m.Pages {
+				if d, ok := bySlug[p]; ok {
+					kids = append(kids, NavItem{Label: d.Meta.Nav, Path: d.Path})
+				}
+			}
+		} else {
+			for _, d := range docs {
+				if !used[d.Slug] {
+					kids = append(kids, NavItem{Label: d.Meta.Nav, Path: d.Path})
+				}
+			}
+		}
+		if len(kids) == 0 {
+			continue
+		}
+		items = append(items, NavItem{Label: m.Label, Children: kids})
 	}
 	return items
 }

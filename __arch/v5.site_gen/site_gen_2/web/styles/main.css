@@ -6,3 +6,22 @@
 @import "./site.css" layer(components);
 
 @source "../**/*.html";
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--border);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-heading: var(--heading);
+  --color-primary: var(--primary);
+  --color-primary-text: var(--primary-text);
+  --color-accent: var(--accent);
+  --color-glass: var(--glass);
+  --font-display: var(--font-head);
+  --font-code: var(--font-mono);
+  --shadow-site: var(--shadow);
+  --container-site: var(--container);
+  --container-measure: var(--measure);
+}

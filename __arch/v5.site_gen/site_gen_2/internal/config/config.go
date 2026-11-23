@@ -13,11 +13,11 @@ var ErrInvalidConfig = errors.New("invalid config")
 type Config struct {
 	MDDir      string `mapstructure:"md_dir"`
 	Template   string `mapstructure:"template"`
+	Texts      string `mapstructure:"texts"`
 	StaticDir  string `mapstructure:"static_dir"`
 	OutDir     string `mapstructure:"out_dir"`
 	AssetsPath string `mapstructure:"assets_path"`
 	IndexPage  string `mapstructure:"index_page"`
-	SiteName   string `mapstructure:"site_name"`
 	BaseURL    string `mapstructure:"base_url"`
 	Lang       string `mapstructure:"lang"`
 	Clean      bool   `mapstructure:"clean"`
@@ -26,11 +26,11 @@ type Config struct {
 func Load(v *viper.Viper) (Config, error) {
 	v.SetDefault("md_dir", "web/md")
 	v.SetDefault("template", "web/templates/layout.html")
+	v.SetDefault("texts", "web/templates/texts.yaml")
 	v.SetDefault("static_dir", "web/static")
 	v.SetDefault("out_dir", "deploy/static")
 	v.SetDefault("assets_path", "/assets")
 	v.SetDefault("index_page", "world")
-	v.SetDefault("site_name", "Akha Collective")
 	v.SetDefault("base_url", "")
 	v.SetDefault("lang", "en")
 	v.SetDefault("clean", true)
@@ -45,10 +45,10 @@ func Load(v *viper.Viper) (Config, error) {
 	fields := []struct{ name, val string }{
 		{"md_dir", cfg.MDDir},
 		{"template", cfg.Template},
+		{"texts", cfg.Texts},
 		{"static_dir", cfg.StaticDir},
 		{"out_dir", cfg.OutDir},
 		{"index_page", cfg.IndexPage},
-		{"site_name", cfg.SiteName},
 		{"lang", cfg.Lang},
 	}
 	for _, f := range fields {

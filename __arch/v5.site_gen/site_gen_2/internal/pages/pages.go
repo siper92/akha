@@ -12,7 +12,20 @@ var (
 	ErrRender      = errors.New("render error")
 	ErrFrontMatter = errors.New("front matter error")
 	ErrUnsafeOut   = errors.New("unsafe output dir")
+	ErrTexts       = errors.New("texts error")
 )
+
+type MenuEntry struct {
+	Label string   `yaml:"label"`
+	Page  string   `yaml:"page"`
+	Pages []string `yaml:"pages"`
+}
+
+type Texts struct {
+	SiteName string      `yaml:"site_name"`
+	Slogan   string      `yaml:"slogan"`
+	Menu     []MenuEntry `yaml:"menu"`
+}
 
 type Meta struct {
 	Title       string   `yaml:"title"`
@@ -45,9 +58,10 @@ type Page struct {
 }
 
 type NavItem struct {
-	Label  string
-	Path   string
-	Active bool
+	Label    string
+	Path     string
+	Active   bool
+	Children []NavItem
 }
 
 type View struct {
@@ -67,6 +81,8 @@ type View struct {
 	Slug        string
 	Path        string
 	Content     template.HTML
+	Source      string
+	Texts       Texts
 	Nav         []NavItem
 	Year        int
 }

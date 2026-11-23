@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"html/template"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -14,7 +15,7 @@ import (
 
 type RenderOptions struct {
 	Template string
-	SiteName string
+	Texts    Texts
 	BaseURL  string
 	Assets   string
 	Lang     string
@@ -31,7 +32,9 @@ type templateRenderer struct {
 var _ Renderer = (*templateRenderer)(nil)
 
 func NewRenderer(opts RenderOptions) (Renderer, error) {
-	t, err := template.ParseFiles(opts.Template)
+	t, err := template.New(filepath.Base(opts.Template)).
+		Funcs(template.FuncMap{"hash": Hash}).
+		ParseFiles(opts.Template)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrTemplate, err)
 	}
@@ -52,11 +55,7 @@ func (r *templateRenderer) Render(ctx context.Context, d Doc) (Page, error) {
 		return Page{}, fmt.Errorf("%w: %s: %v", ErrRender, d.Slug, err)
 	}
 
-	nav := make([]NavItem, len(r.opts.Nav))
-	for i, item := range r.opts.Nav {
-		item.Active = item.Path == d.Path
-		nav[i] = item
-	}
+	nav := markActive(r.opts.Nav, d.Path)
 
 	img := r.assetURL(d.Meta.Image)
 	alt := d.Meta.ImageAlt
@@ -70,7 +69,7 @@ func (r *templateRenderer) Render(ctx context.Context, d Doc) (Page, error) {
 
 	view := View{
 		Lang:        r.opts.Lang,
-		SiteName:    r.opts.SiteName,
+		SiteName:    r.opts.Texts.SiteName,
 		Assets:      r.opts.Assets,
 		Title:       d.Meta.Title,
 		Subtitle:    d.Meta.Subtitle,
@@ -85,6 +84,8 @@ func (r *templateRenderer) Render(ctx context.Context, d Doc) (Page, error) {
 		Slug:        d.Slug,
 		Path:        d.Path,
 		Content:     template.HTML(body.String()),
+		Source:      string(d.Body),
+		Texts:       r.opts.Texts,
 		Nav:         nav,
 		Year:        r.year,
 	}
@@ -93,6 +94,24 @@ func (r *templateRenderer) Render(ctx context.Context, d Doc) (Page, error) {
 		return Page{}, fmt.Errorf("%w: %s: %v", ErrRender, d.Slug, err)
 	}
 	return Page{Slug: d.Slug, Path: d.Path, File: d.File, Meta: d.Meta, HTML: out.Bytes()}, nil
+}
+
+func markActive(items []NavItem, path string) []NavItem {
+	if len(items) == 0 {
+		return nil
+	}
+	out := make([]NavItem, len(items))
+	for i, it := range items {
+		it.Children = markActive(it.Children, path)
+		it.Active = it.Path != "" && it.Path == path
+		for _, c := range it.Children {
+			if c.Active {
+				it.Active = true
+			}
+		}
+		out[i] = it
+	}
+	return out
 }
 
 func (r *templateRenderer) assetURL(p string) string {

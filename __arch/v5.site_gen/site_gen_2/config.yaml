@@ -1,10 +1,10 @@
 md_dir: "web/md"
 template: "web/templates/layout.html"
+texts: "web/templates/texts.yaml"
 static_dir: "web/static"
 out_dir: "deploy/static"
 assets_path: "/assets"
 index_page: "world"
-site_name: "Akha Collective"
 base_url: ""
 lang: "en"
 clean: true
