@@ -1,36 +1,5 @@
 /* tokens */
-:root,
-:root[data-theme="dark"] {
-  --navy-blue: #04345c;
-  --blue-green: #10564f;
-  --blue-grotto: #1e77bd;
-  --baby-blue: #bad3e4;
-  --navy-deep: #021627;
-  --grotto-light: #5aa6e0;
-  --blue-green-light: #3fb5a3;
-  --grotto-dark: #17629c;
-  --leaf: #2e8b6a;
-  --leaf-light: #7fd1a8;
-
-  --bg: #021627;
-  --bg-gradient: radial-gradient(1200px 600px at 80% -10%, rgba(30,119,189,0.22), transparent 60%), radial-gradient(900px 500px at -10% 20%, rgba(16,86,79,0.35), transparent 60%);
-  --surface: #052a49;
-  --surface-2: #04345c;
-  --border: #0f4a75;
-  --text: #eaf2f8;
-  --muted: #9fbdd3;
-  --heading: #bad3e4;
-  --primary: #1e77bd;
-  --primary-text: #5aa6e0;
-  --accent: #3fb5a3;
-  --accent-fill: #10564f;
-  --code-bg: #031f36;
-  --glass: rgba(5,42,73,0.72);
-  --shadow: 0 10px 30px rgba(0,0,0,0.35);
-  --brand-gradient: linear-gradient(135deg, #04345c 0%, #10564f 45%, #2e8b6a 75%, #1e77bd 100%);
-  --h1-gradient: linear-gradient(135deg, #bad3e4 0%, #7fd1a8 55%, #5aa6e0 100%);
-  --rule: linear-gradient(90deg, var(--accent), transparent);
-
+:root {
   --font-head: "Space Grotesk", system-ui, sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
@@ -60,73 +29,29 @@
   --transition: 160ms ease;
 }
 
-:root[data-theme="light"] {
-  --bg: #e4f1e7;
-  --bg-gradient: radial-gradient(1200px 600px at 80% -10%, rgba(46,139,106,0.18), transparent 60%), radial-gradient(900px 500px at -10% 20%, rgba(127,209,168,0.22), transparent 60%), radial-gradient(900px 500px at 50% 110%, rgba(16,86,79,0.12), transparent 60%);
-  --surface: #f2f9f4;
-  --surface-2: #d3eadb;
-  --border: #a6cfb6;
-  --text: #0c2a24;
-  --muted: #3a5c51;
-  --heading: #0d4a3f;
-  --primary: #1a7a5e;
-  --primary-text: #12634c;
-  --accent: #10564f;
-  --accent-fill: #10564f;
-  --code-bg: #d3eadb;
-  --glass: rgba(228,241,231,0.84);
-  --shadow: 0 10px 30px rgba(16,86,79,0.16);
-  --h1-gradient: linear-gradient(135deg, #04345c 0%, #10564f 45%, #2e8b6a 100%);
-}
-
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme]) {
-    --bg: #e4f1e7;
-    --bg-gradient: radial-gradient(1200px 600px at 80% -10%, rgba(46,139,106,0.18), transparent 60%), radial-gradient(900px 500px at -10% 20%, rgba(127,209,168,0.22), transparent 60%), radial-gradient(900px 500px at 50% 110%, rgba(16,86,79,0.12), transparent 60%);
-    --surface: #f2f9f4;
-    --surface-2: #d3eadb;
-    --border: #a6cfb6;
-    --text: #0c2a24;
-    --muted: #3a5c51;
-    --heading: #0d4a3f;
-    --primary: #1a7a5e;
-    --primary-text: #12634c;
-    --accent: #10564f;
-    --accent-fill: #10564f;
-    --code-bg: #d3eadb;
-    --glass: rgba(228,241,231,0.84);
-    --shadow: 0 10px 30px rgba(16,86,79,0.16);
-    --h1-gradient: linear-gradient(135deg, #04345c 0%, #10564f 45%, #2e8b6a 100%);
-  }
-}
-
 @media (min-width: 1024px) {
-  :root,
-  :root[data-theme="dark"] {
+  :root {
     --container: 1200px;
     --measure: 720px;
   }
 }
 
 @media (min-width: 1280px) {
-  :root,
-  :root[data-theme="dark"] {
+  :root {
     --container: 1320px;
     --measure: 780px;
   }
 }
 
 @media (min-width: 1536px) {
-  :root,
-  :root[data-theme="dark"] {
+  :root {
     --container: 1480px;
     --measure: 860px;
   }
 }
 
 @media (min-width: 1920px) {
-  :root,
-  :root[data-theme="dark"] {
+  :root {
     --container: 1680px;
     --measure: 920px;
   }
@@ -149,11 +74,11 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--bg);
-  background-image: var(--bg-gradient);
+  background-color: var(--color-bg);
+  background-image: radial-gradient(1200px 600px at 80% -10%, var(--color-glow-1), transparent 60%), radial-gradient(900px 500px at -10% 20%, var(--color-glow-2), transparent 60%), radial-gradient(900px 500px at 50% 110%, var(--color-glow-3), transparent 60%);
   background-attachment: fixed;
   background-repeat: no-repeat;
-  color: var(--text);
+  color: var(--color-ink);
   font-family: var(--font-body);
   font-weight: 400;
   line-height: var(--lh-body);
@@ -169,7 +94,7 @@ svg {
 /* focus */
 a:focus-visible,
 button:focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--color-primary);
   outline-offset: 3px;
 }
 
@@ -181,8 +106,8 @@ button:focus-visible {
   z-index: 100;
   padding: var(--s2) var(--s4);
   border-radius: 999px;
-  background: var(--primary);
-  color: #ffffff;
+  background: var(--color-primary);
+  color: var(--color-white);
   font-weight: 600;
   text-decoration: none;
   transform: translateY(-200%);
@@ -251,7 +176,7 @@ button:focus-visible {
   height: 2px;
   margin-top: var(--s2);
   border-radius: 2px;
-  background: var(--rule);
+  background: linear-gradient(90deg, var(--color-accent), transparent);
 }
 
 .prose ul {
@@ -259,7 +184,7 @@ button:focus-visible {
 }
 
 .prose li::marker {
-  color: var(--accent);
+  color: var(--color-accent);
 }
 
 .prose li + li {
@@ -270,7 +195,7 @@ button:focus-visible {
 .prose h2,
 .prose h3 {
   margin: var(--s6) 0 var(--s3);
-  color: var(--heading);
+  color: var(--color-heading);
   font-family: var(--font-head);
   font-weight: 600;
   line-height: var(--lh-head);
@@ -280,7 +205,7 @@ button:focus-visible {
 .prose h1 {
   margin-top: 0;
   font-size: var(--fs-h1-hero);
-  background: var(--h1-gradient);
+  background: linear-gradient(135deg, var(--color-h1-from) 0%, var(--color-h1-via) 55%, var(--color-h1-to) 100%);
   -webkit-background-clip: text;
   background-clip: text;
 }
@@ -297,8 +222,8 @@ button:focus-visible {
   margin-top: calc(var(--s3) * -0.5);
   margin-bottom: var(--s6);
   padding-bottom: var(--s4);
-  border-bottom: 1px solid var(--border);
-  color: var(--muted);
+  border-bottom: 1px solid var(--color-line);
+  color: var(--color-muted);
   font-size: var(--fs-h3);
   font-weight: 400;
 }
@@ -310,18 +235,18 @@ button:focus-visible {
 }
 
 .prose strong {
-  color: var(--accent);
+  color: var(--color-accent);
   font-weight: 600;
 }
 
 .prose a {
-  color: var(--primary-text);
+  color: var(--color-primary-text);
   text-underline-offset: 3px;
   transition: color var(--transition);
 }
 
 .prose a:hover {
-  color: var(--text);
+  color: var(--color-ink);
 }
 
 .prose img {
@@ -333,11 +258,11 @@ button:focus-visible {
 .prose blockquote {
   margin: var(--s6) 0;
   padding: var(--s4) var(--s5);
-  background: var(--surface);
-  border-left: 3px solid var(--accent);
+  background: var(--color-surface);
+  border-left: 3px solid var(--color-accent);
   border-radius: 0 var(--radius-md) var(--radius-md) 0;
-  box-shadow: var(--shadow);
-  color: var(--heading);
+  box-shadow: var(--shadow-site);
+  color: var(--color-heading);
   font-family: var(--font-head);
   font-size: 1.1rem;
 }
@@ -348,7 +273,7 @@ button:focus-visible {
 
 .prose code {
   padding: 0.1em 0.35em;
-  background: var(--code-bg);
+  background: var(--color-code);
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
   font-size: 0.88em;
@@ -358,7 +283,7 @@ button:focus-visible {
   margin: 0 0 var(--s4);
   padding: var(--s4);
   overflow-x: auto;
-  background: var(--code-bg);
+  background: var(--color-code);
   border-radius: var(--radius-sm);
 }
 
@@ -371,7 +296,7 @@ button:focus-visible {
   height: 1px;
   margin: var(--s6) 0;
   border: 0;
-  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  background: linear-gradient(90deg, transparent, var(--color-line), transparent);
 }
 
 @media (min-width: 768px) {
