@@ -59,7 +59,7 @@ func run(ctx context.Context) error {
 	state := &flow.State{}
 	if err := tasker.Run(ctx, state); err != nil {
 		return err
-	}/q
+	}
 
 	debug.Service().Log("processed %d of %d tasks", len(state.Processed), len(tasks))
 	if state.Current.Status == flow.StatusFailed {
