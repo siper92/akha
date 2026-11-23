@@ -4,5 +4,7 @@ menu:
   - label: World
     page: world
   - label: Portals
+  - label: Struggle
+    page: struggle
   - label: Home
     page: home

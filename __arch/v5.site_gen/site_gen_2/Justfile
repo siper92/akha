@@ -75,5 +75,16 @@ preview port=port: (ensure-img web_img web_ctx)
         -v "{{justfile_directory()}}/{{out}}:/var/www/sites/main:ro" {{web_img}}
     @echo "http://localhost:{{port}}"
 
+# restart the preview container (starts it when missing)
+restart port=port:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if docker container inspect {{web_name}} > /dev/null 2>&1; then
+      docker restart {{web_name}} > /dev/null
+      echo "http://localhost:{{port}}"
+    else
+      just preview {{port}}
+    fi
+
 stop:
     docker rm -f {{web_name}}

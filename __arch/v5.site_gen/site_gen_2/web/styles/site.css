@@ -103,6 +103,28 @@
 @media (min-width: 1024px) {
   :root {
     --container: 1200px;
+    --measure: 720px;
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --container: 1320px;
+    --measure: 780px;
+  }
+}
+
+@media (min-width: 1536px) {
+  :root {
+    --container: 1480px;
+    --measure: 860px;
+  }
+}
+
+@media (min-width: 1920px) {
+  :root {
+    --container: 1680px;
+    --measure: 920px;
   }
 }
 
