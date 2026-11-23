@@ -89,7 +89,7 @@ func run(cmd *cobra.Command, _ []string) error {
 		BaseURL:  cfg.BaseURL,
 		Assets:   cfg.AssetsPath,
 		Lang:     cfg.Lang,
-		Nav:      pages.NavFrom(docs, texts.Menu),
+		Nav:      pages.NavFrom(docs),
 	})
 	if err != nil {
 		return err

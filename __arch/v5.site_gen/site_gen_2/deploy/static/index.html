@@ -46,8 +46,26 @@
           </ul>
         </div>
       </div>
-      <a href="/struggle/" class="block rounded-sm px-3 py-2 text-[0.95rem] no-underline transition-colors hover:bg-surface-2 hover:text-ink md:py-1.5 text-muted">struggle</a>
-      <a href="/home/" class="block rounded-sm px-3 py-2 text-[0.95rem] no-underline transition-colors hover:bg-surface-2 hover:text-ink md:py-1.5 text-muted">Home</a>
+      <div class="group relative">
+        <button type="button" aria-haspopup="true" class="inline-flex w-full cursor-pointer items-center justify-between gap-1 rounded-sm border-0 px-3 py-2 text-[0.95rem] leading-normal [font:inherit] transition-colors hover:bg-surface-2 hover:text-ink group-focus-within:bg-surface-2 group-focus-within:text-ink md:w-auto md:justify-start md:py-1.5 bg-transparent text-muted">
+          <span>Home</span>
+          <svg class="size-3.5 transition-transform max-md:hidden group-hover:rotate-180 group-focus-within:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="z-50 pt-1 pl-3 md:invisible md:absolute md:right-0 md:top-full md:min-w-56 md:translate-y-1 md:pt-2 md:pl-0 md:opacity-0 md:transition md:group-hover:visible md:group-hover:translate-y-0 md:group-hover:opacity-100 md:group-focus-within:visible md:group-focus-within:translate-y-0 md:group-focus-within:opacity-100">
+          <ul class="m-0 list-none border-l border-line p-0 pl-2 md:rounded-sm md:border md:bg-surface md:p-1.5 md:shadow-site">
+            <li>
+              <a href="/home/" class="block rounded-xs px-3 py-2 text-[0.95rem] no-underline transition-colors hover:bg-surface-2 hover:text-ink text-muted">Home</a>
+            </li>
+            <li>
+              <a href="/big-aspects/" class="block rounded-xs px-3 py-2 text-[0.95rem] no-underline transition-colors hover:bg-surface-2 hover:text-ink text-muted">Big aspects</a>
+            </li>
+            <li>
+              <a href="/struggle/" class="block rounded-xs px-3 py-2 text-[0.95rem] no-underline transition-colors hover:bg-surface-2 hover:text-ink text-muted">Struggle</a>
+            </li>
+            
+          </ul>
+        </div>
+      </div>
       
     </nav>
     <button class="inline-flex size-9 cursor-pointer items-center justify-center rounded-sm border border-line bg-surface-2 p-0 text-ink transition-colors hover:border-primary md:hidden" type="button" data-nav-toggle aria-controls="main-nav" aria-expanded="false" aria-label="Open menu">

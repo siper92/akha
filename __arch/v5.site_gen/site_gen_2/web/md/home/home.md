@@ -3,7 +3,7 @@ title: The First Door
 subtitle: The human mage, non-linear time cast, and the olf wolf sol from space
 description: Hodor NoIp MacSpi, the last unintegrated human mage, stands at the first door and must choose between the promise of the gods and the guidance of the trees.
 nav: Home
-order: 2
+order: 3
 image: img/home.svg
 image_alt: A single human figure standing at a glowing arched doorway between abstract trees
 keywords: [tek, akha, home, portals, human mage, hodor, nature guides]

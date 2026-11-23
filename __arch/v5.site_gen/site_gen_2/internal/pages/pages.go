@@ -13,18 +13,12 @@ var (
 	ErrFrontMatter = errors.New("front matter error")
 	ErrUnsafeOut   = errors.New("unsafe output dir")
 	ErrTexts       = errors.New("texts error")
+	ErrDupSlug     = errors.New("duplicate page slug")
 )
 
-type MenuEntry struct {
-	Label string   `yaml:"label"`
-	Page  string   `yaml:"page"`
-	Pages []string `yaml:"pages"`
-}
-
 type Texts struct {
-	SiteName string      `yaml:"site_name"`
-	Slogan   string      `yaml:"slogan"`
-	Menu     []MenuEntry `yaml:"menu"`
+	SiteName string `yaml:"site_name"`
+	Slogan   string `yaml:"slogan"`
 }
 
 type Meta struct {
@@ -42,6 +36,7 @@ type Meta struct {
 
 type Doc struct {
 	Slug  string
+	Group string
 	Path  string
 	File  string
 	Index bool

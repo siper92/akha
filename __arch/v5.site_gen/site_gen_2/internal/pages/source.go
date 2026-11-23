@@ -29,47 +29,32 @@ func (s *dirSource) List(ctx context.Context) ([]Doc, error) {
 		return nil, err
 	}
 
+	docs, err := s.readDir(ctx, s.dir, "")
+	if err != nil {
+		return nil, err
+	}
+
 	entries, err := os.ReadDir(s.dir)
 	if err != nil {
 		return nil, fmt.Errorf("read dir %s: %w", s.dir, err)
 	}
-
-	var docs []Doc
 	for _, e := range entries {
-		if e.IsDir() || filepath.Ext(e.Name()) != ".md" {
+		if !e.IsDir() || skipName(e.Name()) {
 			continue
 		}
-		slug := strings.TrimSuffix(e.Name(), ".md")
-		if strings.HasSuffix(slug, outlineSuffix) || strings.HasPrefix(slug, "_") {
-			continue
-		}
-
-		raw, err := os.ReadFile(filepath.Join(s.dir, e.Name()))
+		sub, err := s.readDir(ctx, filepath.Join(s.dir, e.Name()), e.Name())
 		if err != nil {
-			return nil, fmt.Errorf("read %s: %w", e.Name(), err)
+			return nil, err
 		}
-		meta, body, err := splitFrontMatter(raw)
-		if err != nil {
-			return nil, fmt.Errorf("%s: %w", e.Name(), err)
-		}
-		if meta.Draft {
-			continue
-		}
+		docs = append(docs, sub...)
+	}
 
-		d := Doc{Slug: slug, Path: "/" + slug + "/", File: slug + "/index.html", Meta: meta, Body: body}
-		if slug == s.indexPage {
-			d.Path, d.File, d.Index = "/", "index.html", true
+	seen := make(map[string]string, len(docs))
+	for _, d := range docs {
+		if g, ok := seen[d.Slug]; ok {
+			return nil, fmt.Errorf("%w: %s in %q and %q", ErrDupSlug, d.Slug, g, d.Group)
 		}
-		if d.Meta.Title == "" {
-			d.Meta.Title = titleOf(d)
-		}
-		if d.Meta.Nav == "" {
-			d.Meta.Nav = label(slug)
-		}
-		if d.Meta.Description == "" {
-			d.Meta.Description = d.Meta.Subtitle
-		}
-		docs = append(docs, d)
+		seen[d.Slug] = d.Group
 	}
 
 	if len(docs) == 0 {
@@ -86,6 +71,60 @@ func (s *dirSource) List(ctx context.Context) ([]Doc, error) {
 	})
 
 	return docs, nil
+}
+
+func (s *dirSource) readDir(ctx context.Context, dir, group string) ([]Doc, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, fmt.Errorf("read dir %s: %w", dir, err)
+	}
+
+	var docs []Doc
+	for _, e := range entries {
+		if e.IsDir() || filepath.Ext(e.Name()) != ".md" {
+			continue
+		}
+		slug := strings.TrimSuffix(e.Name(), ".md")
+		if strings.HasSuffix(slug, outlineSuffix) || skipName(slug) {
+			continue
+		}
+
+		file := filepath.Join(dir, e.Name())
+		raw, err := os.ReadFile(file)
+		if err != nil {
+			return nil, fmt.Errorf("read %s: %w", file, err)
+		}
+		meta, body, err := splitFrontMatter(raw)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", file, err)
+		}
+		if meta.Draft {
+			continue
+		}
+
+		d := Doc{Slug: slug, Group: group, Path: "/" + slug + "/", File: slug + "/index.html", Meta: meta, Body: body}
+		if slug == s.indexPage {
+			d.Path, d.File, d.Index = "/", "index.html", true
+		}
+		if d.Meta.Title == "" {
+			d.Meta.Title = titleOf(d)
+		}
+		if d.Meta.Nav == "" {
+			d.Meta.Nav = label(slug)
+		}
+		if d.Meta.Description == "" {
+			d.Meta.Description = d.Meta.Subtitle
+		}
+		docs = append(docs, d)
+	}
+	return docs, nil
+}
+
+func skipName(name string) bool {
+	return strings.HasPrefix(name, "_") || strings.HasPrefix(name, ".")
 }
 
 func titleOf(d Doc) string {
@@ -108,62 +147,67 @@ func label(slug string) string {
 	return string(unicode.ToUpper(r)) + slug[size:]
 }
 
-func NavFrom(docs []Doc, menu []MenuEntry) []NavItem {
-	if len(menu) == 0 {
-		items := make([]NavItem, 0, len(docs))
-		for _, d := range docs {
-			items = append(items, NavItem{Label: d.Meta.Nav, Path: d.Path})
-		}
-		return items
-	}
+type navEntry struct {
+	index bool
+	order int
+	key   string
+	item  NavItem
+}
 
-	bySlug := make(map[string]Doc, len(docs))
+func NavFrom(docs []Doc) []NavItem {
+	var entries []navEntry
+	groups := make(map[string][]Doc)
+	var names []string
 	for _, d := range docs {
-		bySlug[d.Slug] = d
-	}
-	used := make(map[string]bool)
-	for _, m := range menu {
-		if m.Page != "" {
-			used[m.Page] = true
+		if d.Group == "" {
+			entries = append(entries, navEntry{
+				index: d.Index,
+				order: d.Meta.Order,
+				key:   d.Slug,
+				item:  NavItem{Label: d.Meta.Nav, Path: d.Path},
+			})
+			continue
 		}
-		for _, p := range m.Pages {
-			used[p] = true
+		if _, ok := groups[d.Group]; !ok {
+			names = append(names, d.Group)
 		}
+		groups[d.Group] = append(groups[d.Group], d)
 	}
 
-	items := make([]NavItem, 0, len(menu))
-	for _, m := range menu {
-		if m.Page != "" {
-			d, ok := bySlug[m.Page]
-			if !ok {
+	for _, name := range names {
+		members := groups[name]
+		e := navEntry{order: members[0].Meta.Order, key: name}
+		var main []NavItem
+		var rest []NavItem
+		for _, d := range members {
+			if d.Index {
+				e.index = true
+			}
+			it := NavItem{Label: d.Meta.Nav, Path: d.Path}
+			if d.Slug == name {
+				e.order = d.Meta.Order
+				main = append(main, it)
 				continue
 			}
-			lbl := m.Label
-			if lbl == "" {
-				lbl = d.Meta.Nav
-			}
-			items = append(items, NavItem{Label: lbl, Path: d.Path})
-			continue
+			rest = append(rest, it)
 		}
+		e.item = NavItem{Label: label(name), Children: append(main, rest...)}
+		entries = append(entries, e)
+	}
 
-		var kids []NavItem
-		if len(m.Pages) > 0 {
-			for _, p := range m.Pages {
-				if d, ok := bySlug[p]; ok {
-					kids = append(kids, NavItem{Label: d.Meta.Nav, Path: d.Path})
-				}
-			}
-		} else {
-			for _, d := range docs {
-				if !used[d.Slug] {
-					kids = append(kids, NavItem{Label: d.Meta.Nav, Path: d.Path})
-				}
-			}
+	sort.SliceStable(entries, func(i, j int) bool {
+		if entries[i].index != entries[j].index {
+			return entries[i].index
 		}
-		if len(kids) == 0 {
-			continue
+		if entries[i].order != entries[j].order {
+			return entries[i].order < entries[j].order
 		}
-		items = append(items, NavItem{Label: m.Label, Children: kids})
+		return entries[i].key < entries[j].key
+	})
+
+	items := make([]NavItem, 0, len(entries))
+	for _, e := range entries {
+		items = append(items, e.item)
 	}
 	return items
 }

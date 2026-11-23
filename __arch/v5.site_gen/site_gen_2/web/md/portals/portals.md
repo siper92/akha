@@ -3,7 +3,7 @@ title: Portals, Tek, the automaton and mass migration to the VR space
 subtitle: A world shared but united in a bigger vision of the future and world elevation
 description: Ten portals and the prime that can do everything, an alien machine interface that lets humans upload themselves into the Tek.
 nav: Portals
-order: 3
+order: 2
 image: img/portals.svg
 image_alt: A large prime door with smaller doors around it, and a single human figure standing at the prime door
 keywords: [tek, akha, portals, prime portal, automaton, migration, vr, hodor]

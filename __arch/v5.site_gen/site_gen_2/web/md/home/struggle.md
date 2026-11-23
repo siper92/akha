@@ -3,7 +3,7 @@ title: Vice, power and the unholy path to light
 subtitle: Finding path in darkness or blinding light
 description: A human mage searches for power when every source is united but no vision is shared, and learns who gives what, and for what price.
 nav: Struggle
-order: 4
+order: 5
 image: img/struggle.svg
 image_alt: A lone human figure between a dark door with a faint green glow and a door of blinding light, with looping paths circling around him
 keywords: [tek, akha, struggle, power, vice, demons, mage, sunk cost]
