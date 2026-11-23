@@ -15,7 +15,23 @@ var (
 	ErrMaxIterations = errors.New("max tool iterations reached")
 	ErrUnknownTool   = errors.New("unknown tool")
 	ErrBadInput      = errors.New("invalid tool input")
+	ErrToolExists    = errors.New("tool already registered")
+	ErrToolName      = errors.New("empty tool name")
 )
+
+type Prop struct {
+	Type        string
+	Description string
+	Required    bool
+}
+
+type ToolSpec struct {
+	Name        string
+	Description string
+	Props       map[string]Prop
+}
+
+type ToolFunc[In any] func(ctx context.Context, in In) (string, error)
 
 type Agent interface {
 	Run(ctx context.Context, prompt string) (string, error)

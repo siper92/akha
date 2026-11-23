@@ -2,60 +2,74 @@ package v2
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
-
-	"github.com/anthropics/anthropic-sdk-go/v2"
+	"path/filepath"
 )
 
-var _ Tool = (*CreateFile)(nil)
-
-type CreateFile struct {
-	dir string
+type createFileIn struct {
+	Name    string `json:"name"`
+	Content string `json:"content"`
 }
 
-func NewCreateFile(dir string) *CreateFile {
-	return &CreateFile{dir: dir}
+type readFileIn struct {
+	Name string `json:"name"`
 }
 
-func (t *CreateFile) Name() string { return "createFile" }
-
-func (t *CreateFile) Param() anthropic.BetaToolParam {
-	return anthropic.BetaToolParam{
-		Name:        t.Name(),
-		Description: anthropic.String("creates a file with the given name and content"),
-		InputSchema: anthropic.BetaToolInputSchemaParam{
-			Properties: map[string]any{
-				"name":    map[string]any{"type": "string", "description": "file name, e.g. part1.txt"},
-				"content": map[string]any{"type": "string", "description": "file content"},
-			},
-			Required: []string{"name", "content"},
+func NewCreateFile(dir string) Tool {
+	return NewTool(ToolSpec{
+		Name:        "createFile",
+		Description: "creates a file with the given name and content",
+		Props: map[string]Prop{
+			"name":    {Type: "string", Description: "file name relative to the work dir, e.g. part1.txt", Required: true},
+			"content": {Type: "string", Description: "file content", Required: true},
 		},
-	}
+	}, func(_ context.Context, in createFileIn) (string, error) {
+		return inRoot(dir, in.Name, func(r *os.Root) (string, error) {
+			if err := r.MkdirAll(filepath.Dir(in.Name), 0o755); err != nil {
+				return "", err
+			}
+			if err := r.WriteFile(in.Name, []byte(in.Content), 0o644); err != nil {
+				return "", err
+			}
+
+			return fmt.Sprintf("created %s (%d bytes)", in.Name, len(in.Content)), nil
+		})
+	})
 }
 
-func (t *CreateFile) Call(_ context.Context, input json.RawMessage) (string, error) {
-	var in struct {
-		Name    string `json:"name"`
-		Content string `json:"content"`
-	}
-	if err := json.Unmarshal(input, &in); err != nil {
-		return "", fmt.Errorf("%w: %v", ErrBadInput, err)
-	}
-	if in.Name == "" {
+func NewReadFile(dir string) Tool {
+	return NewTool(ToolSpec{
+		Name:        "readFile",
+		Description: "reads a file from the work dir",
+		Props: map[string]Prop{
+			"name": {Type: "string", Description: "file name relative to the work dir", Required: true},
+		},
+	}, func(_ context.Context, in readFileIn) (string, error) {
+		return inRoot(dir, in.Name, func(r *os.Root) (string, error) {
+			b, err := r.ReadFile(in.Name)
+			if err != nil {
+				return "", err
+			}
+
+			return string(b), nil
+		})
+	})
+}
+
+func inRoot(dir, name string, fn func(r *os.Root) (string, error)) (string, error) {
+	if name == "" {
 		return "", fmt.Errorf("%w: empty name", ErrBadInput)
 	}
-	if err := os.MkdirAll(t.dir, 0o755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return "", err
 	}
-	root, err := os.OpenRoot(t.dir)
+
+	root, err := os.OpenRoot(dir)
 	if err != nil {
 		return "", err
 	}
 	defer root.Close()
-	if err := root.WriteFile(in.Name, []byte(in.Content), 0o644); err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("created %s (%d bytes)", in.Name, len(in.Content)), nil
+
+	return fn(root)
 }

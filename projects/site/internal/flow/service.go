@@ -16,12 +16,14 @@ var (
 type SiteService interface {
 	flow.DataServiceProvide[SiteData]
 	AI() asker
+	Agent() agent
 	Cache() cache.Cache
 	Tasks() db.TaskRepository
 }
 
 type Providers struct {
 	AI    asker
+	Agent agent
 	Cache cache.Cache
 	Tasks db.TaskRepository
 }
@@ -43,6 +45,10 @@ func (s *siteService) ServiceProvide() flow.ServiceProvide {
 
 func (s *siteService) AI() asker {
 	return s.p.AI
+}
+
+func (s *siteService) Agent() agent {
+	return s.p.Agent
 }
 
 func (s *siteService) Cache() cache.Cache {

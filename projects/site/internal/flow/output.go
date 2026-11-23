@@ -65,6 +65,18 @@ func trimJSONFence(s string) string {
 	return strings.TrimSpace(s)
 }
 
+type AskFunc func(ctx context.Context, prompt string, out OutputConfig) (string, error)
+
+type agent interface {
+	Run(ctx context.Context, prompt string) (string, error)
+}
+
+func agentAsk(a agent) AskFunc {
+	return func(ctx context.Context, prompt string, out OutputConfig) (string, error) {
+		return a.Run(ctx, out.Prompt(prompt))
+	}
+}
+
 type asker interface {
 	AskLv1(ctx context.Context, prompt string, out OutputConfig) (string, error)
 	AskLv2(ctx context.Context, prompt string, out OutputConfig) (string, error)

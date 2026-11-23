@@ -5,9 +5,10 @@ No MCP library, no server, no HTTP - tools are plain Go types behind a `ToolServ
 
 ## files
 
-- `mcp.go` - `Agent`, `Tool`, `ToolService` interfaces, errors, default model
-- `service.go` - `Service`, a `ToolService` that routes calls by tool name
-- `tool_file.go` - `createFile(name, content)` tool, writes inside one dir via `os.Root`
+- `mcp.go` - `Agent`, `Tool`, `ToolService` interfaces, `ToolSpec`, `Prop`, `ToolFunc`, errors, default model
+- `service.go` - `Service`, a `ToolService` that routes calls by tool name, rejects duplicates
+- `tool.go` - `NewTool`, a typed `Tool` factory built from a `ToolSpec` and a `ToolFunc`
+- `tool_file.go` - `createFile(name, content)` and `readFile(name)` tools, scoped to one dir via `os.Root`
 - `agent.go` - `ClaudeAgent`, the tool loop
 - `cmd/main.go` - CLI entry
 
@@ -31,5 +32,20 @@ ANTHROPIC_API_KEY=... go run ./projects/mcp/v2/cmd -dir ./out
 
 ## add a tool
 
-- implement `Tool` (`Name`, `Param`, `Call`)
-- pass it to `NewService`
+- define an input struct with json tags
+- build it with `NewTool(ToolSpec{...}, func(ctx, in In) (string, error))`
+- pass it to `NewService` or `Service.Add`
+
+```go
+type echoIn struct {
+	Text string `json:"text"`
+}
+
+echo := NewTool(ToolSpec{
+	Name:        "echo",
+	Description: "returns the text",
+	Props:       map[string]Prop{"text": {Type: "string", Description: "text to echo", Required: true}},
+}, func(_ context.Context, in echoIn) (string, error) {
+	return in.Text, nil
+})
+```

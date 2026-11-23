@@ -25,7 +25,12 @@ func main() {
 	defer stop()
 
 	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
-	tools := akmcp.NewService(akmcp.NewCreateFile(*dir))
+	tools, err := akmcp.NewService(akmcp.NewCreateFile(*dir), akmcp.NewReadFile(*dir))
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error:", err)
+		os.Exit(1)
+	}
+
 	agent := akmcp.NewClaudeAgent(anthropic.NewClient(), tools, *model, log)
 
 	out, err := agent.Run(ctx, *prompt)

@@ -15,13 +15,30 @@ type Service struct {
 	order []string
 }
 
-func NewService(tools ...Tool) *Service {
+func NewService(tools ...Tool) (*Service, error) {
 	s := &Service{tools: make(map[string]Tool, len(tools))}
-	for _, t := range tools {
-		s.tools[t.Name()] = t
-		s.order = append(s.order, t.Name())
+	if err := s.Add(tools...); err != nil {
+		return nil, err
 	}
-	return s
+
+	return s, nil
+}
+
+func (s *Service) Add(tools ...Tool) error {
+	for _, t := range tools {
+		name := t.Name()
+		if name == "" {
+			return ErrToolName
+		}
+		if _, ok := s.tools[name]; ok {
+			return fmt.Errorf("%w: %s", ErrToolExists, name)
+		}
+
+		s.tools[name] = t
+		s.order = append(s.order, name)
+	}
+
+	return nil
 }
 
 func (s *Service) Params() []anthropic.BetaToolUnionParam {

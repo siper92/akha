@@ -3,14 +3,9 @@ package flow
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 
-	"github.com/siper92/akha/internal/cache"
 	flow "github.com/siper92/akha/internal/flow_v3"
-	"github.com/siper92/akha/internal/parse"
-	"github.com/siper92/akha/projects/site/internal/db"
-	dbsdk "github.com/siper92/akha/projects/site/internal/sdk/db-sdk"
 )
 
 const (
@@ -20,9 +15,12 @@ const (
 	ImplementStepName flow.StepName = "implement"
 )
 
+const TaskDoneTransition flow.Transition = "task_done"
+
 const (
 	inputKey             = "input"
 	dbFileName           = "site.db"
+	implementDirName     = "implement"
 	implementMaxAttempts = 3
 )
 
@@ -40,6 +38,24 @@ type SiteData struct {
 	Tasks    TaskPlan
 	TasksRaw string
 	StoryIDs []int64
+}
+
+type siteStepRunner interface {
+	Name() flow.StepName
+	run(ctx context.Context, s SiteService) (flow.Transition, error)
+}
+
+type AskVia func(s SiteService) AskFunc
+
+type StoreFunc func(ctx context.Context, s SiteService, answer string) error
+
+func newSteps(steps ...siteStepRunner) flow.Steps[SiteData] {
+	out := make(flow.Steps[SiteData], len(steps))
+	for _, st := range steps {
+		out[st.Name()] = siteStep(st.run)
+	}
+
+	return out
 }
 
 type SiteFlow struct {
@@ -70,178 +86,4 @@ func (s *SiteFlow) Execute(ctx context.Context) error {
 
 func (s *SiteFlow) Data() SiteData {
 	return s.service.Data()
-}
-
-type askStep struct {
-	name  flow.StepName
-	def   func(SiteData) (*parse.MDFlowStep, error)
-	out   OutputConfig
-	input func(SiteData) string
-	store func(ctx context.Context, s SiteService, answer string) error
-}
-
-func (a askStep) exec() flow.StepExec[SiteData] {
-	return siteStep(a.run)
-}
-
-func (a askStep) run(ctx context.Context, s SiteService) (flow.Transition, error) {
-	answer, t, err := a.answer(ctx, s)
-	if err != nil {
-		return t, fmt.Errorf("%s: %w", a.name, err)
-	}
-
-	var storeErr error
-	s.Update(func(d SiteData) SiteData {
-		next := d
-		if storeErr = a.store(ctx, s, answer); storeErr != nil {
-			return d
-		}
-
-		return next
-	})
-
-	if storeErr != nil {
-		return flow.ErrorTransition, fmt.Errorf("%s: store: %w", a.name, storeErr)
-	}
-
-	return flow.DoneTransition, nil
-}
-
-func (a askStep) answer(ctx context.Context, s SiteService) (string, flow.Transition, error) {
-	key := string(a.name)
-
-	cached, ok, err := s.Cache().Get(ctx, key)
-	if err != nil {
-		return "", flow.UnknownTransition, fmt.Errorf("read cache: %w", err)
-	}
-
-	if ok {
-		answer, err := a.out.Check(string(cached))
-		if err != nil {
-			return "", flow.ErrorTransition, fmt.Errorf("cached response: %w", err)
-		}
-
-		return answer, flow.DoneTransition, nil
-	}
-
-	d := s.Data()
-	input := a.input(d)
-	if input == "" {
-		return "", flow.UnknownTransition, ErrMissingData
-	}
-
-	step, err := a.def(d)
-	if err != nil {
-		return "", flow.UnknownTransition, fmt.Errorf("load step def: %w", err)
-	}
-
-	answer, err := s.AI().AskLv3(ctx, getAiPrompt(input, step), a.out)
-	if err == nil {
-		answer, err = a.out.Check(answer)
-	}
-
-	if err != nil {
-		return "", flow.ErrorTransition, fmt.Errorf("ask: %w", err)
-	}
-
-	if err = s.Cache().Put(ctx, key, []byte(answer), cache.NoExpiry); err != nil {
-		return "", flow.UnknownTransition, fmt.Errorf("save response: %w", err)
-	}
-
-	return answer, flow.DoneTransition, nil
-}
-
-func storeTasks(ctx context.Context, s SiteService, answer string) error {
-	tasks, err := parseTasks(answer)
-	if err != nil {
-		return err
-	}
-
-	ids, err := saveTasks(ctx, s, tasks)
-	if err != nil {
-		return err
-	}
-
-	d := s.Data()
-	d.TasksRaw, d.Tasks, d.StoryIDs = answer, tasks, ids
-	s.SetData(d)
-
-	return nil
-}
-
-func implement(ctx context.Context, s SiteService) (flow.Transition, error) {
-	d := s.Data()
-	if d.TasksRaw == "" || len(d.StoryIDs) == 0 {
-		return flow.UnknownTransition, fmt.Errorf("%s: %w", ImplementStepName, ErrMissingData)
-	}
-
-	for _, storyID := range d.StoryIDs {
-		tasks, err := s.Tasks().ListTasks(ctx, storyID)
-		if err != nil {
-			return flow.ErrorTransition, fmt.Errorf("%s: list tasks: %w", ImplementStepName, err)
-		}
-
-		for _, t := range tasks {
-			if db.TaskStatus(t.Status) == db.TaskStatusCompleted {
-				continue
-			}
-
-			if err = implementTask(ctx, s, d.Plan, t); err != nil {
-				return flow.ErrorTransition, fmt.Errorf("%s: task %q: %w", ImplementStepName, t.TaskKey, err)
-			}
-		}
-	}
-
-	return flow.DoneTransition, nil
-}
-
-func implementTask(ctx context.Context, s SiteService, plan string, t dbsdk.FlowTask) error {
-	setStatus := func(status db.TaskStatus, attempt int64, msg string) error {
-		if err := s.Tasks().UpdateTaskStatus(ctx, t.ID, status, attempt, msg); err != nil {
-			return fmt.Errorf("update status: %w", err)
-		}
-
-		return nil
-	}
-
-	if err := setStatus(db.TaskStatusInProgress, 0, ""); err != nil {
-		return err
-	}
-
-	prompt := plan + "\n\n# task " + t.TaskKey + ": " + t.Label + "\n\n" + t.Content
-	key := fmt.Sprintf("%s_%s_%d", ImplementStepName, t.TaskKey, t.ID)
-
-	var lastErr error
-	for attempt := int64(1); attempt <= implementMaxAttempts; attempt++ {
-		answer, err := s.AI().AskLv3(ctx, prompt, textOutput)
-		if err == nil {
-			if err = s.Cache().Put(ctx, key, []byte(answer), cache.NoExpiry); err != nil {
-				return fmt.Errorf("save response: %w", err)
-			}
-
-			return setStatus(db.TaskStatusCompleted, attempt, "")
-		}
-
-		lastErr = err
-		if err = setStatus(db.TaskStatusInProgress, attempt, lastErr.Error()); err != nil {
-			return err
-		}
-	}
-
-	if err := setStatus(db.TaskStatusFailed, implementMaxAttempts, lastErr.Error()); err != nil {
-		return err
-	}
-
-	return fmt.Errorf("%w: %w", ErrTaskFailed, lastErr)
-}
-
-func getAiPrompt(input string, d *parse.MDFlowStep) string {
-	prompt := input + "\n\n"
-	for _, name := range []string{"idea", "questions", "answers"} {
-		if section, ok := d.Section(name); ok && section != nil {
-			prompt += "\n" + section.String()
-		}
-	}
-
-	return prompt
 }
