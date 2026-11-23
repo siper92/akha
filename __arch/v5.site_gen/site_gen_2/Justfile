@@ -1,13 +1,45 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
-bin := "bin/site"
 out := "deploy/static"
-dist := "dist"
-tf := "deploy/terraform"
 port := "8080"
+docker := "_emv/docker"
+css_in := "web/styles/main.css"
+css_out := "web/static/css/style.css"
+dev_img := "main_site-dev"
+dev_ctx := docker + "/dev"
+dev_cache := "main_site-go"
+web_img := "main_site-preview"
+web_ctx := docker + "/site-html"
+web_name := "main_site-preview"
+dev_run := "docker run --rm -v \"" + justfile_directory() + ":/src\" -v " + dev_cache + ":/go " + dev_img
+
+# image policy: missing (build only if tag absent) | always (rebuild) | never (require prebuilt)
+img := "missing"
 
 default:
     @just --list
+
+# --- images
+
+[private]
+ensure-img tag ctx:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    have() { docker image inspect "{{tag}}" > /dev/null 2>&1; }
+    case "{{img}}" in
+      always)  docker build -t "{{tag}}" "{{ctx}}" ;;
+      missing) have || docker build -t "{{tag}}" "{{ctx}}" ;;
+      never)   have || { echo "image {{tag}} not found - build it first (just img=always ...)" >&2; exit 1; } ;;
+      *)       echo "unknown img policy '{{img}}' (use missing|always|never)" >&2; exit 1 ;;
+    esac
+
+# force (re)build of the dev image
+dev-img:
+    docker build -t {{dev_img}} {{dev_ctx}}
+
+# force (re)build of the preview image
+preview-img:
+    docker build -t {{web_img}} {{web_ctx}}
 
 # --- go
 
@@ -21,59 +53,27 @@ lint:
     go vet ./...
     test -z "$(gofmt -l .)"
 
-build:
-    go build -o {{bin}} .
+# --- dev container
 
-# build the static site into deploy/static
-site base_url="": build
-    ./{{bin}} --out {{out}} {{ if base_url != "" { "--base-url " + base_url } else { "" } }}
+dev-shell: (ensure-img dev_img dev_ctx)
+    docker run --rm -it -v "{{justfile_directory()}}:/src" -v {{dev_cache}}:/go {{dev_img}}
 
-# serve deploy/static locally to preview the build
-preview port=port: site
-    python3 -m http.server {{port}} -d {{out}}
+# build tailwind css from web/**/*.html into web/static/css/style.css
+style: (ensure-img dev_img dev_ctx)
+    {{dev_run}} tailwindcss -i {{css_in}} -o {{css_out}} --minify
 
-# --- dist
+# build the static site into deploy/static in the dev container
+static base_url="": style
+    {{dev_run}} go run . --out {{out}} {{ if base_url != "" { "--base-url " + base_url } else { "" } }}
 
-dist: site
-    rm -rf {{dist}}
-    mkdir -p {{dist}}
-    cp -R {{out}}/. {{dist}}/
+# --- site-html container
 
-clean:
-    rm -rf bin {{out}} {{dist}} {{tf}}/.build
+# serve deploy/static with nginx on the given port
+preview port=port: (ensure-img web_img web_ctx)
+    docker rm -f {{web_name}} > /dev/null 2>&1 || true
+    docker run -d --name {{web_name}} -p {{port}}:80 \
+        -v "{{justfile_directory()}}/{{out}}:/var/www/sites/main:ro" {{web_img}}
+    @echo "http://localhost:{{port}}"
 
-# --- terraform
-
-tf-init:
-    terraform -chdir={{tf}} init
-
-tf-fmt:
-    terraform -chdir={{tf}} fmt
-
-tf-validate:
-    terraform -chdir={{tf}} validate
-
-tf-plan: dist
-    terraform -chdir={{tf}} plan
-
-deploy: dist
-    terraform -chdir={{tf}} apply
-
-destroy:
-    terraform -chdir={{tf}} destroy
-
-url:
-    terraform -chdir={{tf}} output -raw url
-
-id:
-    @terraform -chdir={{tf}} output -raw instance_id
-
-ssh:
-    ssh "$(terraform -chdir={{tf}} output -raw instance_id)"
-
-dns:
-    terraform -chdir={{tf}} output hostnames
-    terraform -chdir={{tf}} output public_ip
-
-ssm:
-    aws ssm start-session --target "$(terraform -chdir={{tf}} output -raw instance_id)"
+stop:
+    docker rm -f {{web_name}}
