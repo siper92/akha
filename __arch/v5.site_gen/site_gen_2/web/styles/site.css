@@ -101,28 +101,32 @@
 }
 
 @media (min-width: 1024px) {
-  :root {
+  :root,
+  :root[data-theme="dark"] {
     --container: 1200px;
     --measure: 720px;
   }
 }
 
 @media (min-width: 1280px) {
-  :root {
+  :root,
+  :root[data-theme="dark"] {
     --container: 1320px;
     --measure: 780px;
   }
 }
 
 @media (min-width: 1536px) {
-  :root {
+  :root,
+  :root[data-theme="dark"] {
     --container: 1480px;
     --measure: 860px;
   }
 }
 
 @media (min-width: 1920px) {
-  :root {
+  :root,
+  :root[data-theme="dark"] {
     --container: 1680px;
     --measure: 920px;
   }
