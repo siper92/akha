@@ -63,12 +63,12 @@ style: (ensure-img dev_img dev_ctx)
     {{dev_run}} tailwindcss -i {{css_in}} -o {{css_out}} --minify
 
 # build the static site into deploy/static in the dev container
-static base_url="": style
+gen base_url="": style
     {{dev_run}} go run . --out {{out}} {{ if base_url != "" { "--base-url " + base_url } else { "" } }}
 
 # --- site-html container
 
-# serve deploy/static with nginx on the given port
+# serve deploy/gen with nginx on the given port
 preview port=port: (ensure-img web_img web_ctx)
     docker rm -f {{web_name}} > /dev/null 2>&1 || true
     docker run -d --name {{web_name}} -p {{port}}:80 \
