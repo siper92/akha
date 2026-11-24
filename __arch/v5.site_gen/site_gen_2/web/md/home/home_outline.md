@@ -22,6 +22,7 @@ the fun of the god's, how energy truly mixes and what's purified being
 
 ## characters and places
 
-- Hodor NoIp MacSpi human in the chaning world in witch every one else has advanced AI integration exept him because he wants to prove thet the human is as powerful as the machine and the gods
+- Hermes Trismegistus the only human mage in the chaning world in witch every one else has advanced AI integration exept him because he wants to prove thet the human is as powerful as the machine and the gods
 - Hodor the sall dog with big head in the lizard brigade - and the fact that he is also integrated in the machine but split for the fight can it be done or is this a simulation
-- Hodors habits and the fact that he can simulate and test mass amount of otherwise compute snd world complexity
+- the first door is the first of the 10 portals - alien chip design opened by human hands, belived to be a human invention
+- the mage's habits and the fact that he can simulate and test mass amount of otherwise compute snd world complexity

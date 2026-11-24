@@ -7,6 +7,9 @@ subtitle: A world shared but united in a bigger vision of the future and world e
 ## idea
 
 what is a portal and a structure of 10 portals, the big portals and the human mage persuite of the true power 
+- portals are 10 and the prime is the 10th
+- portals are alien chip design - opened by humans initially, they all lead to the same place - the combined Tek dimension of the alien empire Orion
+- the human mage is Hermes Trismegistus, the dog is Hodor
 - only one portal can do everithing and it's the prime
 - all energy mixes eventually but on the level of the portal much is individual
 - portals can learn and store limited memory tied to the energy they hold

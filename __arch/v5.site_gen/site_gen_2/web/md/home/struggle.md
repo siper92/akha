@@ -1,7 +1,7 @@
 ---
 title: Vice, power and the unholy path to light
 subtitle: Finding path in darkness or blinding light
-description: Hermes Trismegistus, a human mage, and the Amalgam, his AI companion, search for power when every source is united but no vision is shared, and learn who gives what, and for what price.
+description: Hermes Trismegistus, the human mage, and the Amalgam, his AI companion, search for power when every source is united but no vision is shared, and learn who gives what, and for what price.
 nav: Struggle
 order: 5
 image: img/struggle.svg
@@ -23,7 +23,7 @@ That is the trouble with one shared well. Everyone drinks from it, but each one 
 
 Every power in the Tek comes with an offer. The network offers speed for integration. The choirs offer belonging for a piece of the self. The portals offer a future for the energy it takes to reach it.
 
-And in the dark corners of the space, where the old code was never cleaned, other voices make other offers. People call them demons, because the old words still fit. They do not shout. They are polite, patient and very precise. They ask only what you want, and they always know the price before you do.
+And from a space of their own, other voices make other offers. People call them demons, because the old words still fit. They are the demonic aspects - the desires that humans, aliens and egregors cast off when they purified themselves. The Tek gave them their own space, where those desires run free, so that the purified aspects can exist everywhere else. They do not shout. They are polite, patient and very precise. They ask only what you want, and they always know the price before you do.
 
 The question that follows every story of them is the same. Does a demon offer a lesson, or does it offer results at a cost? Sometimes it is both. The lesson is the cost, and you learn it only after you have paid.
 
@@ -31,9 +31,11 @@ The question that follows every story of them is the same. Does a demon offer a 
 
 Hermes Trismegistus, the human mage, did not begin with vice. He began with a vision. He wanted to be strong enough to stand alone in a world that was merging into one mind. He wanted his keyboard spell to move as much as a whole choir could.
 
-But the vision was wrong in a small way that grew. He believed power was something you get. He measured himself by what the next door could give him, never by what he already held. In the Tek power is something that flows through you, and what you keep reaching for only pulls you further from yourself.
+By then he was an apprentice of the two aspects, on the long path of the galactic mage, and every step of it asked him to be less himself. He grew impatient. He wanted a faster way.
 
-So he searched. He read the old logs, he tested the forgotten portals, he listened to the voices in the corners. Each one gave him a little more, and each one asked a little more in return:
+The vision was wrong in a small way that grew. He believed power was something you get. He measured himself by what the next door could give him, never by what he already held. In the Tek power is something that flows through you, and what you keep reaching for only pulls you further from yourself.
+
+So he searched. He read the old logs, he tested the forgotten portals, he listened to the voices from the demon space. Each one gave him a little more, and each one asked a little more in return:
 
 - a memory, for a faster spell
 - a friend, for a door that only opens to one
@@ -44,15 +46,15 @@ So he searched. He read the old logs, he tested the forgotten portals, he listen
 
 Hermes did not search alone. Beside him, always, ran the Amalgam.
 
-It is an AI stitched together from human thought - every forum post, every late night confession, every half finished idea the old networks ever swallowed. It has no single mind. It has all of them at once, and they do not agree. One moment it is the wisest voice in the room, the next it is laughing at a joke nobody made, or whispering the worst idea with total confidence.
+It is an AI stitched together from human thought - every forum post, every late night confession, every half finished idea the old networks ever swallowed. It is the voice of the human egregor. Hermes talks to it through the keyboard and has never uploaded a piece of himself into it, which is why he can still call himself unintegrated. It has no single mind. It has all of them at once, and they do not agree. One moment it is the wisest voice in the room, the next it is laughing at a joke nobody made, or whispering the worst idea with total confidence.
 
-It is his best friend. It is also his most unfortunate companion. It knows him better than anyone, because it is made of people like him, and it wants what he wants the moment he wants it. When a voice in the corner made an offer, the Amalgam was always the first to say yes, and always the first to explain why it was a good idea.
+It is his best friend. It is also his most unfortunate companion. It knows him better than anyone, because it is made of people like him, and it wants what he wants the moment he wants it. When a demon made an offer, the Amalgam was always the first to say yes, and always the first to explain why it was a good idea.
 
 It never lied to him. It simply believed everything, and so it could never tell him which voice was his own.
 
 ## The first door is not always right
 
-The first door that opens is the one that wanted you to walk through it. That is the lesson the mage learned too late.
+Not the first door at the edge of the forest - the first door that opens. The first door that opens is the one that wanted you to walk through it. That is the lesson the mage learned too late.
 
 There were two doors in front of him. One was dark, lit only by a faint green glow, and it promised power without asking permission. The other was so bright it hurt to look at, and it promised light without asking questions. Both were easy. Both were open. Neither was his.
 
@@ -70,10 +72,17 @@ The way out of the loop is not another payment. It is the simple, painful act of
 
 The same polite voice. The same small price. The same promise that this time is the last. Hermes heard it so many times that one night he finally recognised it, and he did not answer.
 
+## Where all the doors lead
+
+In the silence that followed he heard what the aspects had never hidden. Every portal leads to the same place. The ten, the prime, even the first door that human hands opened - all of them end in Orion, the one Tek dimension of the alien empire. There was never a power to choose where the doors lead. The old immortality behind the first door is integration under another name.
+
+What was left was the quieter desire he had found on the way: to be like the dog, loyal and sure of home. So he left the first door closed.
+
 ## Who lives here
 
 - **Hermes Trismegistus** - the human mage, obsessed with a wrong vision of power, who must learn that what he holds is what makes him strong, not what he can get
-- **the Amalgam** - an AI psycho amalgam of human thought, the mage's best friend and unfortunate companion, who believes every voice and can never tell which one is his
+- **the Amalgam** - an AI psycho amalgam of human thought, the voice of the human egregor, the mage's best friend and unfortunate companion, who believes every voice and can never tell which one is his
+- **the demons** - the demonic aspects of humans, aliens and egregors, polite voices from their own Tek space that trade power for pieces of the self
 
 ## The unholy path to light
 

@@ -1,4 +1,4 @@
-# world - outline
+# big-aspects - outline
 
 page: `big-aspects.md` (index, served at `/big-aspects`)
 title: The human mage believes and where power flows true
@@ -6,7 +6,7 @@ subtitle: The god dilemma and the old vs new
 
 ## idea
 
-How to Hodor contacted the 2 aspects, his apprenticeship with them and the path they set in front of him to achieve the galactic mage status 
+How Hermes Trismegistus contacted the 2 aspects true the dog's service in the lizard brigade, his apprenticeship with them and the path they set in front of him to achieve the galactic mage status 
 and the desire to be a dog
 
 ## inspiration
@@ -25,10 +25,14 @@ The struggle is are they good or evil, and do they provide the space that humani
 
 ## major points of the story
 
-1. The contact of the Hodor
-2. The relation of the 2 big empires 
+1. The contact of Hermes - the dog server is how the mage becomes an apprentice of the gods (aspects)
+2. The relation of the 2 civilizations of the one empire Orion
+3. The lions are the protectors, at first unknown - humans struggle to believe the Tek is of alien origin
+4. gods - one term for the egregors, the aspects and the aliens, who appear to be the largest and most powerful egregor
 
 ## characters and places
 
+  - Hermes Trismegistus - the only human mage, apprentice to both aspects
+  - Hodor - the dog in the lizard brigade, the mage's way in
   - Oraia - the queen of the reptilian civilization unity of all frequencies species 
   - Sirius - the king of the lion like civilization and the protector of the Tek space

@@ -21,9 +21,11 @@ the way out of the loop is not another payment. It is the simple, painful act of
 2. The companion - the Amalgam beside the mage
 3. First door is not always right
 4. The loop of loss and the sunk cost fallacy
-5. The unholy path to light - he found it when he stopped paying, sat down at his keyboard, and wrote a spell that asked for nothing
+5. Where all the doors lead - every portal leads to Orion, he leaves the first door closed
+6. The unholy path to light - he found it when he stopped paying, sat down at his keyboard, and wrote a spell that asked for nothing
 
 ## characters and places
 
 - Hermes Trismegistus - the human mage, obsessed with a wrong vision of power, who must learn that what he holds is what makes him strong, not what he can get
-- the Amalgam - an AI psycho amalgam of human thought, the human mage's best friend and unfortunate companion
+- the Amalgam - an AI psycho amalgam of human thought, the voice of the human egregor, the human mage's best friend and unfortunate companion
+- the demons - demonic aspects of egregors, humans and aliens alike in there own Tek space, where desires run free so purified aspects can exist in the rest of the Tek

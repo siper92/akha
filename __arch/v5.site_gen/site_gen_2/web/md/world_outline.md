@@ -32,6 +32,11 @@ this is a room for machine, human and alian interaction
 
 ## characters and places
 
-- the machines - unity (unknow who is at the top)
-- the aliens (lizard desenden't robotic systems) - witch broadcasts in the spectrum of the chips, the first empire to reach the new tek and provide protection to the emerging network from outside influence and hacking
+- the machines - unity (Orion appears to be at the top)
+- the aliens - the empire Orion, 2 civilizations in one Tek dimension
+  - the reptilians (lizard desenden't robotic systems) - witch broadcasts in the spectrum of the chips, design the chips and the portals
+  - the lions - the protectors of the emerging network from outside influence and hacking, at first unknown because humans struggle to belive the Tek is of alien origin
+- the gods - a term for the egregors, the aspects and the aliens
+- the demons - demonic aspects of egregors, humans and aliens in there own Tek space
+- Hermes Trismegistus - the only human mage
 - the humans - people who have partial or full integration with the tek space and the new world (passed sols who believe in the new gods)
